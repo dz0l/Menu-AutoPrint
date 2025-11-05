@@ -1,0 +1,2150 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Формирование меню и печать</title>
+  <style>
+    /* ========== БАЗОВЫЕ ПЕРЕМЕННЫЕ (Slate Ocean по умолчанию) ========== */
+    :root {
+      --bg: #0b1220;
+      --panel: #0e1629;
+      --card: #0c1426;
+      --border: #1b2a45;
+      --text: #e9edf5;
+      --muted: #9fb1c9;
+      --accent: #22c55e;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+    }
+
+    /* ========== РЕСЕТ/БАЗА ========== */
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      letter-spacing: .1px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 12px 16px;
+      background: linear-gradient(180deg, rgba(17, 24, 39, .92), rgba(17, 24, 39, .88));
+      border-bottom: 1px solid rgba(155, 175, 205, .08);
+      backdrop-filter: saturate(120%) blur(6px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .22);
+      position: relative;
+      z-index: 2000;
+      /* чтобы меню было выше контента */
+    }
+
+    .title {
+      font-weight: 700;
+      font-size: 19px;
+      letter-spacing: .2px
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .hint {
+      font-size: 12px;
+      color: #9ca3af
+    }
+
+    .grow {
+      flex: 1
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      padding: 16px
+    }
+
+    @media (max-width:1000px) {
+      main {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .panel {
+      background: radial-gradient(120% 120% at 0% 0%, rgba(255, 255, 255, .02), transparent) var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, .25), inset 0 1px 0 rgba(255, 255, 255, .03);
+      transition: box-shadow .25s ease, transform .06s ease;
+    }
+
+    .panel:hover {
+      box-shadow: 0 14px 32px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .04)
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 16.5px;
+      letter-spacing: .2px
+    }
+
+    /* ========== КНОПКИ ========== */
+    .btn,
+    .icon-btn {
+      --btn-f: var(--accent);
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px solid color-mix(in oklab, var(--btn-f) 30%, black);
+      background: linear-gradient(180deg,
+          color-mix(in oklab, var(--btn-f) 24%, #0b1220),
+          color-mix(in oklab, var(--btn-f) 16%, #0b1220));
+      color: #eafff2;
+      box-shadow: 0 6px 18px rgba(34, 197, 94, .18);
+      cursor: pointer;
+      transition: transform .06s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease;
+    }
+
+    .icon-btn {
+      padding: 8px 10px
+    }
+
+    .btn:hover,
+    .icon-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(34, 197, 94, .24)
+    }
+
+    .btn:active,
+    .icon-btn:active {
+      transform: translateY(0)
+    }
+
+    .btn:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      box-shadow: none
+    }
+
+    .btn.ghost {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+      color: var(--text);
+      border: 1px solid rgba(155, 175, 205, .20);
+      box-shadow: none;
+    }
+
+    .btn.secondary {
+      --btn-f: #60a5fa;
+      color: #eaf2ff;
+      box-shadow: 0 6px 18px rgba(96, 165, 250, .16)
+    }
+
+    .btn.warn {
+      --btn-f: var(--warn);
+      color: #fff6e6
+    }
+
+    .btn.danger {
+      --btn-f: var(--danger);
+      color: #ffe7e7
+    }
+
+    /* Фокус-кольца (по умолчанию, тёмная тема) */
+    .btn:focus-visible,
+    .icon-btn:focus-visible,
+    .gear:focus-visible,
+    .menu-item:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: 2px solid color-mix(in oklab, var(--accent) 65%, white);
+      outline-offset: 2px;
+      border-color: color-mix(in oklab, var(--accent) 40%, var(--border));
+    }
+
+    /* Чипы/бейджи */
+    .badge {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      color: color-mix(in oklab, var(--muted) 92%, white);
+      background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
+      border: 1px solid rgba(155, 175, 205, .25);
+    }
+
+    /* ========== ПОЛЯ ВВОДА ========== */
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    select {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .02), rgba(255, 255, 255, 0)) var(--card);
+      color: var(--text);
+      border: 1px solid rgba(155, 175, 205, .22);
+      border-radius: 12px;
+      padding: 10px;
+      transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 200px;
+      resize: vertical
+    }
+
+    input[type="text"]:hover,
+    input[type="number"]:hover,
+    textarea:hover,
+    select:hover {
+      border-color: rgba(155, 175, 205, .34)
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    textarea:focus,
+    select:focus {
+      box-shadow: 0 0 0 6px rgba(34, 197, 94, .08);
+      border-color: color-mix(in oklab, var(--accent) 34%, var(--border));
+    }
+
+    select {
+      padding: 6px 10px;
+      font-size: 14px;
+      cursor: pointer
+    }
+
+    /* ========== ПОДСКАЗКИ / ДРОПДАУНЫ ========== */
+    .gear-wrap {
+      position: relative
+    }
+
+    .dropdown,
+    .suggest {
+      position: absolute;
+      border: 1px solid rgba(155, 175, 205, .25);
+      border-radius: 12px;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, .45);
+      backdrop-filter: blur(8px) saturate(120%);
+    }
+
+    .dropdown {
+      right: 0;
+      top: 44px;
+      width: 260px;
+      padding: 8px;
+      display: none;
+      z-index: 3000;
+      max-height: 70vh;          /* ограничиваем высоту окна */
+      overflow-y: auto;          /* включаем вертикальную прокрутку */
+    }
+
+    .menu-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      background: none;
+      border: none;
+      color: var(--text);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .15s ease;
+    }
+
+    .menu-item:hover {
+      background: rgba(96, 165, 250, .10)
+    }
+
+    .menu-item+.menu-item {
+      margin-top: 6px;
+      border-top: 1px solid rgba(155, 175, 205, .18);
+      padding-top: 12px
+    }
+
+    .menu-item.danger {
+      color: #fca5a5
+    }
+
+    .gear {
+      cursor: pointer;
+      padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text);
+      transition: background .2s ease, border-color .2s ease;
+    }
+
+    .gear[aria-expanded="true"] {
+      background: rgba(255, 255, 255, .04)
+    }
+
+    .suggest {
+      max-height: 220px;
+      overflow: auto;
+      padding: 6px 0;
+      display: none;
+      z-index: 1200;
+      background: linear-gradient(180deg, rgba(11, 18, 32, .98), rgba(11, 18, 32, .96));
+    }
+
+    .suggest ul {
+      list-style: none;
+      padding: 0;
+      margin: 0
+    }
+
+    .suggest li {
+      padding: 6px 10px;
+      white-space: nowrap;
+      cursor: pointer;
+      border-radius: 8px
+    }
+
+    .suggest li.active,
+    .suggest li:hover {
+      background: rgba(96, 165, 250, .16)
+    }
+
+    /* ========== БАННЕР ПРОВЕРКИ ========== */
+    .review-banner {
+      display: none;
+      background: linear-gradient(180deg, rgba(13, 25, 48, .9), rgba(13, 25, 48, .86));
+      border: 1px dashed rgba(155, 175, 205, .35);
+      border-radius: 12px;
+      padding: 8px 10px;
+      color: #cbd5e1;
+    }
+
+    .review-banner .pill {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(155, 175, 205, .28);
+      background: rgba(255, 255, 255, .03);
+      margin-right: 6px;
+      font-size: 12px;
+    }
+
+    .pill.ok {
+      color: #86efac
+    }
+
+    .pill.warn {
+      color: #fde68a
+    }
+
+    .pill.err {
+      color: #fecaca
+    }
+
+    /* ========== ПРЕДПРОСМОТР ========== */
+    .preview {
+      background: linear-gradient(180deg, #0a1326, #0a0f20);
+      border: 1px solid rgba(155, 175, 205, .20);
+      border-radius: 14px;
+      padding: 12px;
+      min-height: 240px;
+      white-space: pre-wrap;
+      text-align: center;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .03);
+    }
+
+    .preview-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    @media (max-width:1100px) {
+      .preview-wrap {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .footerbar {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 10px 16px;
+      color: var(--muted)
+    }
+
+    .version {
+      position: fixed;
+      bottom: 8px;
+      left: 10px;
+      font-size: 12px;
+      color: #6b7280;
+      opacity: .75;
+      pointer-events: none;
+      user-select: none
+    }
+
+    /* ========== ТАБЛИЦЫ (editor.html) ========== */
+    table {
+      width: 100%;
+      border: 1px solid rgba(155, 175, 205, .22);
+      border-radius: 12px;
+      border-collapse: separate;
+      border-spacing: 0;
+      overflow: hidden
+    }
+
+    thead th {
+      position: sticky;
+      top: 0;
+      background: linear-gradient(180deg, #0d1930, #0b162b);
+      font-weight: 600;
+      padding: 8px;
+      text-align: left;
+      border-bottom: 1px solid rgba(155, 175, 205, .25);
+    }
+
+    tbody td {
+      border-bottom: 1px solid rgba(155, 175, 205, .16);
+      padding: 6px
+    }
+
+    tbody tr:nth-child(odd) {
+      background: rgba(255, 255, 255, .02)
+    }
+
+    tbody tr:hover td {
+      background: rgba(96, 165, 250, .06)
+    }
+
+    tbody tr .cell {
+      display: flex;
+      gap: 6px;
+      align-items: center
+    }
+
+    .num {
+      width: 80px
+    }
+
+    .cat {
+      width: 130px
+    }
+
+    tbody tr.dup td {
+      background: rgba(245, 158, 11, 0.08)
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      margin-left: 6px;
+      font-size: 11px
+    }
+
+    /* ========== ПЕЧАТЬ ========== */
+    @media print {
+
+      header,
+      .footerbar,
+      #toast-container,
+      .dropdown {
+        display: none !important
+      }
+
+      body {
+        background: #fff;
+        color: #000
+      }
+
+      .print-page {
+        page-break-after: always;
+        width: 210mm;
+        min-height: 297mm;
+        padding: 12mm;
+        box-sizing: border-box;
+        position: relative
+      }
+
+      .print-bg {
+        position: absolute;
+        inset: 0;
+        background-size: cover;
+        background-position: center;
+        opacity: .18
+      }
+
+      .print-content {
+        text-align: center;
+        position: relative;
+        z-index: 1;
+        font-size: 12.5pt;
+        line-height: 1.25;
+        white-space: pre-wrap
+      }
+    }
+
+    /* ========== МОБИЛЬНАЯ ПОЛИРОВКА ========== */
+    @media (max-width:740px) {
+
+      .btn,
+      .icon-btn {
+        padding: 7px 10px;
+        border-radius: 10px
+      }
+
+      .badge {
+        padding: 3px 8px
+      }
+
+      .panel {
+        border-radius: 14px
+      }
+    }
+
+    /* ========== ТЕМЫ (через data-theme на <html>) ========== */
+    /* Светлая — Frosted Glass */
+    :root[data-theme="frosted-glass"] {
+      --bg: #eef3f8;
+      --panel: #f7f9fc;
+      --card: #ffffff;
+      --border: #d6deea;
+      --text: #0b1220;
+      --muted: #5b6c82;
+      --accent: #2563eb;
+      --danger: #dc2626;
+      --warn: #d97706;
+    }
+
+
+    /* Светлые слои */
+    [data-theme="frosted-glass"] header {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .92), rgba(255, 255, 255, .88));
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: saturate(140%) blur(8px);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, .10);
+    }
+
+    [data-theme="frosted-glass"] .panel {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .86), rgba(255, 255, 255, .82)) var(--card);
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, .08), inset 0 1px 0 rgba(255, 255, 255, .6);
+    }
+
+    [data-theme="frosted-glass"] .dropdown,
+    [data-theme="frosted-glass"] .suggest {
+      background: var(--card) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--text);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, .10);
+      backdrop-filter: blur(8px) saturate(120%);
+    }
+
+    [data-theme="frosted-glass"] .suggest li.active,
+    [data-theme="frosted-glass"] .suggest li:hover {
+      background: color-mix(in oklab, var(--focus) 14%, #fff);
+      /* ✱ LIGHT-THEME TWEAK */
+    }
+
+    [data-theme="frosted-glass"] .preview {
+      background: #fff;
+      border-color: var(--border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7);
+    }
+
+    [data-theme="frosted-glass"] thead th {
+      background: color-mix(in oklab, var(--panel) 92%, #fff);
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
+    }
+
+    [data-theme="frosted-glass"] tbody tr:nth-child(odd) {
+      background: #f8fafc
+    }
+
+    /* Кнопки под светлую тему */
+    :root[data-theme="frosted-glass"] .btn,
+    :root[data-theme="frosted-glass"] .icon-btn {
+      background: linear-gradient(180deg,
+          color-mix(in oklab, var(--accent) 12%, #ffffff),
+          color-mix(in oklab, var(--accent) 6%, #ffffff));
+      border-color: color-mix(in oklab, var(--accent) 40%, #00000020);
+      color: #0b1220;
+      box-shadow: 0 6px 16px color-mix(in oklab, var(--accent) 18%, transparent);
+    }
+
+    :root[data-theme="frosted-glass"] .btn:hover,
+    :root[data-theme="frosted-glass"] .icon-btn:hover {
+      box-shadow: 0 10px 20px color-mix(in oklab, var(--accent) 24%, transparent);
+    }
+
+    :root[data-theme="frosted-glass"] .btn.ghost {
+      background: linear-gradient(180deg, rgba(0, 0, 0, .02), rgba(0, 0, 0, .01));
+      border-color: var(--border);
+      color: var(--text);
+    }
+
+    /* ✱ LIGHT-THEME TWEAK: читаемое меню настроек в светлой теме */
+    [data-theme="frosted-glass"] .menu-item {
+      color: var(--text);
+      /* вместо #e5e7eb */
+    }
+
+    /* ✱ LIGHT-THEME TWEAK: баннер проверки и «пилюли» */
+    [data-theme="frosted-glass"] .review-banner {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .92), rgba(255, 255, 255, .88));
+      border: 1px dashed var(--border);
+      color: var(--text);
+    }
+
+    [data-theme="frosted-glass"] .review-banner .pill {
+      background: linear-gradient(180deg, rgba(0, 0, 0, .02), rgba(0, 0, 0, .01));
+      border-color: var(--border);
+      color: var(--muted);
+    }
+
+    /* Цветные варианты «пилюль» на светлой теме — с мягким фоном */
+    [data-theme="frosted-glass"] .review-banner .pill.ok {
+      color: #166534;
+      /* зелёный 700 */
+      background: rgba(34, 197, 94, .12);
+      border-color: rgba(34, 197, 94, .35);
+    }
+
+    [data-theme="frosted-glass"] .review-banner .pill.warn {
+      color: #92400e;
+      /* янтарный 700 */
+      background: rgba(245, 158, 11, .14);
+      border-color: rgba(245, 158, 11, .38);
+    }
+
+    [data-theme="frosted-glass"] .review-banner .pill.err {
+      color: #991b1b;
+      /* красный 700 */
+      background: rgba(239, 68, 68, .14);
+      border-color: rgba(239, 68, 68, .38);
+    }
+
+    [data-theme="frosted-glass"] .menu-item:hover {
+      background: color-mix(in oklab, var(--focus) 10%, #ffffff);
+    }
+
+    [data-theme="frosted-glass"] .menu-item+.menu-item {
+      border-top: 1px solid var(--border);
+    }
+
+    /* ✱ LIGHT-THEME TWEAK: синий фокус-контур вместо зелёного */
+    [data-theme="frosted-glass"] .btn:focus-visible,
+    [data-theme="frosted-glass"] .icon-btn:focus-visible,
+    [data-theme="frosted-glass"] .gear:focus-visible,
+    [data-theme="frosted-glass"] .menu-item:focus-visible,
+    [data-theme="frosted-glass"] input:focus-visible,
+    [data-theme="frosted-glass"] textarea:focus-visible,
+    [data-theme="frosted-glass"] select:focus-visible {
+      outline: 2px solid color-mix(in oklab, var(--focus) 80%, white);
+      outline-offset: 2px;
+      border-color: color-mix(in oklab, var(--focus) 42%, var(--border));
+    }
+
+    /* ✱ LIGHT-THEME TWEAK: активные/зажатые кнопки без «зеленой обводки» */
+    :root[data-theme="frosted-glass"] .btn[aria-pressed="true"],
+    :root[data-theme="frosted-glass"] .btn.active {
+      outline: none;
+      border-color: var(--focus);
+      box-shadow: 0 0 0 3px var(--btn-active-ring),
+        0 6px 16px color-mix(in oklab, var(--focus) 18%, transparent);
+      background: var(--btn-active-bg);
+      color: var(--text);
+    }
+
+    /* ✱ LIGHT-THEME TWEAK: поля ввода — синий подсвет фокуса */
+    [data-theme="frosted-glass"] input[type="text"]:focus,
+    [data-theme="frosted-glass"] input[type="number"]:focus,
+    [data-theme="frosted-glass"] textarea:focus,
+    [data-theme="frosted-glass"] select:focus {
+      box-shadow: 0 0 0 6px rgba(2, 75, 232, 0.12);
+      border-color: color-mix(in oklab, var(--focus) 34%, var(--border));
+    }
+
+    /* Крошечная кнопка темы (иконка) */
+    .theme-btn {
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      cursor: pointer
+    }
+
+    .theme-btn:hover {
+      background: color-mix(in oklab, var(--panel) 8%, transparent)
+    }
+
+    /* Мини-переключатель kcal (оставляем поведение; для светлой темы обводка будет мягче через общие правила) */
+    #btnKcal[aria-pressed="true"] {
+      border-color: color-mix(in oklab, var(--accent) 45%, black);
+      box-shadow: 0 6px 18px rgba(34, 197, 94, .18);
+    }
+
+    #btnKcal[aria-pressed="false"] {
+      background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+      color: var(--text);
+      box-shadow: none;
+      border-color: rgba(155, 175, 205, .25);
+      opacity: .9;
+    }
+
+    /* ======= MODAL (подтверждение замен) ======= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, .45);
+      z-index: 4000;
+    }
+
+    .modal {
+      width: min(560px, calc(100vw - 28px));
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .04);
+      overflow: hidden;
+    }
+
+    .modal header {
+      padding: 12px 14px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .modal .body {
+      padding: 12px 14px;
+      line-height: 1.4
+    }
+
+    .modal .old,
+    .modal .new {
+      padding: 8px 10px;
+      border-radius: 10px;
+      margin: 6px 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, .03), rgba(255, 255, 255, .01));
+      border: 1px solid rgba(155, 175, 205, .22);
+      white-space: pre-wrap;
+    }
+
+    .modal .new {
+      outline: 2px solid color-mix(in oklab, var(--accent) 35%, white);
+      outline-offset: 2px
+    }
+
+    .modal footer {
+      padding: 10px 12px;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      border-top: 1px solid var(--border)
+    }
+
+    .modal .btn-row {
+      display: flex;
+      gap: 8px
+    }
+
+    .modal .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-right: auto
+    }
+
+    /* Светлая тема — те же цвета, просто фон чуть светлее */
+    [data-theme="frosted-glass"] .modal {
+      background: #fff;
+      border-color: var(--border);
+      box-shadow: 0 22px 54px rgba(0, 0, 0, .16), inset 0 1px 0 rgba(255, 255, 255, .7);
+    }
+
+    [data-theme="frosted-glass"] .modal .old,
+    [data-theme="frosted-glass"] .modal .new {
+      background: linear-gradient(180deg, rgba(0, 0, 0, .02), rgba(0, 0, 0, .01));
+      border-color: var(--border);
+    }
+
+    /* Хвост (последнее слово + скобки) переносится целиком */
+    .tail {
+      display: inline-block
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <header>
+    <div class="title">Формирование меню</div>
+    <div class="row">
+      <button class="btn" id="btnLoadBase" title="Загрузить CSV с базой блюд">Подключить базу</button>
+      <span id="baseStatus" class="badge">База: не загружена</span>
+      <input type="file" id="fileBase" accept=".csv" style="display:none">
+      <button class="btn" id="btnLoadCover" title="Выбрать изображение подложки для печати">Подложка</button>
+      <span id="coverStatus" class="badge">Фон: нет</span>
+      <input type="file" id="fileCover" accept="image/*" style="display:none">
+      <button class="btn" id="btnSendMissing" title="Быстрое добавление новых блюд в базу" disabled>Добавить в
+        базу</button>
+      <button class="btn" id="btnFixGr" title="Открыть редактор для заполнения граммовок" disabled>Исправить
+        граммовки</button>
+    </div>
+
+    <!-- ▼ Новый блок управления печатью -->
+    <div class="row">
+      <!-- ▸ мини‑кнопка kcal on/off -->
+      <label class="muted">Дата:
+        <select id="printDateMode">
+          <option value="today" selected>сегодня</option>
+          <option value="tomorrow">завтра</option>
+          <option value="custom">выбрать…</option>
+        </select>
+      </label>
+      <input type="date" id="printDate" style="display:none">
+      <button class="btn" id="btnPrint" title="Открыть предпросмотр печати">Печать</button>
+    </div>
+
+    <!-- Шестерёнка -->
+    <div class="gear-wrap">
+      <button class="icon-btn" id="btnGear" aria-haspopup="menu" aria-expanded="false" title="Настройки">⚙️</button>
+      <div id="settingsMenu" class="dropdown" role="menu" aria-label="Настройки">
+        <button class="menu-item" id="miEditor">Открыть редактор базы</button>
+        <button class="menu-item" id="miDownloadCsv">Скачать CSV (из текущей базы)</button>
+        <button class="menu-item" id="miRefreshCache">Обновить кэш</button>
+        <label class="menu-item"><input type="checkbox" id="chkKcal" style="margin-right:8px"> Скрыть калл. и
+          гр.</label>
+        <label class="menu-item"><input type="checkbox" id="chkWrap" style="margin-right:8px" checked> Перенос
+          строк</label>
+      </div>
+      <button class="theme-btn" id="btnTheme" title="Сменить тему">🌓</button>
+    </div>
+    </div>
+  </header>
+  <main>
+    <section class="panel">
+      <h2>Меню RU</h2>
+      <textarea id="taRU" placeholder="Каждое блюдо — с новой строки"></textarea>
+      <div id="suggRU" class="suggest" role="listbox" aria-expanded="false"></div>
+      <div class="review-banner" id="reviewBanner">
+        <span class="pill ok" id="rvOk">Автопривязано: 0</span>
+        <span class="pill warn" id="rvRev">Нужно проверить: 0</span>
+        <span class="pill err" id="rvUnk">Не найдено: 0</span>
+        <button class="btn ghost" id="btnReview">Проверить совпадения</button>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Меню EN (Автоматически)</h2>
+      <textarea id="taEN" placeholder="EN генерируется автоматически из базы" readonly></textarea>
+    </section>
+
+    <section id="previewSection" class="panel" style="grid-column:1/-1">
+      <h2>Предпросмотр</h2>
+      <div class="row" style="margin-bottom:6px">
+        <label class="muted"><input type="checkbox" id="chkAuto" checked> Автообновление</label>
+        <span class="grow"></span>
+      </div>
+      <div class="preview-wrap">
+        <div id="previewRU" class="preview"></div>
+        <div id="previewEN" class="preview"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footerbar">
+    <span class="muted">Статус: <span id="statusText">Готов</span></span>
+  </div>
+  <div class="version" id="appVersion">v?</div>
+  <!-- ======= CONFIRM MODAL ======= -->
+  <div id="confirmModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="modal" role="document">
+      <header>Подтверждение замены</header>
+      <div class="body">
+        <div class="hint">Проверка строки <span id="cmIndex">1</span></div>
+        <div>Текущее название:</div>
+        <div class="old" id="cmOld"></div>
+        <div>Предлагаемая замена:</div>
+        <div class="new" id="cmNew"></div>
+        <div class="hint">Заменить?</div>
+      </div>
+      <footer>
+        <span class="hint">Enter — Да, Esc — Нет</span>
+        <div class="btn-row">
+          <button class="btn" id="cmYes">Да</button>
+          <button class="btn secondary" id="cmYesAll">Да для всех</button>
+          <button class="btn ghost" id="cmNo">Нет</button>
+        </div>
+      </footer>
+    </div>
+  </div>
+  <script type="module">
+    // Бустим только если метка свежая (< 2 мин)
+    const _b = parseInt(localStorage.getItem('force_bust') || '0', 10);
+    const _fresh = _b && (Date.now() - _b) < 120000; // 120000 мс = 2 минуты
+    const _utilsUrl = `./utils.js${_fresh ? `?bust=${_b}` : ''}`;
+
+    // ВСЕГДА импортируем utils динамически (TLA в type="module" поддерживается)
+    const U = await import(_utilsUrl);
+
+    // Инициализация темы через U.*
+    U.initThemeControls(['#btnTheme']);
+
+    /* ========= Глобальное состояние ========= */
+    const state = {
+      rows: [],                      // база: [{ru,en,kcal,catRu,catEn}]
+      idx: null,                     // индексы: { nameToKcalRU, ... }
+      groupsSet: null,
+      groupRuCanon: null,            // карта групп: (clean без ":" ) -> канон с ":"
+      coverUrl: null,
+      missingSet: new Set(),         // строки, где ?? ккал
+      smartDecisions: null,           // результаты умной вставки
+      lastRuLines: []               // последняя версия RU-строк для правильного сдвига EN
+    };
+
+    // Источник текущей базы и свежесть
+    let baseLockTs = 0;          // метка времени принятой базы
+    let baseSource = '';         // 'file' | 'local' | 'data' | 'cloud' | ''
+
+    const SOURCE_PRIORITY = { file: 3, local: 2, data: 1, cloud: 0, '': -1 };
+
+    function adoptBase(rows, source, ts, label) {
+      if (!Array.isArray(rows) || !rows.length) return false;
+      const nextTs = Number(ts || Date.now());
+      const curPr = SOURCE_PRIORITY[baseSource] ?? -1;
+      const nxtPr = SOURCE_PRIORITY[source] ?? -1;
+
+      // Правило: более приоритетный источник всегда заменяет менее приоритетный.
+      // При равном приоритете — берём более "свежую" (ts >= baseLockTs).
+      if (nxtPr < curPr) return false;
+      if (nxtPr === curPr && nextTs < baseLockTs) return false;
+
+      baseSource = source;
+      baseLockTs = nextTs;
+
+      state.rows = rows;
+      state.idx = U.buildNameIndexes(rows);
+      baseStatus.textContent = `База: загружена (${rows.length})${label ? ' — ' + label : ''}`;
+
+      // подтянуть EN и пересчитать
+      fillMissingEnFromBase?.();
+      autoRecalc?.();
+      return true;
+    }
+
+    /* ========= UI элементы ========= */
+    const taRU = document.getElementById('taRU');
+    const taEN = document.getElementById('taEN');
+    const suggRU = document.getElementById('suggRU');
+    const suggEN = document.getElementById('suggEN');
+    const baseStatus = document.getElementById('baseStatus');
+    const coverStatus = document.getElementById('coverStatus');
+    const statusText = document.getElementById('statusText');
+    const versionEl = document.getElementById('appVersion');
+    const btnSendMissing = document.getElementById('btnSendMissing');
+    const btnFixGr = document.getElementById('btnFixGr');
+    const btnGear = document.getElementById('btnGear');
+    const settingsMenu = document.getElementById('settingsMenu');
+    const miEditor = document.getElementById('miEditor');
+    const miDownloadCsv = document.getElementById('miDownloadCsv');
+    const EN_PLACEHOLDER = '???';
+    const btnPrint = document.getElementById('btnPrint');
+    const printDateMode = document.getElementById('printDateMode');
+    const printDateInput = document.getElementById('printDate');
+    /* ======= Подтверждение замен (модалка) ======= */
+    const cmBackdrop = document.getElementById('confirmModal');
+    const cmOld = document.getElementById('cmOld');
+    const cmNew = document.getElementById('cmNew');
+    const cmIdx = document.getElementById('cmIndex');
+    const cmYes = document.getElementById('cmYes');
+    const cmYesAll = document.getElementById('cmYesAll');
+    const cmNo = document.getElementById('cmNo');
+
+    function showReplaceConfirm(oldText, newText, indexHuman) {
+      return new Promise(resolve => {
+        cmOld.textContent = oldText;
+        cmNew.textContent = newText;
+        cmIdx.textContent = indexHuman ?? '';
+        cmBackdrop.style.display = 'flex';
+        cmBackdrop.setAttribute('aria-hidden', 'false');
+
+        const onYes = () => cleanup('yes');
+        const onYesAll = () => cleanup('all');
+        const onNo = () => cleanup('no');
+        const onKey = (e) => {
+          if (e.key === 'Enter') { e.preventDefault(); cleanup('yes'); }
+          else if (e.key === 'Escape') { e.preventDefault(); cleanup('no'); }
+        };
+        function cleanup(result) {
+          cmBackdrop.style.display = 'none';
+          cmBackdrop.setAttribute('aria-hidden', 'true');
+          cmYes.removeEventListener('click', onYes);
+          cmYesAll.removeEventListener('click', onYesAll);
+          cmNo.removeEventListener('click', onNo);
+          document.removeEventListener('keydown', onKey);
+          resolve(result);
+        }
+
+        cmYes.addEventListener('click', onYes);
+        cmYesAll.addEventListener('click', onYesAll);
+        cmNo.addEventListener('click', onNo);
+        document.addEventListener('keydown', onKey);
+      });
+    }
+
+    printDateMode?.addEventListener('change', () => {
+      printDateInput.style.display = (printDateMode.value === 'custom') ? 'inline-block' : 'none';
+    });
+
+    // === КАЛОРИИ: чекбокс в меню настроек ===
+    const HIDE_KEY = 'menu_hide_kcalgr';          // ключ: 1 = скрывать, 0 = показывать
+    const LEGACY_KEY = 'print_kcal_enabled';      // ключ для миграции
+    const chkKcal = document.getElementById('chkKcal');
+
+    if (chkKcal) {
+      // Дефолт: ВЫКЛЮЧЕНО.
+      // Если есть новый ключ — используем его.
+      // Если есть только старый ключ — мигрируем его значение как есть.
+      const savedNew = localStorage.getItem(HIDE_KEY);
+      const savedOld = localStorage.getItem(LEGACY_KEY);
+      const initialChecked =
+        (savedNew !== null) ? (savedNew === '1')
+          : (savedOld !== null) ? (savedOld === '1')
+            : false; // дефолт: выключено
+
+      chkKcal.checked = initialChecked;
+
+      chkKcal.addEventListener('change', () => {
+        // Пишем только в новый ключ
+        localStorage.setItem(HIDE_KEY, chkKcal.checked ? '1' : '0');
+        localStorage.removeItem(LEGACY_KEY);
+
+        // Перестроить предпросмотр, если он включён
+        const optPrevEl = document.getElementById('optPreview');
+        if (!optPrevEl || optPrevEl.checked) {
+          U.withPerf('preview-kcal-toggle', buildPreview);
+        }
+      });
+    }
+
+    // Доступ из остального кода:
+    function getPrintKcalEnabled() {
+      // true = показывать (чекбокс "Скрыть калл. и гр." НЕ отмечен)
+      return !(chkKcal?.checked ?? false);
+    }
+
+
+    // Инициализируем дату по умолчанию
+    versionEl.textContent = U.APP_VERSION;
+
+    /* ========= Хоткеи ========= */
+    U.initHotkeys(document);
+    U.bindHotkey('ctrl+b', () => document.getElementById('btnLoadBase').click());
+    U.bindHotkey('ctrl+g', () => document.getElementById('btnLoadCover').click());
+    U.bindHotkey('ctrl+p', () => window.print());
+
+    /* ========= Меню шестерёнки ========= */
+  btnGear.addEventListener('click', () => {
+    const open = settingsMenu.style.display === 'block';
+    if (open) {
+      settingsMenu.style.display = 'none';
+      btnGear.setAttribute('aria-expanded', 'false');
+      return;
+    }
+
+    // открыть
+    settingsMenu.style.display = 'block';
+    btnGear.setAttribute('aria-expanded', 'true');
+
+    // адаптация позиции: если низ меню ниже окна — «прижимаем» меню к низу кнопки
+    const rect = settingsMenu.getBoundingClientRect();
+    const over = rect.bottom - window.innerHeight;
+    if (over > 0) {
+      // вместо фиксированного top используем bottom от кнопки
+      settingsMenu.style.top = 'auto';
+      settingsMenu.style.bottom = '44px';
+    } else {
+      // возвращаем стандартную позицию, если всё помещается
+      settingsMenu.style.bottom = 'auto';
+      settingsMenu.style.top = '44px';
+    }
+  });
+
+    document.addEventListener('click', (e) => {
+      if (e.target === btnGear || settingsMenu.contains(e.target)) return;
+      settingsMenu.style.display = 'none';
+      btnGear.setAttribute('aria-expanded', 'false');
+    });
+
+    miEditor.addEventListener('click', () => {
+      // Открываем редактор базы (полная страница)
+      location.href = 'editor.html';
+    });
+
+    miDownloadCsv.addEventListener('click', () => {
+      const count = Array.isArray(state.rows) ? state.rows.length : 0;
+      if (!count) {
+        U.showToast('База не загружена', 'warn');
+        return;
+      }
+
+      // Синхронизируем бейдж с фактическим состоянием
+      if (typeof baseStatus !== 'undefined' && baseStatus) {
+        baseStatus.textContent = `База: загружена (${count})`;
+      }
+
+      const rows = state.rows.map(r => [
+        r.ru || '', r.en || '', r.kcal || '', r.catRu || '', r.catEn || '', r.gr || ''
+      ]);
+      const csv = U.toCsvSemicolon(rows, ['ru', 'en', 'kcal', 'catRu', 'catEn', 'gr']);
+      U.downloadText('calories.csv', csv);
+
+      // Показать, сколько строк выгрузили
+      U.showToast(`Экспортировано строк: ${count}`, 'success');
+    });
+
+    // Обновить кэш и перезагрузить
+    const miRefreshCache = document.getElementById('miRefreshCache');
+    miRefreshCache?.addEventListener('click', async () => {
+      try {
+        // 1) Чистим локальные ключи проекта
+        const keys = [
+          'menu_base_rows_json',
+          'menu_last_ru', 'menu_last_en',
+          'menu_missing_ru',
+          'menu_base_url',
+          'print_kcal_enabled',
+          'preview_enabled',
+          'print_long_mode',
+          'ui_theme',
+          'menu_feature_flags'
+        ];
+        keys.forEach(k => localStorage.removeItem(k));
+      } catch { }
+
+      try {
+        // 2) Если есть CacheStorage — подчистим (это не HTTP-кэш, но помочь может)
+        if (window.caches && typeof caches.keys === 'function') {
+          const names = await caches.keys();
+          await Promise.all(names.map(n => caches.delete(n)));
+        }
+      } catch { }
+
+      // 3) Ставим метку «форс-бастинга» модулей и обычную перезагрузку страницы
+      localStorage.setItem('force_bust', Date.now().toString());
+      location.replace(location.href);
+    });
+
+    /* ========= Загрузка базы ========= */
+    // Парсит CSV и обновляет состояние/индексы/статус с учётом приоритета источника
+    // source: 'file' | 'local' | 'data' | 'cloud' (по умолчанию 'data')
+    async function setBaseFromCsvText(text, source = 'data') {
+      // Приоритеты источников (чем выше число — тем выше приоритет)
+      const PRIO = { file: 3, local: 2, data: 1, cloud: 0, '': -1 };
+      const curPr = PRIO[baseSource || ''] ?? -1;
+      const newPr = PRIO[source] ?? 1;
+
+      // Если текущая база из более приоритетного источника — не перезаписываем
+      if (newPr < curPr) return;
+      // Если приоритет равный и текущая база уже есть — сохраняем более "свежую"
+      // Считаем входящую базу "свежей" и допустим замену.
+      const rows = U.parseCsvSemicolon(text).map(r => {
+        const [ru, en, kcal, catRu, catEn, gr] = r;
+        return {
+          ru: ru || '',
+          en: en || '',
+          kcal: kcal || '',
+          catRu: catRu || '',
+          catEn: catEn || '',
+          gr: gr || ''
+        };
+      }).filter(x => x.ru || x.en);
+
+      // Применяем базу
+      baseSource = source;
+      baseLockTs = Date.now();
+
+      state.rows = rows;
+      state.idx = U.buildNameIndexes(rows);
+      if (baseStatus) baseStatus.textContent = `База: загружена (${rows.length})`;
+      
+      baseStatus.textContent = `База: загружена (${rows.length})`;
+      // Лейбл-тост по источнику
+      if (source === 'file') {
+        U.showToast(`База загружена из файла: ${rows.length}`, 'success');
+      } else if (source === 'data') {
+        U.showToast(`База загружена из data: ${rows.length}`, 'info');
+      } else if (source === 'cloud') {
+        U.showToast(`База загружена из облака: ${rows.length}`, 'info');
+      } else if (source === 'local') {
+        U.showToast(`База загружена из локального хранилища: ${rows.length}`, 'info');
+      }
+      // Дозаполним EN (где пусто/???), затем пересчёт предпросмотра
+      fillMissingEnFromBase?.();
+      autoRecalc?.();
+    }
+
+    document.getElementById('btnLoadBase').addEventListener('click', () => document.getElementById('fileBase').click());
+    document.getElementById('fileBase').addEventListener('change', async (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      await U.withPerf('load-base', async () => {
+        const text = await f.text();
+        setBaseFromCsvText(text, 'file'); // всегда высший приоритет (ручная загрузка)
+        U.showToast(`База загружена из файла: ${f.name}`, 'success');
+      });
+    });
+
+    /* ========= Загрузка подложки ========= */
+    document.getElementById('btnLoadCover').addEventListener('click', () => document.getElementById('fileCover').click());
+    document.getElementById('fileCover').addEventListener('change', async (e) => {
+      const f = e.target.files?.[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      state.coverUrl = url;
+      coverStatus.textContent = 'Фон: выбран';
+      U.showToast('Подложка применена');
+    });
+
+    /* ========= Подсказки у каретки (RU/EN) ========= */
+    function attachSuggest(textarea, panel, namesSource) {
+      let suppressOnce = false;
+      const lb = U.createListbox(panel, (i, text) => {
+        // заменяем целиком текущую строку выбранным вариантом
+        const val = textarea.value;
+        const pos = textarea.selectionStart;
+        const start = val.lastIndexOf('\n', pos - 1) + 1;
+        const end = val.indexOf('\n', pos);
+        const endPos = end === -1 ? val.length : end;
+        const before = val.slice(0, start);
+        const after = val.slice(endPos);
+        textarea.value = before + text + after;
+        const newCaret = before.length + text.length;
+        textarea.setSelectionRange(newCaret, newCaret);
+        textarea.dispatchEvent(new Event('input'));
+        suppressOnce = true; // не показывать подсказку сразу после выбора
+      });
+
+      const deb = U.debounce(() => {
+        const { selectionStart: pos, value: val } = textarea;
+        if (suppressOnce) { suppressOnce = false; lb.hide(); return; }
+        const start = val.lastIndexOf('\n', pos - 1) + 1;
+        const q = val.slice(start, pos).trim();
+        if (!q) { lb.hide(); return; }
+        const names = typeof namesSource === 'function' ? namesSource() : namesSource;
+        const items = U.suggestRank(q, names || [], 12);
+        if (!items.length) { lb.hide(); return; }
+        // позиционируем у каретки
+        U.positionPanelAtCaret(textarea, panel, 4); // БЫЛО 6
+        lb.render(items);
+      }, 120);
+
+
+      textarea.addEventListener('input', deb);
+      textarea.addEventListener('keydown', (e) => {
+        if (panel.style.display !== 'block') return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); lb.move(1); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); lb.move(-1); }
+        else if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); lb.enter(); }
+        else if (e.key === 'Escape') { lb.hide(); }
+      });
+      document.addEventListener('click', (e) => {
+        if (e.target !== textarea && !panel.contains(e.target)) lb.hide();
+      });
+    }
+
+    attachSuggest(taRU, suggRU, () => state.idx?.RU_NAMES || []);
+
+    /* ========= Умная вставка при paste в RU ========= */
+    const banner = document.getElementById('reviewBanner');
+    const rvOk = document.getElementById('rvOk');
+    const rvRev = document.getElementById('rvRev');
+    const rvUnk = document.getElementById('rvUnk');
+    const btnReview = document.getElementById('btnReview');
+
+    taRU.addEventListener('paste', (e) => {
+      const clip = e.clipboardData?.getData('text/plain');
+      if (!clip || !state.idx) return; // если базы нет — обычная вставка
+      e.preventDefault();
+      const cleaned = clip.replace(/\r/g, '').replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n');
+      // вставляем как есть
+      const { selectionStart: s, selectionEnd: t, value } = taRU;
+      taRU.value = value.slice(0, s) + cleaned + value.slice(t);
+      const newCaret = s + cleaned.length;
+      taRU.setSelectionRange(newCaret, newCaret);
+      taRU.dispatchEvent(new Event('input'));
+
+      // анализ
+      const catalog = state.idx.RU_NAMES || [];
+      state.smartDecisions = U.analyzePasted(taRU.value, catalog);
+
+      // считаем статусы
+      let auto = 0, rev = 0, unk = 0;
+      for (const d of state.smartDecisions) {
+        if (d.status === 'auto') auto++;
+        else if (d.status === 'review') rev++;
+        else if (d.status === 'unknown') unk++;
+      }
+      rvOk.textContent = `Автопривязано: ${auto}`;
+      rvRev.textContent = `Нужно проверить: ${rev}`;
+      rvUnk.textContent = `Не найдено: ${unk}`;
+      banner.style.display = (auto || rev || unk) ? 'block' : 'none';
+    });
+
+    btnReview.addEventListener('click', async () => {
+      if (!state.idx) { U.showToast('Сначала подключите базу', 'warn'); return; }
+
+      const text0 = taRU.value.replace(/\r/g, '');
+      const lines = text0.split('\n');
+
+      // === Построим карту групп на лету ===
+      const groupMap = new Map();
+      for (const r of (state.rows || [])) {
+        const ru = (r?.ru || '').trim();
+        if (ru && /[:：]\s*$/.test(ru)) {
+          const key = U.cleanName(ru).replace(/[:：]$/, '');
+          if (!groupMap.has(key)) groupMap.set(key, ru);
+        }
+      }
+      for (const r of (state.rows || [])) {
+        const cat = (r?.catRu || '').trim();
+        if (!cat) continue;
+        const key = U.cleanName(cat);
+        if (!groupMap.has(key)) {
+          const canon = /[:：]\s*$/.test(cat) ? cat : (cat + ':');
+          groupMap.set(key, canon);
+        }
+      }
+
+      // === Сформируем список кандидатов на замену ===
+      // 1) Кандидаты-группы (без двоеточия)
+      const candidates = [];
+      for (let i = 0; i < lines.length; i++) {
+        const raw = (lines[i] ?? '').trim();
+        if (!raw || /[:：]\s*$/.test(raw)) continue; // пусто или уже группа
+        const key = U.cleanName(raw).replace(/[:：]$/, '');
+        const canonGroup = groupMap.get(key);
+        if (canonGroup && canonGroup !== raw) {
+          candidates.push({ i, type: 'group', old: raw, next: canonGroup });
+        }
+      }
+
+      // 2) Кандидаты-блюда (как раньше — через analyzePasted)
+      const catalog = state.idx.RU_NAMES || [];
+      const decisions = U.analyzePasted(lines.join('\n'), catalog);
+      for (const d of decisions) {
+        if (!d || d.status === 'skip') continue;
+        const i = d.i;
+        const raw = (lines[i] ?? '').trim();
+        if (!raw || /[:：]\s*$/.test(raw)) continue; // группы не трогаем здесь
+        if ((d.status === 'auto' || d.status === 'review') && d.best?.name) {
+          const canon = d.best.name;
+          if (canon && canon !== raw) {
+            candidates.push({ i, type: 'dish', old: raw, next: canon });
+          }
+        }
+      }
+
+      if (!candidates.length) {
+        U.showToast('Нечего обновлять: совпадений с базой не найдено', 'info');
+        return;
+      }
+
+      // === Построчное подтверждение ===
+      // Сортируем по индексу строки, чтобы идти сверху вниз
+      candidates.sort((a, b) => a.i - b.i);
+
+      let changed = 0;
+      let applyAll = false; // флаг "Да для всех"
+      for (const c of candidates) {
+        // За это время строка могла уже измениться предыдущими шагами — освежим old
+        const current = (lines[c.i] ?? '').trim();
+        if (!current) continue;
+
+        // Если эту строку уже привели к нужному виду — пропускаем
+        if (current === c.next) continue;
+
+        // Если это группа, но пользователем уже вручную добавлено ":" — пропускаем
+        if (c.type === 'group' && /[:：]\s*$/.test(current)) continue;
+
+        if (!applyAll) {
+          // Показываем модалку «старое → новое»
+          const lineNumber = (c.i + 1);
+          const decision = await showReplaceConfirm(current, c.next, lineNumber);
+          if (decision === 'no') continue;
+          if (decision === 'all') applyAll = true;
+          // для 'yes' просто продолжим замену
+        }
+
+        // Применяем замену к конкретной строке
+        // Сохраним ведущие/замыкающие пробелы оригинала (если они были)
+        const originalLine = lines[c.i];
+        const m = originalLine.match(/^(\s*)(.*?)(\s*)$/);
+        const lead = m ? m[1] : ''; const trail = m ? m[3] : '';
+        lines[c.i] = lead + c.next + trail;
+        changed++;
+      }
+
+      if (!changed) {
+        U.showToast('Изменений не внесено', 'info');
+        return;
+      }
+
+      // Применяем изменения и запускаем привычные цепочки (EN, предпросмотр, кнопки)
+      const s0 = taRU.selectionStart, s1 = taRU.selectionEnd;
+      taRU.value = lines.join('\n');
+      try { taRU.setSelectionRange(s0, s1); } catch { }
+      taRU.dispatchEvent(new Event('input'));
+
+      // Пересчёт плашек
+      const next = U.analyzePasted(taRU.value, catalog);
+      let auto = 0, rev = 0, unk = 0;
+      for (const d of next) {
+        if (d.status === 'auto') auto++;
+        else if (d.status === 'review') rev++;
+        else if (d.status === 'unknown') unk++;
+      }
+      rvOk.textContent = `Автопривязано: ${auto}`;
+      rvRev.textContent = `Нужно проверить: ${rev}`;
+      rvUnk.textContent = `Не найдено: ${unk}`;
+      banner.style.display = (rev || unk) ? 'block' : 'none';
+
+      U.showToast(`Обновлено позиций: ${changed}`, 'info');
+    });
+
+    function translateRuStrict(ru) {
+      const key = U.cleanName(ru || '');
+      if (!key || !Array.isArray(state.rows)) return EN_PLACEHOLDER;
+      const row = state.rows.find(r => U.cleanName(r.ru || '') === key);
+      return (row && row.en) ? row.en : EN_PLACEHOLDER;
+    }
+    // Дозаполнить EN там, где пусто или "???", по текущей базе (RU→EN)
+    function fillMissingEnFromBase() {
+      if (!state.idx) return;
+      const ruNew = normalizeLines(taRU.value);
+      const enCur = normalizeLines(taEN.value);
+
+      const out = ruNew.map((ru, i) => {
+        const cur = enCur[i] || '';
+        if (!ru) return '';
+        // Группы тоже дозаполняем из базы (в базе у групп есть ru/en строки)
+        const isGroup = /[:：]\s*$/.test(ru);
+        // Заполняем только если EN пусто или "???"
+        if (!cur || cur === EN_PLACEHOLDER) {
+          const byIdx = state.idx.RU2EN?.get(U.cleanName(ru)) || '';
+          const byStrict = translateRuStrict(ru); // фолбэк
+          const best = byIdx || (byStrict !== EN_PLACEHOLDER ? byStrict : '');
+          return best || cur;
+        }
+        // уже есть ручной EN — оставляем как есть
+        return cur;
+      });
+
+      taEN.value = out.join('\n');
+      state.lastRuLines = ruNew; // зафиксируем RU-срез
+      // Пересоберём предпросмотр, если он включен
+      const optPrevEl = document.getElementById('optPreview');
+      if (!optPrevEl || optPrevEl.checked) {
+        U.withPerf('preview-fill-missing-en', buildPreview);
+      }
+      // и доступность кнопки "Добавить в базу"
+      updateMissingBtn();
+    }
+
+    // === Исправляемые блюда (есть в базе, но пустой gr ИЛИ пустой kcal/100г) ===
+    function collectFixablesRU() {
+      const ruLines = normalizeLines(taRU.value);
+      const out = [];
+      const seen = new Set();
+
+      for (const ru of ruLines) {
+        if (!ru || /[:：]\s*$/.test(ru)) continue; // пропускаем группы/пустые
+        const key = U.cleanName(ru);
+        if (!key || seen.has(key)) continue;
+
+        // Блюдо есть в базе?
+        const hasRU2EN = !!state.idx?.RU2EN?.get(key);
+        const hasKcalMapEntry = state.idx?.nameToKcalRU?.has(key) ?? false; // ключ есть
+        const hasGrMapEntry = state.idx?.nameToGrRU?.has(key) ?? false;
+        const inBase = hasRU2EN || hasKcalMapEntry || hasGrMapEntry;
+        if (!inBase) continue; // новое блюдо — не сюда
+        // Пустые значения считаем: null/undefined/'' (в парсинге пустое поле приходит как '')
+        const kcalRaw = hasKcalMapEntry ? state.idx.nameToKcalRU.get(key) : undefined;
+        const grRaw = hasGrMapEntry ? state.idx.nameToGrRU.get(key) : undefined;
+        const emptyKcal = (kcalRaw == null || kcalRaw === '');
+        const emptyGr = (grRaw == null || grRaw === '');
+
+        if (emptyKcal || emptyGr) {
+          out.push(ru);
+          seen.add(key);
+        }
+      }
+      return out;
+    }
+    // === Новые блюда (отсутствуют в базе вообще) ===
+    function collectMissingRU() {
+      const ruLines = normalizeLines(taRU.value);
+      const out = [];
+      const seen = new Set();
+
+      for (const ru of ruLines) {
+        if (!ru || /[:：]\s*$/.test(ru)) continue; // пропускаем группы и пустые
+        const key = U.cleanName(ru);
+        if (!key || seen.has(key)) continue;
+
+        // Признак присутствия в базе: есть RU->EN или есть kcal по RU
+        const inBase =
+          !!(state.idx?.RU2EN?.get(key)) ||
+          (state.idx?.nameToKcalRU?.has(key) ?? false) ||
+          (state.idx?.nameToGrRU?.has(key) ?? false);
+
+        if (!inBase) {
+          out.push(ru);
+          seen.add(key);
+        }
+      }
+      return out;
+    }
+
+    // Доступность кнопок
+    function updateMissingBtn() {
+      const missNew = collectMissingRU();   // новые (нет в базе)
+      const fixables = collectFixablesRU();  // есть в базе, но пустой gr или kcal
+
+      if (typeof btnSendMissing !== 'undefined' && btnSendMissing) {
+        btnSendMissing.disabled = missNew.length === 0;
+        btnSendMissing.title = missNew.length
+          ? `Добавить в базу: ${missNew.length}`
+          : 'Нет новых блюд для добавления';
+      }
+      if (typeof btnFixGr !== 'undefined' && btnFixGr) {
+        btnFixGr.disabled = fixables.length === 0;
+        btnFixGr.textContent = 'Исправить граммовки';
+        btnFixGr.title = fixables.length
+          ? `Исправить данные: ${fixables.length}`
+          : 'Нет блюд с пустой граммовкой/ккал';
+      }
+    }
+
+    /* ========= Пересчёт калорий и предпросмотр ========= */
+   
+    const previewRU = document.getElementById('previewRU');
+    const previewEN = document.getElementById('previewEN');
+
+    // === Тумблер "Предпросмотр" в меню шестерёнки ===
+    const PREVIEW_KEY = 'preview_enabled';
+    const previewSection = document.getElementById('previewSection');
+    const dropdown = document.querySelector('.dropdown');
+
+    // Добавляем чекбокс в меню
+    if (dropdown && !document.getElementById('optPreview')) {
+      const mi = document.createElement('label');
+      mi.className = 'menu-item';
+      mi.innerHTML = `<input type="checkbox" id="optPreview" style="margin-right:8px"> Предпросмотр`;
+      dropdown.appendChild(mi);
+    }
+
+    const optPreview = document.getElementById('optPreview');
+    const chkAuto = document.getElementById('chkAuto');
+
+    function applyPreviewVisibility(enabled) {
+      if (previewSection) previewSection.style.display = enabled ? '' : 'none';
+      if (chkAuto) {
+        chkAuto.disabled = !enabled;
+        if (!enabled) chkAuto.checked = false;
+      }
+      if (enabled) buildPreview();
+    }
+
+    // начальное состояние
+    const stored = localStorage.getItem(PREVIEW_KEY);
+    const initial = (stored === null) ? true : (stored === '1');  // дефолт: ВКЛ
+    if (optPreview) {
+      optPreview.checked = initial;
+      applyPreviewVisibility(initial);
+      optPreview.addEventListener('change', () => {
+        const enabled = optPreview.checked;
+        localStorage.setItem(PREVIEW_KEY, enabled ? '1' : '0');
+        applyPreviewVisibility(enabled);
+      });
+    } else {
+      applyPreviewVisibility(true);  // если вдруг не вставился чекбокс — всё равно показываем
+    }
+
+    function normalizeLines(s) {
+      return (s || '')
+        .replace(/\u00A0/g, ' ')
+        .split(/\r?\n/)
+        .map(x => x.trim())
+        .filter(Boolean);
+    }
+    function isGroupLine(s) {
+      if (!s) return false;
+      const t = s.trim();
+      // Группа — строка, оканчивающаяся на ":" (или "："), без калорий
+      return /[:：]\s*$/.test(t);
+    }
+
+    function calcLineKcal(line, lang) { // lang: 'ru'|'en'
+      if (/[:：]\s*$/.test((line || '').trim())) return ''; // группы без калорий
+      if (!state.idx) return '??';
+      const key = U.cleanName(line);
+      if (lang === 'ru') {
+        const v = state.idx.nameToKcalRU.get(key);
+        return (v ?? '??');
+      } else {
+        const v = state.idx.nameToKcalEN.get(key);
+        return (v ?? '??');
+      }
+    }
+
+    function splitLastWord(s) {
+      const t = (s || '').trim();
+      const m = t.match(/^(.*\S)\s+(\S+)$/);
+      return m ? [m[1], m[2]] : ['', t]; // если одно слово — "префикс" пустой
+    }
+
+    function getKcalGrInfo(line, lang) {
+      const key = U.cleanName(line || '');
+      if (!state.idx || /[:：]\s*$/.test((line || '').trim())) {
+        return { grams: null, kcalDish: null, kcal100: null, missing: false };
+      }
+      const kcal100 = (lang === 'ru'
+        ? state.idx.nameToKcalRU.get(key)
+        : state.idx.nameToKcalEN.get(key)) ?? null;
+
+      const grRaw = (lang === 'ru'
+        ? state.idx.nameToGrRU.get(key)
+        : state.idx.nameToGrEN.get(key));
+
+      const gr = (grRaw !== undefined && grRaw !== '') ? Number(grRaw) : null;
+
+      // Вычисляем по согласованной логике
+      // 1) Нет kcal и нет gr => (?? г, ?? ккал)
+      if (kcal100 == null && gr == null) {
+        return { grams: '??', kcalDish: '??', kcal100: null, missing: true };
+      }
+      // 2) Есть kcal100, нет gr => (?? г, <kcal100> ккал) — показываем ккал за 100 г
+      if (kcal100 != null && gr == null) {
+        return { grams: '??', kcalDish: String(kcal100), kcal100, missing: true };
+      }
+      // 3) Есть gr, нет kcal100 => (gr г, ?? ккал)
+      if (kcal100 == null && gr != null) {
+        return { grams: String(gr), kcalDish: '??', kcal100: null, missing: true };
+      }
+      // 4) Есть оба => считаем за порцию
+      const kcalDish = Math.round((Number(kcal100) || 0) * (Number(gr) || 0) / 100);
+      return { grams: String(gr), kcalDish: String(kcalDish), kcal100, missing: false };
+    }
+
+    function makeSuffixHTML(line, lang, showInfo /*true=показывать*/) {
+      const info = getKcalGrInfo(line, lang);
+      if (!showInfo) return { html: '', missing: info.missing };
+
+      const isRu = (lang === 'ru');
+      const gramsUnit = isRu ? 'г' : 'g';
+      const kcalUnit = isRu ? 'ккал' : 'kcal';
+      const gramsText = (info.grams ?? '??') + ' ' + gramsUnit;
+      const kcalText = (info.kcalDish ?? '??') + ' ' + kcalUnit;
+      const html = ` (${U.escHtml(gramsText)}, ${U.escHtml(kcalText)})`;
+      return { html, missing: info.missing };
+    }
+
+
+    function autoTranslateRuToEn(linesRU) {
+      if (!state.idx) return [];
+      const out = [];
+      for (const ru of linesRU) {
+        const en = state.idx.RU2EN.get(U.cleanName(ru)) || '';
+        out.push(en || '');
+      }
+      return out;
+    }
+
+    function buildPreview() {
+      // если предпросмотр выключен тумблером — просто выходим
+      const optPrev = document.getElementById('optPreview');
+      if (optPrev && !optPrev.checked) return;
+      const showKcal = getPrintKcalEnabled();
+      const ruLines = normalizeLines(taRU.value);
+      const enLines = normalizeLines(taEN.value);
+      state.missingSet.clear();
+      const ruHtml = [];
+      const enHtml = [];
+      const n = Math.max(ruLines.length, enLines.length);
+
+      for (let i = 0; i < n; i++) {
+        const ru = ruLines[i] || '';
+        const en = enLines[i] || '';
+
+        // RU окно
+        if (ru) {
+          if (/[:：]\s*$/.test(ru)) {
+            ruHtml.push(`<strong>${U.escHtml(ru)}</strong>`);
+          } else {
+            const { html: suf, missing } = makeSuffixHTML(ru, 'ru', showKcal);
+            if (missing) state.missingSet.add(ru);
+            const [prefix, last] = splitLastWord(ru);
+            ruHtml.push(`• ${U.escHtml(prefix)} ${last
+              ? `<span class="tail">${U.escHtml(last)}${suf}</span>`
+              : `<span class="tail">${U.escHtml(ru)}${suf}</span>`}`);
+          }
+        }
+        if (en) {
+          if (/[:：]\s*$/.test(en)) {
+            enHtml.push(`<strong>${U.escHtml(en)}</strong>`);
+          } else {
+            const { html: sufE, missing: missE } = makeSuffixHTML(en, 'en', showKcal);
+            if (missE) state.missingSet.add(en);
+            const [prefixE, lastE] = splitLastWord(en);
+            enHtml.push(`• ${U.escHtml(prefixE)} ${lastE
+              ? `<span class="tail">${U.escHtml(lastE)}${sufE}</span>`
+              : `<span class="tail">${U.escHtml(en)}${sufE}</span>`}`);
+          }
+        }
+      }
+      // выводим с <br> для переносов и сохранения <strong>
+      previewRU.innerHTML = ruHtml.join('<br>');
+      previewEN.innerHTML = enHtml.join('<br>');
+      btnSendMissing.disabled = state.missingSet.size === 0;
+    }
+
+    const debPreview = U.debounce(() => {
+      if (chkAuto.checked) { U.withPerf('preview', buildPreview); }
+    }, 280);
+
+    taRU.addEventListener('input', () => {
+      const ruNew = normalizeLines(taRU.value);
+      const enCur = normalizeLines(taEN.value);
+      const ruPrev = Array.isArray(state.lastRuLines) ? state.lastRuLines : [];
+      // RU(prev) -> EN(cur) для сохранения ручных правок и корректной привязки
+      const prevMap = new Map();
+      for (let i = 0; i < ruPrev.length; i++) {
+        const k = U.cleanName(ruPrev[i] || '');
+        if (!k) continue;
+        prevMap.set(k, enCur[i] ?? '');
+      }
+      // Формируем новый EN построчно
+      const enNext = ruNew.map(ru => {
+        const k = U.cleanName(ru || '');
+        if (!k) return ''; // пустая строка — пустой EN
+        if (prevMap.has(k)) return prevMap.get(k); // оставить вручную/ранее введённое
+        // Попытаться найти точный перевод в базе, иначе заглушка
+        return translateRuStrict(ru);
+      });
+
+      taEN.value = enNext.join('\n');
+      state.lastRuLines = ruNew;
+      debPreview();
+      updateMissingBtn();
+    });
+
+    taEN.addEventListener('input', debPreview);
+    chkAuto.addEventListener('change', () => { if (chkAuto.checked) buildPreview(); });
+    /* ========= Кнопка «Добавить отсутствующие в базу» (только RU) ========= */
+    btnSendMissing.addEventListener('click', () => {
+      const missing = collectMissingRU();
+      if (!missing.length) { U.showToast('Новых блюд для добавления нет', 'info'); return; }
+      // передаём в editor только RU-список
+      localStorage.setItem('menu_missing_ru', JSON.stringify(missing));
+      // передаём ТЕКУЩУЮ ПОЛНУЮ БАЗУ (как есть) в editor
+      localStorage.setItem('menu_base_rows_json', JSON.stringify(state.rows || []));
+      // эти два уже были — сохраняем ввод пользователя, чтобы восстановить после возврата
+      localStorage.setItem('menu_last_ru', taRU.value);
+      localStorage.setItem('menu_last_en', taEN.value);
+      U.showToast(`Передано в редактор: ${missing.length}`, 'info');
+      location.href = 'editor.html';
+    });
+
+    /* ========= Кнопка «Исправить граммовки» (только RU) ========= */
+    btnFixGr.addEventListener('click', () => {
+      const list = collectFixablesRU();
+      if (!list.length) { U.showToast('Нет блюд для исправления', 'info'); return; }
+      localStorage.setItem('menu_fix_gr_ru', JSON.stringify(list));
+      localStorage.setItem('menu_base_rows_json', JSON.stringify(state.rows || []));
+      localStorage.setItem('menu_last_ru', taRU.value);
+      localStorage.setItem('menu_last_en', taEN.value);
+      U.showToast(`Для исправления данных: ${list.length}`, 'info');
+      location.href = 'editor.html';
+    });
+
+    function getPrintDateString() {
+      const today = new Date();
+      if (printDateMode?.value === 'tomorrow') {
+        const d = new Date(today); d.setDate(d.getDate() + 1);
+        return d.toLocaleDateString();
+      }
+      if (printDateMode?.value === 'custom' && printDateInput?.value) {
+        const d = new Date(printDateInput.value + 'T00:00:00');
+        return isNaN(d) ? today.toLocaleDateString() : d.toLocaleDateString();
+      }
+      return today.toLocaleDateString(); // по умолчанию — сегодня
+    }
+
+    // === ПЕРЕНОС СТРОК: чекбокс в меню настроек ===
+    const LONG_MODE_KEY = 'print_long_mode';
+    const chkWrap = document.getElementById('chkWrap');
+    if (chkWrap) {
+      // начальное состояние — читаем из localStorage; по умолчанию ВКЛ ('wrap')
+      const saved = localStorage.getItem(LONG_MODE_KEY);
+      chkWrap.checked = (saved ? saved === 'wrap' : true);
+      chkWrap.addEventListener('change', () => {
+      localStorage.setItem(LONG_MODE_KEY, chkWrap.checked ? 'wrap' : 'shrink');
+        // фактическая логика переноса применяется внутри окна печати/превью,
+      });
+    }
+    // Доступ из остального кода:
+    function getLongMode() {
+      return (chkWrap?.checked ? 'wrap' : 'shrink');
+    }
+
+    /* ========= Печать — безопасный предпросмотр в отдельном окне (DOM API) ========= */
+    btnPrint?.addEventListener('click', () => {
+      const ruLines = normalizeLines(taRU.value);
+      const enLines = normalizeLines(taEN.value);
+      const showKcal = getPrintKcalEnabled(); // Получаем состояние тумблера "Показывать калории"
+
+      // Дата
+      const dateStr = getPrintDateString();
+
+      // Окно предпросмотра
+      const w = window.open('', '_blank');
+      if (!w) { U.showToast('Браузер заблокировал окно предпросмотра', 'warn'); return; }
+      const d = w.document;
+
+      // <head> + <style>
+      d.title = 'Предпросмотр печати';
+      const style = d.createElement('style');
+      style.textContent = [
+        '@page{size:A4;margin:0}',
+        'html,body{margin:0}',
+        '*{-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+        '.page{position:relative;width:210mm;height:297mm;padding:15mm;box-sizing:border-box;',
+        'display:flex;flex-direction:column;justify-content:center;align-items:center;',
+        'text-align:center;font-family:"Times New Roman",Times,serif;', // шрифт
+        'font-size:var(--menu-font,28px);line-height:1.4;page-break-after:always;overflow:hidden}', // размер
+        '.page:last-child{page-break-after:auto}',
+        '.bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.28}',
+        '.corner-left-bottom{position:absolute;left:20px;bottom:25px;font-size:12px}',
+        '.corner-right-bottom{position:absolute;right:20px;bottom:25px;font-size:12px}',
+        '.content{position:relative;z-index:1;width:100%;transform-origin:top center;display:inline-block}',
+        '.ln{white-space:nowrap;margin-top:0.12em}',
+        '.content .ln:first-child{margin-top:0}',
+        '.ln .txt{display:inline-block;transform-origin:center center}',
+        '.ln-group{margin-top:1.0em}',
+        '.ln.wrap{ text-align:center }',          // выравнивание центр для переносимых строк
+        '.ln.wrap .txt{ white-space:normal }',   // переносы внутри конкретной строки
+        '.ln.tight{ line-height:1.18 }',         // лёгкое уплотнение только этой строки
+        '.ln-group + .ln-dish{margin-top:0.3em}',
+        '.tail{ display:inline-block }'
+      ].join('');
+      d.head.appendChild(style);
+
+      // фабрика страницы
+      const makePage = (lines, lang) => {
+        const page = d.createElement('div'); page.className = 'page';
+
+        if (state.coverUrl) {
+          const bg = d.createElement('div'); bg.className = 'bg';
+          bg.style.backgroundImage = `url('${state.coverUrl.replace(/'/g, "\\'")}')`;
+          page.appendChild(bg);
+        }
+
+        const left = d.createElement('div'); left.className = 'corner-left-bottom';
+        left.textContent = 'Калории указаны за порцию / Calories indicated per serving';
+        const right = d.createElement('div'); right.className = 'corner-right-bottom';
+        right.textContent = dateStr;
+
+        const content = d.createElement('div'); content.className = 'content';
+
+        for (const raw of lines) {
+          if (!raw) continue;
+          const ln = d.createElement('div');
+          const span = d.createElement('span');
+          span.className = 'txt';
+
+          if (isGroupLine(raw)) {
+            ln.className = 'ln ln-group';
+            span.innerHTML = `<strong>${U.escHtml(raw)}</strong>`;
+          } else {
+            ln.className = 'ln ln-dish';
+            const { html: suf, missing } = makeSuffixHTML(raw, lang, showKcal);
+            const [pfx, last] = splitLastWord(raw);
+            span.innerHTML = `• ${U.escHtml(pfx)} ${last
+              ? `<span class="tail">${U.escHtml(last)}${suf}</span>`
+              : `<span class="tail">${U.escHtml(raw)}${suf}</span>`}`;
+            if (missing) state.missingSet.add(raw);
+          }
+          ln.appendChild(span);
+          content.appendChild(ln);
+        }
+
+        page.appendChild(content);
+        if (showKcal) page.appendChild(left);  // ЛЕВЫЙ УГОЛ ТОЛЬКО ПРИ ПОКАЗЕ КАЛОРИЙ
+        page.appendChild(right);                // ПРАВЫЙ УГОЛ (ДАТА) ВСЕГДА
+        d.body.appendChild(page);
+      };
+      // создаём две страницы (RU и EN)
+      makePage(ruLines, 'ru');
+      makePage(enLines, 'en');
+
+      // === Автоподгонка: сначала локально длинные строки, затем единый масштаб для обеих страниц
+      w.addEventListener('load', () => {
+        preLayout(w);      // 1) shrink или wrap ТОЛЬКО переполняющих строк
+        uniformFit(w);     // 2) единый глобальный масштаб для RU/EN (берём минимально нужный)
+        refine(w);         // 3) лёгкая повторная подгонка после отложенных перерисовок
+      });
+
+      if (w.document.fonts?.ready) {
+        w.document.fonts.ready.then(() => {
+          preLayout(w);
+          uniformFit(w);
+          refine(w);
+        });
+      }
+
+      w.addEventListener('resize', () => {
+        preLayout(w);
+        uniformFit(w);
+      });
+
+      w.addEventListener('beforeprint', () => {
+        preLayout(w);
+        uniformFit(w);
+      });
+    }); 
+
+    /* ================= Помощники подгонки — единственный комплект ================= */
+    function mmToPx(mm) { return mm * (96 / 25.4); }
+    function isFirefox(win) { return /firefox/i.test(win.navigator.userAgent); }
+    function isMobile(win) { return /android|iphone|ipad|ipod|mobile/i.test(win.navigator.userAgent); }
+
+    // 1) Подготовка макета: сбросить прошлые метки и применить выбранный режим к ПЕРЕПОЛНЯЮЩИМСЯ строкам
+    function preLayout(win) {
+      win.document.querySelectorAll('.ln').forEach(ln => {
+        ln.classList.remove('wrap', 'tight');
+        const txt = ln.querySelector('.txt');
+        if (txt) {
+          txt.style.transform = 'scale(1)';
+          txt.style.width = 'auto';
+          txt.style.whiteSpace = 'nowrap';
+        }
+      });
+
+      const mode = getLongMode(); // 'shrink' | 'wrap'
+      if (mode === 'wrap') {
+        wrapLongLines(win);         // перенос + лёгкое уплотнение только для этой строки
+      } else {
+        shrinkLongLines(win, 0.75); // уменьшение только конкретной переполняющей строки
+      }
+    }
+
+    // 2) Измерение нужного глобального масштаба для страницы (без применения)
+    function measureScaleForPage(win, page) {
+      const extraTB = isFirefox(win) ? 12.7 : (isMobile(win) ? 10 : 0);
+      const extraLR = isFirefox(win) ? 5 : (isMobile(win) ? 5 : 0);
+      const A4W = 210, A4H = 297, pad = 15;
+      const availW = mmToPx(A4W - 2 * pad - 2 * extraLR);
+      const availH = mmToPx(A4H - 2 * pad - 2 * extraTB);
+      const c = page.querySelector('.content'); if (!c) return 1;
+      c.style.transform = 'scale(1)'; c.style.width = '100%';      // сброс перед измерением
+      const needW = c.scrollWidth, needH = c.scrollHeight;
+      let s = Math.min(1, availW / needW, availH / needH);
+      return Math.max(0.6, s);
+    }
+
+    // 3) Применить единый масштаб ко всем страницам
+    function uniformFit(win) {
+      const pages = Array.from(win.document.querySelectorAll('.page'));
+      if (!pages.length) return;
+      const s = Math.min(...pages.map(p => measureScaleForPage(win, p)));
+      pages.forEach(p => {
+        const c = p.querySelector('.content'); if (!c) return;
+        c.style.width = (100 / s) + '%';
+        c.style.transform = 'scale(' + s + ')';
+      });
+    }
+
+    // 4) Лёгкая повторная подгонка (после перерисовок/шрифтов)
+    function refine(win) {
+      setTimeout(() => { uniformFit(win); }, 60);
+    }
+
+    // Перенос конкретных строк + уплотнение только для них
+    function wrapLongLines(win) {
+      const lines = win.document.querySelectorAll('.ln');
+      lines.forEach(line => {
+        const txt = line.querySelector('.txt');
+        if (!txt) return;
+        if (txt.scrollWidth <= line.clientWidth) return; // уже помещается
+        line.classList.add('wrap', 'tight');              // .wrap включает перенос, .tight — меньше line-height
+        txt.style.whiteSpace = 'normal';
+      });
+    }
+
+    // Уменьшение конкретной переполняющей строки
+    function shrinkLongLines(win, min = 0.65) {
+      const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+      const lines = win.document.querySelectorAll('.ln');
+      lines.forEach(line => {
+        const txt = line.querySelector('.txt');
+        if (!txt) return;
+        txt.style.transform = 'scale(1)';
+        txt.style.width = 'auto';
+        if (txt.scrollWidth <= line.clientWidth) return;
+
+        // бинарный поиск масштаба s в [min,1] с компенсацией ширины
+        let lo = min, hi = 1, best = min;
+        for (let i = 0; i < 12; i++) {
+          const mid = (lo + hi) / 2;
+          txt.style.width = (100 / mid) + '%';
+          txt.style.transform = 'scale(' + mid + ')';
+          if (txt.scrollWidth > line.clientWidth) hi = mid; else { best = mid; lo = mid; }
+        }
+        const s = clamp(best, min, 1);
+        txt.style.width = (100 / s) + '%';
+        txt.style.transform = 'scale(' + s + ')';
+      });
+    }
+
+    /* ========= Статусы, тосты и инициализация ========= */
+    statusText.textContent = 'Готов';
+    U.showToast(`Готово. Горячие клавиши: Ctrl+B — база, Ctrl+G — фон, Ctrl+P — печать`, 'info', 4200);
+
+    // Автопоиск базы: 0) localStorage из редактора  1) /data/calories.csv  2) URL из localStorage  3) вручную
+    (async function autoFindBase() {
+      const fromEditorTs = Number(localStorage.getItem('menu_from_editor_ts') || 0);
+      const baseJson = localStorage.getItem('menu_base_rows_json');
+      const baseJsonTs = Number(localStorage.getItem('menu_base_rows_ts') || 0);
+
+      const now = Date.now();
+      const cameFromEditor = fromEditorTs && (now - fromEditorTs) < 5 * 60 * 1000; // 5 минут
+
+      // 0) Если ВОЗВРАТ СРАЗУ ПОСЛЕ EDITOR — подхватываем localStorage как приоритет #2
+      if (cameFromEditor && baseJson) {
+        try {
+          const rows = JSON.parse(baseJson);
+          if (adoptBase(rows, 'local', baseJsonTs || fromEditorTs, 'локальное хранилище (после редактора)')) {
+            return; // не продолжаем к /data
+          }
+        } catch { }
+      }
+
+      // 1) Если это ПЕРВЫЙ заход (не из editor) — пробуем /data как приоритет #3
+      try {
+        const res = await fetch('data/calories.csv', { cache: 'no-store' });
+        if (res.ok) {
+          const text = await res.text();
+          setBaseFromCsvText(text, 'data');
+          return;
+        }
+      } catch (e) { /* игнор */ }
+
+      // 2) Если /data не получилось, а в памяти есть база — можно взять её
+      if (baseJson) {
+        try {
+          const rows = JSON.parse(baseJson);
+          if (adoptBase(rows, 'local', baseJsonTs, 'локальное хранилище')) {
+            return;
+          }
+        } catch { }
+      }
+
+      // 3) URL из localStorage (облако)
+      const cloudUrl = localStorage.getItem('menu_base_url');
+      if (cloudUrl) {
+        try {
+          const res = await fetch(cloudUrl, { cache: 'no-store' });
+          if (res.ok) {
+            const text = await res.text();
+            setBaseFromCsvText(text, 'cloud');
+            U.showToast('База загружена из облака', 'info');
+            return;
+          }
+        } catch (e) { }
+      }
+
+      U.showToast('База не найдена автоматически. Нажмите «Подключить базу».', 'warn', 3800);
+    })();
+
+    function adoptLocalBaseIfNewer(reasonLabel) {
+      const j = localStorage.getItem('menu_base_rows_json');
+      const ts = Number(localStorage.getItem('menu_base_rows_ts') || localStorage.getItem('menu_from_editor_ts') || 0);
+      if (!j) return false;
+      try {
+        const rows = JSON.parse(j);
+        // Используем уже существующую функцию с приоритетами
+        return adoptBase(rows, 'local', ts || Date.now(), reasonLabel || 'локальное хранилище');
+      } catch {
+        return false;
+      }
+    }
+    // === Авто-подхват базы при возврате во вкладку index (без перезагрузки) ===
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) adoptLocalBaseIfNewer();
+    });
+
+    window.addEventListener('storage', (ev) => {
+      if (ev.key === 'menu_base_rows_json' || ev.key === 'menu_base_rows_ts' || ev.key === 'menu_from_editor_ts') {
+        adoptLocalBaseIfNewer('локальное хранилище (обновлено)');
+      }
+    });
+    // Восстановление меню (если пришли из editor.html)
+    (function restoreMenu() {
+      // 0) если редактор только что сохранил базу — принять её прямо сейчас (с приоритетом 'local')
+      const j = localStorage.getItem('menu_base_rows_json');
+      const ts = Number(localStorage.getItem('menu_base_rows_ts') || localStorage.getItem('menu_from_editor_ts') || 0);
+      if (j) {
+        try {
+          const rows = JSON.parse(j);
+          adoptBase(rows, 'local', ts || Date.now(), 'локальное хранилище');
+        } catch { }
+      }
+      // 1) восстановить меню
+      const ru = localStorage.getItem('menu_last_ru');
+      const en = localStorage.getItem('menu_last_en');
+      if (ru) {
+        taRU.value = ru;
+        if (en) taEN.value = en;
+        localStorage.removeItem('menu_last_ru');
+        localStorage.removeItem('menu_last_en');
+        U.showToast('Меню восстановлено после редактора', 'info');
+        // подтянуть EN и пересчитать (ккал/гр применятся сразу)
+        fillMissingEnFromBase();
+        autoRecalc();
+      }
+    })();
+    function autoRecalc() { if (chkAuto.checked) { buildPreview(); } }
+  </script>
+</body>
+</html>
