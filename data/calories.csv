@@ -9,188 +9,334 @@ ru;en;kcal;catRu;catEn;gr
 Гарнир:;Side Dishes:;;;;
 Завтрак:;Breakfast:;;;;
 Шашлык:;BBQ:;;;;
-Авокадо;Avocado;43;Завтрак;Breakfast;50
+Авокадо;Avocado;43;Завтрак;Breakfast;30
 Авокадо с Лососем;Avocado with Salmon;185;Завтрак;Breakfast;
-Аджапсандали;Ajapsandali;85;Горячее;Main Courses;
-Азиатский Салат с Чукой;Asian Salad with Chuka Seaweed;70;Салаты;Salads;
-Ананас;Pineapple;50;Завтрак;Breakfast;
-Армянский Салат;Armenian Salad;110;Салаты;Salads;
+Аджапсандали;Ajapsandali;85;Горячее;Main Courses;150
+Азиатский Салат с Чукой;Asian Salad with Chuka Seaweed;70;Салаты;Salads;150
+Айва Запечённая;Baked Quince;50;Завтрак;Breakfast;120
+Айва Запечённая с Сухофруктами;Quince Baked with Dried Fruits;208;Завтрак;Breakfast;100
+Айва Печеная в Мёде;Quince Baked in Honey;90;Завтрак;Breakfast;110
+Ананас;Pineapple;50;Завтрак;Breakfast;60
+Армянский Салат;Armenian Salad;110;Салаты;Salads;150
 Ассорти из Фруктов;Fruit Assortment;60;Завтрак;Breakfast;
+Баклажан Кумпир с Курицей;Eggplant Kumpir with Chicken;160;Горячее;Main Courses;150
+Баклажан с Ягнёнком по-Армянски;Eggplant with Lamb Armenian-style;170;Горячая Закуска;Hot Starters;100
 Баклажаны Запеченные под соусом Баже;Baked Eggplants with Bazhe Sauce;120;Салаты;Salads;
+Баклажаны по-Корейски;Korean-style Eggplant;90;Салаты;Salads;120
 Баклажаны с Помидорами и Пармезаном;Eggplant with Tomatoes and Parmesan;170;Салаты;Salads;
 Банан;Banana;95;Завтрак;Breakfast;
+Барабулька Жареная;Fried Red Mullet;250;Горячее;Main Courses;150
+Бастурма;Basturma;240;Закуска;Starters;80
 Батат Запеченный;Baked Sweet Potato;90;Гарнир;Side Dishes;
 Беби Кальмары Фаршированные в Томатном Соусе;Baby Squid Stuffed in Tomato Sauce;130;Горячее;Main Courses;
-Безглютеновая Булка;Gluten Free Bun;157;Завтрак;Breakfast;
+Безглютеновая Булка;Gluten Free Bun;157;Завтрак;Breakfast;15
 Безглютеновая Булка с Псиллиумом;Gluten-free Bun with Psyllium;157;Завтрак;Breakfast;
+Безглютеновый Сэндвич с Цыпленком;Gluten-Free Chicken Sandwich;80;Завтрак;Breakfast;200
+Белая Спаржа;White Asparagus;20;Гарнир;Side Dishes;120
 Белая Фасоль и Кинза Хумус;White Bean and Cilantro Hummus;150;Завтрак;Breakfast;
 Белая Фасоль Тушеная с Томатами;White Beans Stewed with Tomatoes;130;Гарнир;Side Dishes;
 Белковый Омлет;White Omelet;60;Завтрак;Breakfast;
 Белковый Омлет с Сыром и Зеленью;Egg White Omelet with Cheese and Greens;168;Завтрак;Breakfast;
 Белковый Омлет с Томатом;White Omelette with Tomato;90;Завтрак;Breakfast;
+Белковый Омлет с Томатом и Зеленью;White Omelet with Greens;115;Завтрак;Breakfast;150
+Белковый Омлет со Шпинатом;Protein Omelette with Spinach;140;Завтрак;Breakfast;130
 Бельгийские Вафли;Belgian Waffles;320;Завтрак;Breakfast;
-Бефстроганов;Beef Stroganoff;190;Горячее;Main Courses;
-Бефстроганов из Говядины;Beef Stroganoff;190;Горячее;Main Courses;
+Бельгийские Вафли с Творожным Муссом и Протёртой Малиной;Belgian Waffles with Curd Mousse and Raspberry Puree;271;Завтрак;Breakfast;70
+Бефстроганов;Beef Stroganoff;190;Горячее;Main Courses;160
+Бефстроганов из Говядины;Beef Stroganoff;190;Горячее;Main Courses;160
 Бефстроганов из Курицы;Chicken Stroganoff;175;Горячее;Main Courses;
 Бефстроганов из Телятины;Veal Beef Stroganoff;210;Горячее;Main Courses;
 Бефстроганов из Телячьей Вырезки;Beef Stroganoff with Veal Tenderloin;190;Горячее;Main Courses;
-Биточки из Телятины;Veal Cutlets;200;Горячее;Main Courses;
+Биточки из Телятины;Veal Cutlets;160;Горячее;Main Courses;120
 Биточки Куриные;Chicken Meatballs;140;Горячее;Main Courses;150
+Биточки Рыбные;Fish Cutlets;110;Горячее;Main Courses;140
 Бифштекс Рубленный;Chopped Beefsteak;210;Горячее;Main Courses;
-Блинчики;Crepes;220;Завтрак;Breakfast;
-Блинчики Гречневые;Buckwheat Pancakes;190;Завтрак;Breakfast;
-Блинчики с Мясом;Pancake Rolls with Meat;220;Завтрак;Breakfast;
-Блинчики с Творогом;Pancakes with Cottage Cheese;200;Завтрак;Breakfast;
+Блинчики;Crepes;220;Завтрак;Breakfast;60
+Блинчики Гречневые;Buckwheat Pancakes;190;Завтрак;Breakfast;80
+Блинчики с Мясом;Pancake Rolls with Meat;220;Завтрак;Breakfast;80
+Блинчики с Рикоттой;Ricotta Pancakes;184;Завтрак;Breakfast;120
+Блинчики с Творогом;Pancakes with Cottage Cheese;200;Завтрак;Breakfast;40
+Блинчики с Чиа;Crepes with Chia Seeds;195;Завтрак;Breakfast;50
 Блинчики Фаршированные Кроликом и Белыми Грибами;Pancakes Stuffed with Rabbit and Porcini Mushrooms;250;Горячая Закуска;Hot Starters;
-Борщ;Borsch;90;Супы;Soups;200
-Борщ с Говядиной;Borscht with Beef;100;Супы;Soups;
-Борщ с Телятинои и Хрящами;Borscht with Veal and Cartilage;95;Супы;Soups;
+Борщ;Borscht;90;Супы;Soups;200
+Борщ из Кислой Капусты с Телятиной;Sauerkraut Borscht with Veal;;Супы;Soups;
+Борщ с Говядиной; Borscht with Beef;100;Супы;Soups;200
 Борщ с Телятиной;Borscht with Veal;80;Супы;Soups;200
-Ботвинья Холодная на Квасе;Botvinya Cold Soup with Kvass;40;Супы;Soups;
+Борщ с Телятиной и Хрящами;Borscht with Veal and Cartilage;95;Супы;Soups;200
+Ботвинья Холодная на Квасе;Botvinya Cold Soup with Kvass;40;Супы;Soups;200
 Боттарга Каталана;Bottarga Catalana;250;Горячее;Main Courses;
+Боул Фруктовый;Fruit Bowl;70;Завтрак;Breakfast;150
+Брокколи Гриль;Grilled Broccoli;;Гарнир;Side Dishes;
+Брокколи Запечённая;Baked Broccoli;50;Гарнир;Side Dishes;120
 Брокколи на Пару;Steamed Broccoli;27;Гарнир;Side Dishes;
+Брокколини;Broccolini;35;Гарнир;Side Dishes;100
+Брускетта Овощная;Bruschetta Vegetable;145;Завтрак;Breakfast;45
+Брускетта с Форшмаком на Бородинском Хлебе;Bruschetta with Forshmak on Borodinsky Bread;230;Закуска;Starters;80
+Буженина из Индейки;Roast Turkey Ham;140;Гарнир;Side Dishes;40
+Буженина из Цыпленка;Roast Chicken Ham;160;Завтрак;Breakfast;40
 Булгур с Овощами;Bulgur with Vegetables;110;Гарнир;Side Dishes;
-Бульон Кудрявый;Curly Broth;40;Супы;Soups;
-Бульон Куриный с Пуляркой;Chicken Bouillon with Poulet;36;Супы;Soups;
+Бульон из Индейки с Домашними Пельменями;Turkey Broth with Homemade Dumplings;110;Супы;Soups;200
+Бульон из Индейки с Пельменями;Turkey Broth with Dumplings;110;Супы;Soups;200
+Бульон Кудрявый;Curly Broth;40;Супы;Soups;200
+Бульон Кудрявый с Зеленью;Curly Noodle Bouillon with Herbs;40;Супы;Soups;200
+Бульон Куриный с Пуляркой;Chicken Bouillon with Poulet;36;Супы;Soups;200
 Бульон Куриный с Фрикадельками;Chicken Broth with Meatballs;40;Супы;Soups;200
-Бульон с Пельменями;Broth with Dumplings;110;Супы;Soups;
-Бульон с Рисом и Зеленью;Bouillon with Rice and Herbs;30;Супы;Soups;
-Бульон с Рисом и Перепелиным Яйцом;Broth with Rice and Quail Egg;45;Супы;Soups;
+Бульон с Пельменями;Broth with Dumplings;110;Супы;Soups;200
+Бульон с Рисом и Зеленью;Bouillon with Rice and Herbs;30;Супы;Soups;200
+Бульон с Рисом и Перепелиным Яйцом;Broth with Rice and Quail Egg;45;Супы;Soups;200
 Бульон с Фрикадельками;Broth with Meatballs;55;Супы;Soups;200
-Буратта с Соусом Песто и Томатами;Burrata with Pesto Sauce and Tomatoes;215;Салаты;Salads;
-Буратта с Томатами;Buratta with Tomatoes;240;Салаты;Salads;
-Буррата с Рукколой;Burrata with Rocket Salad;256;Салаты;Salads;
+Буррата с Рукколой;Burrata with Rucola Salad;256;Салаты;Salads;
+Буррата с Соусом Песто и Томатами;Burrata with Pesto Sauce and Tomatoes;215;Салаты;Salads;
+Бэби Картофель с Розмарином;Baby Potatoes with Rosemary;90;Гарнир;Side Dishes;100
 Вагури из Ягненка;Vaguri with Lamb;190;Горячая Закуска;Hot Starters;
 Вафли;Waffles;320;Завтрак;Breakfast;
 Веер из Баклажан с Томатной Сальсой;Eggplant Fan with Tomato Salsa;55;Горячая Закуска;Hot Starters;
-Винегрет;Vinaigrette Russian Salad;120;Салаты;Salads;150
-Ганфан;Ganfan;180;Горячее;Main Courses;
-Гаспачо;Gazpacho;45;Супы;Soups;
-Гаспаччо с Крабом;Gazpacho with Crab;100;Супы;Soups;
-Глазунья с Томатом;Fried Eggs with Tomatoes;125;Завтрак;Breakfast;
+Вермишель Жареная;Fried Vermicelli;170;Гарнир;Side Dishes;100
+Винегрет;Vinaigrette Russian Salad;90;Салаты;Salads;150
+Вобла;Vobla;150;Закуска;Starters;100
+Ганфан;Ganfan;180;Горячее;Main Courses;180
+Гаспачо;Gazpacho;45;Супы;Soups;200
+Гаспачо с Крабом;Gazpacho with Crab;70;Супы;Soups;200
+Глазунья с Томатом;Fried Eggs with Tomatoes;125;Завтрак;Breakfast;120
 Говядина Запеченная с Помидорами и Сыром;Beef Baked with Tomatoes and Cheese;250;Горячее;Main Courses;
 Говядина Обжаренная в Яйце;Beef Fried with Egg;240;Горячее;Main Courses;
+Говядина по-Азиатски;Beef Asian-style;149;Горячее;Main Courses;200
+Говядина по-Азиатски с Овощами;Asian Beef with Vegetables;150;Горячее;Main Courses;150
 Говядина по-Китайски;Beef Chinese-style;220;Горячее;Main Courses;
+Говядина по-Строгановски;Beef Stroganoff;190;Горячее;Main Courses;160
 Говядина по-Сычуански;Sichuan Style Beef;200;Горячая Закуска;Hot Starters;120
+Говядина по-Сычуански с Древесными Грибами;Sichuan-style Beef with Wood Ear Fungus;232;Горячая Закуска;Hot Starters;100
+Говядина Су-вид в Соусе из Овощей;Sous-vide Beef in Vegetable Sauce;;Горячее;Main Courses;
+Говядина Томленая в Соусе из Овощей;Stewed Beef in Vegetable Sauce;140;Горячее;Main Courses;150
 Говядина Тушеная в Красном Вине;Beef Stewed in Red Wine;220;Горячее;Main Courses;140
+Говядина Тушеная в Соусе из Овощей;Beef Stew in Vegetable Sauce;130;Горячее;Main Courses;150
+Говядина Тушеная с Овощами;Beef Stew with Vegetables;;Горячее;Main Courses;
+Говядина Тушенная с Черносливом;Braised Beef with Prunes;130;Горячее;Main Courses;145
+Говяжьи Медальоны Гриль;Grilled Beef Medallions;;Горячее;Main Courses;
 Говяжьи Ребра Запеченные;Baked Beef Ribs;330;Горячее;Main Courses;
+Говяжьи Хвосты Томленые в Красном Вине;Beef Tails Stewed in Red Wine;250;Горячее;Main Courses;150
+Голубика;Blueberry;57;Завтрак;Breakfast;20
+Голубцы;Stuffed Cabbage Rolls;130;Горячее;Main Courses;150
 Голубцы в Савойской Капусте с Телятиной;Savoy Cabbage Rolls with Veal;90;Горячее;Main Courses;
 Голубцы в Томатном Соусе;Cabbage Rolls with Tomato Sauce;130;Горячее;Main Courses;
-Голубцы из Ягненка;Lamb Stuffed Cabbage Rolls;150;Горячее;Main Courses;
-Голубцы Куриные;Cabbage Rolls with Chicken;115;Горячее;Main Courses;
+Голубцы Домашние;Homemade Cabbage Rolls;140;Горячее;Main Courses;150
+Голубцы из Телятины;Veal Cabbage Rolls;135;Горячее;Main Courses;130
+Голубцы из Ягненка;Lamb Stuffed Cabbage Rolls;150;Горячее;Main Courses;180
+Голубцы Куриные;Cabbage Rolls with Chicken;115;Горячее;Main Courses;150
 Голубцы Рыбные;Fish Stuffed Cabbage Rolls;120;Горячее;Main Courses;
 Голубцы с Курицей;Stuffed Cabbage Rolls with Chicken;150;Горячее;Main Courses;
-Голубцы с Телятиной;Cabbage Rolls with Veal;172;Горячее;Main Courses;
-Гороховый Суп;Pea Soup;80;Супы;Soups;
+Голубцы с Курицей на Пару;Steamed Chicken Cabbage Rolls;100;Горячая Закуска;Hot Starters;100
+Голубцы с Телятиной;Cabbage Rolls with Veal;172;Горячее;Main Courses;125
+Голубцы с Ягненком;Stuffed Cabbage Rolls with Lamb;130;Горячее;Main Courses;110
+Голяшка Ягнёнка Тушёная с Овощами;Lamb Shank Stewed with Vegetables;128;Горячее;Main Courses;180
+Гороховый Суп;Pea Soup;80;Супы;Soups;200
+Гороховый Суп с Копченостями;Pea Soup with Smoked Meats;80;Супы;Soups;200
 Горячие Бутерброды с Колбасой, Яйцом и Сыром;Hot Sandwiches with Sausage, Egg and Cheese;290;Завтрак;Breakfast;
 Горячий Бутерброд;Hot Sandwich;230;Завтрак;Breakfast;
+Горячий Бутерброд на Безглютеновой Булочке с Цыпленком;Hot Gluten-Free Bun Sandwich with Chicken;210;Завтрак;Breakfast;60
+Горячий Бутерброд с Помидором и Сыром;Hot Sandwich with Tomato and Cheese;120;Завтрак;Breakfast;45
 Горячий Бутерброд с Сыром;Hot Cheese Sandwich;290;Завтрак;Breakfast;
+Горячий Бутерброд с Телятиной;Hot Sandwich with Veal;220;Завтрак;Breakfast;50
 Греческий Йогурт;Greek Yogurt;70;Завтрак;Breakfast;
 Гречишные Блинчики;Buckwheat Crepes;190;Завтрак;Breakfast;
-Гречишные Оладьи на Кефире;Buckwheat Pancakes on Kefir Cooced;220;Завтрак;Breakfast;
+Гречишные Блинчики с Бананом;Buckwheat Pancakes with Banana;150;Завтрак;Breakfast;100
+Гречишные Блинчики с Творогом;Buckwheat Pancakes with Cottage Cheese;115;Завтрак;Breakfast;100
+Гречишные Оладьи на Кефире; Buckwheat Pancakes on Kefir;220;Завтрак;Breakfast;
 Гречка;Buckwheat;110;Гарнир;Side Dishes;100
 Гречка Отварная;Buckwheat Boiled;110;Гарнир;Side Dishes;100
 Гречка с Зеленым Луком;Buckwheat with Green Onions;115;Гарнир;Side Dishes;
-Гречка с Луком;Buckwheat with Onions;125;Гарнир;Side Dishes;
+Гречка с Луком;Buckwheat with Onions;125;Гарнир;Side Dishes;100
+Гречка с Луком и Грибами;Buckwheat with Onions and Mushrooms;130;Гарнир;Side Dishes;
+Гречка с Луком и Зеленью;Buckwheat with Onions and Greens;;Гарнир;Side Dishes;
 Гречка с Овощами;Buckwheat with Vegetables;115;Гарнир;Side Dishes;
+Гречка с Паровыми Овощами;Buckwheat with Steamed Vegetables;;Гарнир;Side Dishes;
 Гречка с Соевым Соусом;Buckwheat with Soy Sauce;125;Гарнир;Side Dishes;
+Гречка с Тушенкой;Buckwheat with stew;160;Горячее;Main Courses;120
+Гречневая Лапша с Говядиной и овощами;Buckwheat Noodles with Beef and Vegetables;200;Горячее;Main Courses;
 Гречневая Лапша с Телятиной по-Азиатски;Asian Style Buckwheat Noodles with Veal;190;Горячее;Main Courses;
-Гречневые Блинчики с Творогом;Buckwheat Crepes with Cottage Cheese;120;Завтрак;Breakfast;
+Гречневые Блинчики с Творогом;Buckwheat Crepes with Cottage Cheese;120;Завтрак;Breakfast;80
 Гречневые Блины с Мясом;Buckwheat Pancakes with Meat;180;Завтрак;Breakfast;
 Гречотто с Пастрами и Лисичками;Grechotto with Pastrami and Chanterelles;180;Горячее;Main Courses;
 Гречотто с Перепелкой;Grechotto with Quail;170;Горячее;Main Courses;
-Грибная Похлебка;Mushroom Stew;60;Супы;Soups;
-Грибной Суп;Mushroom Soup;75;Супы;Soups;
-Груша;Pear;50;Завтрак;Breakfast;
-Гуакамоле;Guakamole;185;Завтрак;Breakfast;
-Гуляш из Индейки;Turkey Goulash;150;Горячее;Main Courses;
-Гуляш из Телячий Вырезки;Veal Tenderloin Goulash;172;Горячее;Main Courses;
+Грибная Похлебка;Mushroom Stew;60;Супы;Soups;200
+Грибной Суп;Mushroom Soup;75;Супы;Soups;200
+Груша;Pear;50;Завтрак;Breakfast;30
+Груша Запечённая с Орехами;Baked Pear with Nuts;110;Завтрак;Breakfast;120
+Гуакамоле; Guacamole;185;Завтрак;Breakfast;
+Гуляш из Говядины;Beef Goulash;120;Горячее;Main Courses;150
+Гуляш из Говяжьей Вырезки;Beef Tenderloin Goulash;220;Горячее;Main Courses;160
+Гуляш из Индейки;Turkey Goulash;150;Горячее;Main Courses;150
+Гуляш из Телячьей Вырезки; Veal Tenderloin Goulash;172;Горячее;Main Courses;
 Гуляш из Ягненка;Lamb Goulash;190;Горячее;Main Courses;
 Гушт-Сай;Gusht Say;220;Горячая Закуска;Hot Starters;
 Гушт-Сай из Говядины с Овощами;Gusht Say with Beef and Vegetables;190;Горячее;Main Courses;
 Дал из Чечевицы;Lentil Dal;120;Гарнир;Side Dishes;
-Джаз;Jazz;250;Шашлык;BBQ;
+Джаз;Jazz;250;Шашлык;BBQ;120
+Джигар;Jigar;246;Шашлык;BBQ;150
+Димляма из Индейки;Turkey Dimlama;130;Горячее;Main Courses;150
 Димляма из Курицы;Chicken Dimlyama;110;Горячее;Main Courses;
+Димляма из Телятины;Veal Dimlyama;100;;;170
+Димляма с Телячьей Корейкой;Dimlyama with Veal Loin;250;Горячее;Main Courses;98
 Димляма с Цыпленком;Dimlama with Chicken;165;Горячее;Main Courses;
+Димляма с Ягненком;Lamb Dimlyama;106;Горячее;Main Courses;200
+Доверсоль а ля Меньер; Dover Sole a la Meuniere;160;Горячее;Main Courses;150
 Долма;Dolma;140;Горячее;Main Courses;
-Долма с Ягненком;Lamb Dolma;210;Горячее;Main Courses;
-Дорадо на Пару;Steamed Dorado;110;Горячее;Main Courses;
+Долма с Телятиной;Dolma with Veal;160;Горячее;Main Courses;150
+Долма с Ягненком;Lamb Dolma;210;Горячее;Main Courses;150
+Дорадо Гриль;Dorado Grill;120;Горячее;Main Courses;150
+Дорадо Запечённая;Oven Baked Dorado;230;Горячее;Main Courses;150
+Дорадо на Пару;Steamed Dorado;110;Горячее;Main Courses;150
+Дорадо Су-вид;Dorado Sous-vide;;Горячее;Main Courses;
+Дорадо Су-вид с Соусом Тар-тар;Dorado Sous Vide with Tartar Sauce;;Горячее;Main Courses;
+Драники из Кабачка;Zucchini Draniki;;Горячее;Main Courses;
 Драники с Рагу из Говядины;Potato Pancakes with Beef Stew;220;Закуска;Starters;
-Жареный Лагман;Fried Lagman;220;Горячее;Main Courses;
-Жульен из Курицы;Chicken Julienne;190;Закуска;Starters;
+Жареная Говядина с Луком;Fried Beef with Onions;200;Горячее;Main Courses;
+Жареное Каре Ягненка;Grilled Rack of Lamb;270;Горячее;Main Courses;150
+Жареные Кабачки; Roasted Zucchini;130;;;100
+Жареный Лагман;Fried Lagman;220;Горячее;Main Courses;120
+Жареный Рис;Fried Rice;180;Гарнир;Side Dishes;100
+Жаркое из Курицы с Овощами;Chicken Stew with Vegetables;120;Горячее;Main Courses;180
+Жаркое из Ягненка с Картофелем;Roast Lamb with Potatoes;140;Горячее;Main Courses;150
+Жаркое по-Домашнему;Home?Style Stew;160;Горячее;Main Courses;150
+Жаркое с Индейкой;Roast Turkey;;Горячее;Main Courses;
+Жаркое с Ягнёнком;Roast with Lamb;180;Горячее;Main Courses;150
+Жульен;Julienne;180;Закуска;Starters;100
+Жульен из Курицы;Chicken Julienne;190;Закуска;Starters;75
+Заливное из Осетрины;Sturgeon Jellied;110;Горячее;Main Courses;120
 Заливные Куриные Потрошки;Chicken Giblets;175;Холодная Закуска;Cold Starters;
 Запеканка;Casserole;230;Завтрак;Breakfast;
+Запеканка с Рикоттой и Сливой;Ricotta and Plum Casserole;130;Завтрак;Breakfast;150
 Запеканка Творожная;Cottage Cheese Casserole;182;Завтрак;Breakfast;70
 Запеканка Творожная с Вишней;Cottage Cheese Casserole with Cherries;200;Завтрак;Breakfast;
+Запеканка Творожная с Изюмом;Cottage Cheese Casserole with Raisins;140;Завтрак;Breakfast;100
+Запеканка Творожная с Курагой;Cottage Cheese Casserole with Dried Apricots;150;Завтрак;Breakfast;80
+Запеканка Творожная с Яблоками;Cottage Cheese Casserole with Apples;160;Завтрак;Breakfast;80
+Запечённая Домашняя Курочка;Baked Homemade Chicken;180;Супы;Soups;140
+Запечённая Мозговая Косточка;Baked Marrowbone;380;Закуска;Starters;45
 Запеченная Молодая Капуста;Baked Young Cabbage;50;Закуска;Starters;
+Запеченная Утиная Грудка;Baked Duck Breast;200;Горячее;Main Courses;150
 Запеченная Утиная Грудка с Яблоками;Baked Duck Breast with Apples;195;Горячее;Main Courses;150
+Запеченное Бедро Индейки; Baked Turkey Thigh;180;Горячее;Main Courses;150
 Запеченное Бедро Индейки с Картофелем;Baked Turkey Thigh with Potatoes;140;Горячее;Main Courses;
-Запеченное Филе Дорадо;Baked Dorado Fillet;120;Горячее;Main Courses;150
-Запеченное Филе Сибаса;Baked Sea Bass Fillet;110;Горячее;Main Courses;
+Запеченное Филе Дорадо;Baked Dorado Fillet;120;Горячее;Main Courses;180
+"Запеченное Филе Дорадо ""Аль Изолана""";"Baked Dorado Fillet ""Al Isolana""";135;Горячее;Main Courses;130
+Запеченное Филе Сибаса;Baked Sea Bass Fillet;110;Горячее;Main Courses;160
 Запеченное Филе Сибаса с Овощами;Baked Sea Bass Fillet with Vegetables;140;Горячее;Main Courses;
+Запеченное Филе Сибаса со Спаржей и Соусом из Шпината;Baked Sea Bass Fillet with Asparagus and Spinach Sauce;180;Горячее;Main Courses;150
 Запеченное Филе Трески;Baked Cod Fillet;84;Горячее;Main Courses;
 Запеченные Котлеты из Сибаса;Baked Sea Bass Cutlets;140;Горячее;Main Courses;
+Запеченные Котлеты из Телятины;Baked Veal Cutlets;230;Горячее;Main Courses;160
+Запеченные Перцы с Телятиной;Baked Peppers with Veal;120;Горячее;Main Courses;150
+Запеченные Фрикадельки из Ягненка;Baked Lamb Meatballs;190;Горячее;Main Courses;150
 Запеченный Камчатский Краб с Тартаром из Гребешка;Baked Kamchatka Crab with Scallop Tartare;110;Горячее;Main Courses;
+Запеченный Лосось в Кисло-Сладком Соусе;Baked Salmon with Sweet and Sour Sauce;;Салаты;Salads;
 Запеченный Лосось с Соусом Песто;Baked Salmon with Pesto Sauce;210;Горячее;Main Courses;
 Запеченный Мини Картофель;Baked Mini Potatoes;128;Гарнир;Side Dishes;
-Зеленая Гречка на Молоке;Green Buckwheat Porridge with Milk;110;Завтрак;Breakfast;
-Зеленая Спаржа;Green Asparagus;25;Гарнир;Side Dishes;20
+Запеченный Мини Романо;Baked Mini Romano;100;Гарнир;Side Dishes;50
+Запеченный Молодой Картофель;Baked New Potatoes;110;Гарнир;Side Dishes;100
+Запеченный Молодой Картофель с Травами;Baked New Potatoes with Herbs;;Гарнир;Side Dishes;
+Запеченный Порей с Апельсином и Анчоусами;Oven Baked Leeks with Oranges and Anchovies;130;Горячая Закуска;Hot Starters;100
+Запеченный Стейк из Сёмги;Baked Salmon Steak;160;Горячее;Main Courses;140
+Запечёный Порей с Апельсином и Анчоусом;Oven Backed Leeks with Oranges and Anchovies;130;Горячая Закуска;Hot Starters;100
+Зеленая Спаржа;Green Asparagus;25;Гарнир;Side Dishes;50
+Зеленая Фасоль Тушеная в Томатах;Green Beans Stewed in Tomatoes;;Гарнир;Side Dishes;
 Зеленый Микс-Салат с Овощами;Green Mixed Salad with Vegetables;40;Салаты;Salads;
+Зеленый Салат;Green Salad;16;Салаты;Salads;120
+Зеленый Салат из Шпината с Козьим Сыром;Green Spinach Salad with Goat Cheese;170;Салаты;Salads;200
+Зеленый Салат с Авокадо и Соусом Песто;Green Salad with Avocado and Pesto;180;Салаты;Salads;150
 Зеленый Салат с Бобами Эдамаме;Green Salad with Edamame Beans;85;Салаты;Salads;
+Зеленый Салат с Крабом;Green Salad with Crab;70;Салаты;Salads;120
 Зеленый Салат с Соусом Песто;Green Salad with Pesto Dressing;160;Салаты;Salads;
 Зеленый Салат с Фенхелем;Green Salad with Fennel;30;Салаты;Salads;
-Икра из Печеных Овощей;Baked Vegetable «Caviar»;80;Салаты;Salads;
-Икра Овощная;Vegetable Caviar;90;Салаты;Salads;
+Зеленый Суп-пюре из Цукини, Сельдерея и Шпината;Green Cream Soup with Zucchini, Celery, and Spinach;55;Супы;Soups;200
+Иваси;Iwashi;180;Закуска;Starters;100
+Икра из Овощей Домашняя;Homemade Vegetable Caviar;55;Салаты;Salads;120
+Икра из Печеных Овощей;Baked Vegetable Caviar;80;Салаты;Salads;100
+Икра Красная;Red Caviar;250;Закуска;Starters;80
+Икра Овощная;Vegetable Caviar;90;Салаты;Salads;75
+Икра Овощная с Зеленью;Vegetable Caviar with Greens;80;Гарнир;Side Dishes;120
+Икра Черная;Black Caviar;230;Закуска;Starters;80
 Индейка Запеченная с Овощами;Baked Turkey with Vegetables;150;Горячее;Main Courses;
 Инжир;Figs;54;Завтрак;Breakfast;
+Кабачки на Сковороде;Pan Fried Zucchini;45;Гарнир;Side Dishes;75
 Какао;Cocoa;30;Завтрак;Breakfast;
-Кальмары Дьяволо;Diavolo's Squid;110;Горячее;Main Courses;
-Капуста с огурцом;Cabbage and Cucumber Salad;30;Салаты;Salads;
+Кальмары Дьяволо;Diavolo's Squid;110;Горячая Закуска;Hot Starters;80
+Кальмары с Белой Спаржей в Томатном Соусе;Squid with White Asparagus in Tomato Sauce;95;Горячая Закуска;Hot Starters;120
+Кальмары Фаршированные в Томатном Соусе;Squid Stuffed in Tomato Sauce;150;Закуска;Starters;75
+Капуста Брюссельская;Brussels Sprouts;45;Гарнир;Side Dishes;100
+Капуста Тушеная; Stewed Cabbage;65;Гарнир;Side Dishes;100
+Капуста Тушеная с Томатами;Cabbage Stewed with Tomatoes;;Салаты;Salads;
 Капуста Цветная и Брокколи;Cauliflower and Broccoli;70;Гарнир;Side Dishes;
 Капуста Цветная и Брокколи с Сыром и Яйцом;Cauliflower and Broccoli with Cheese and Egg;120;Гарнир;Side Dishes;
+Капуста Цветная Соте;Sauteed Cauliflower;32;Гарнир;Side Dishes;150
+Карабинерос в Сухарях Панко;Carabineros Fried in Panko;200;Горячая Закуска;Hot Starters;60
+Карабинерос с Томатом;Carabineros with Tomatoes;210;Горячая Закуска;Hot Starters;60
 Каре Теленка;Rack of Veal;230;Горячее;Main Courses;
 Каре Теленка Томленое;Stewed Veal Rack;220;Горячее;Main Courses;
 Каре Ягненка;Rack of Lamb;240;Горячее;Main Courses;
+Каре Ягненка на Сковороде Гриль;Rack of Lamb on a Grill Pan;220;Горячее;Main Courses;150
 Каре Ягненка с Тыквой и Луком;Rack of Lamb with Pumpkin and Onions;240;Горячее;Main Courses;
-Карпачо из Креветок Карабинеро;Carpaccio of Shrimp Carabineros;95;Горячее;Main Courses;50
-Карпачо из Креветок Карабинеро и Лангустин;Carpaccio of Shrimp Carabineros and Langoustine;95;Горячее;Main Courses;
+Каре Ягненка Тушёное с Луком;Rack of Lamb Stewed with Onions;;Горячее;Main Courses;
+Карп по-Ташкенски;Tashkent Style Сarp;127;Горячее;Main Courses;150
+Карпачо из Креветок Карабинеро;Carpaccio Carabinero;95;Горячее;Main Courses;50
+Карпачо из Креветок Карабинеро и Лангустин;Carpaccio Carabinero and Langoustine;95;Горячее;Main Courses;
+Карпаччо из Томатов;Tomato Carpaccio;35;Салаты;Salads;150
+Карпаччо из Цветной Капусты;Cauliflower Carpaccio;35;Холодная Закуска;Cold Starters;60
+Карпаччо из Цукини;Zucchini Carpaccio;50;Холодная Закуска;Cold Starters;75
 Картофель Батат Гриль;Grilled Sweet Potatoes;95;Гарнир;Side Dishes;
 Картофель Гриль;Grilled Potatoes;95;Гарнир;Side Dishes;
-Картофель Жаренный с Лисичками;Roasted Potattoes with Chanterelles;135;Горячее;Main Courses;
-Картофель Запеченный;Baked Potatoes;90;Гарнир;Side Dishes;
+Картофель Жаренный;Roasted Potatoes;190;Гарнир;Side Dishes;150
+Картофель Жаренный с Лисичками;Roasted Potatoes with Chanterelles;135;Горячее;Main Courses;
+Картофель Запеченный;Baked Potatoes;90;Гарнир;Side Dishes;100
 Картофель по-Деревенски;Country-style Potatoes;150;Гарнир;Side Dishes;
 Картофель по-Домашнему;Home-style Potatoes;150;Гарнир;Side Dishes;
+Картофель с Мясом и Зеленью;Potatoes with Meat and Greens;162;Горячее;Main Courses;150
 Картофель с Топпингом;Potatoes with Topping;200;Горячее;Main Courses;
 Картофель Фри;French Fries;310;Гарнир;Side Dishes;
 Картофель Черри;Cherry Potatoes;90;Гарнир;Side Dishes;
 Картофель Черри Запеченный;Baked Cherry Potatoes;100;Гарнир;Side Dishes;
+Картофельная Вафля с Творожным Сыром и Лососем;Potato Waffle with Cream Cheese and Salmon;180;Завтрак;Breakfast;80
 Картофельное Пюре;Mashed Potatoes;115;Гарнир;Side Dishes;100
 Картофельное Пюре без Молока;Mashed Potatoes without Milk;90;Гарнир;Side Dishes;
+Картофельное Пюре с Жареным Луком;Mashed Potatoes with Fried Onions;90;Гарнир;Side Dishes;
 Картофельное Пюре со Шпинатом;Mashed Potatoes with Spinach;120;Гарнир;Side Dishes;
+Картофельные Дольки;Potato Wedges;120;Гарнир;Side Dishes;120
 Картофельные Драники;Potato Pancakes;180;Гарнир;Side Dishes;
+Картофельный Гратен;Potato Gratin;150;Гарнир;Side Dishes;100
 Картошка Отварная;Boiled Potatoes;86;Гарнир;Side Dishes;
 Катык;Katyk;54;Завтрак;Breakfast;
 Катык с Гранолой;Katyk with Granola;120;Завтрак;Breakfast;150
 Каччукко с Морепродуктами;Cacciucco with Seafood;130;Горячее;Main Courses;
 Каша Гречневая;Buckwheat Porridge;110;Завтрак;Breakfast;
+Каша Гречневая на Молоке;Buckwheat Porridge with Milk;70;Завтрак;Breakfast;150
+Каша из Зеленой Гречки;Green Buckwheat Porridge;110;;;150
 Каша из Зеленой Гречки на Молоке;Green Buckwheat Porridge with Milk;110;Завтрак;Breakfast;150
+Каша Манная на Кокосовом Молоке;Semolina Porridge with Coconut Milk;130;Завтрак;Breakfast;150
+Каша Манная с Вареньем;Semolina Porridge with Jam;110;Завтрак;Breakfast;150
+Каша Манная с Вишневым Вареньем;Semolina Porridge with Cherry Jam;120;Завтрак;Breakfast;150
 Каша Манная с Земляникой;Semolina Porridge with Wild Strawberries;120;Завтрак;Breakfast;
 Каша Манная с Земляничным Вареньем;Semolina Porridge with Wild Strawberry Jam;120;Завтрак;Breakfast;
-Каша на Бульоне;Porridge in Broth;110;Завтрак;Breakfast;
-Каша Овсяная;Oatmeal Porridge;110;Завтрак;Breakfast;200
-Каша Овсяная на Бульоне;Oatmeal Porridge on Bouillon;110;Завтрак;Breakfast;200
+Каша на Бульоне;Porridge in Broth;110;Завтрак;Breakfast;150
+Каша Овсяная;Oatmeal Porridge;110;Завтрак;Breakfast;120
+Каша Овсяная на Бульоне;Oatmeal Porridge with Bouillon;110;Завтрак;Breakfast;200
 Каша Овсяная на Воде;Oatmeal Porridge on Water;68;Завтрак;Breakfast;
 Каша Овсяная на Воде с Курагой;Oatmeal Porridge with Dried Apricots;85;Завтрак;Breakfast;
 Каша Овсяная на Молоке;Oatmeal Porridge on Milk;102;Завтрак;Breakfast;150
-Каша по-Швейцарски;Oatmeal Porridge Swiss-style;150;Завтрак;Breakfast;
-Каша Пшенная;Millet Porridge;90;Завтрак;Breakfast;150
-Каша Пшенная на Кокосовом Молоке;Millet Porridge with Coconut Milk;155;Завтрак;Breakfast;
+Каша Овсяная по-Швейцарский;Swiss Oatmeal Porridge;120;Завтрак;Breakfast;150
+Каша Овсяная с Ягодами;Oatmeal with Berries;100;Завтрак;Breakfast;200
+Каша по-Швейцарски;Oatmeal Porridge Swiss-style;100;Завтрак;Breakfast;150
+Каша Пшенная;Millet Porridge;90;Завтрак;Breakfast;200
+Каша Пшенная на Кокосовом Молоке;Millet Porridge with Coconut Milk;155;Завтрак;Breakfast;150
 Каша Пшенная на Молоке с Вареньем;Millet Porridge with Milk and Jam;150;Завтрак;Breakfast;
+Каша Пшенная с Тыквой;Millet Porridge with Pumpkin;65;Завтрак;Breakfast;200
 Каша Пшенная с Ягодами;Millet Porridge with Berries;120;Завтрак;Breakfast;
 Каша Рисовая;Rice Porridge;115;Завтрак;Breakfast;150
 Каша Рисовая на Воде;Rice Porridge with Water;78;Завтрак;Breakfast;
-Квашенная Капуста с Ароматным Маслом;Sauerkraut with Aromatic Oil;45;Салаты;Salads;
-Кефир;Keffir;40;Завтрак;Breakfast;
+Каша Рисовая с Тыквой;Rice Porridge with Pumpkin;90;Завтрак;Breakfast;150
+Каша Рисовая с Яблоком и Корицей;Rice Porridge with Apple and Cinnamon;125;Завтрак;Breakfast;200
+Квашенная Капуста с Ароматным Маслом;Sauerkraut with Fragrant Oil;45;Салаты;Salads;
+Кесадилья с Курицей;Chicken Quesadilla;240;Завтрак;Breakfast;50
+Кефир;Kefir;40;Завтрак;Breakfast;
 Киви;Kiwi;48;Завтрак;Breakfast;30
 Киноа с Овощами;Quinoa with Vegetables;120;Гарнир;Side Dishes;
 Киш с Брокколи и Цветной Капустой;Quiche with Broccoli and Cauliflower;210;Завтрак;Breakfast;
@@ -198,426 +344,849 @@ ru;en;kcal;catRu;catEn;gr
 Кокосовый Йогурт;Coconut Yogurt;170;Завтрак;Breakfast;100
 Кокосовый Йогурт с Семенами Чиа и Клубничным Чатни;Coconut Yogurt with Chia Seeds and Strawberry Chutney;150;Завтрак;Breakfast;
 Колбаски Куриные;Chicken Sausages;230;Завтрак;Breakfast;
+Конвертик из Лаваша с Сулугуни и Зеленью;Lavash Envelope with Suluguni Cheese and Herbs;250;Горячая Закуска;Hot Starters;80
 Конвертик с Капустой;Pie with Cabbage;242;Завтрак;Breakfast;
+Конвертики из Лаваша с Сулугуни;Lavash with Suluguni Cheese;180;Закуска;Starters;75
 Конвертики из Тонкого Теста с Сыром;Puff Pastry Envelopes with Cheese;310;Завтрак;Breakfast;
-Корейка;Lamb Loin;240;Шашлык;BBQ;
+Корейка;Lamb Loin;240;Шашлык;BBQ;150
+Корейка Телячья на Кости;Veal Loin on the Bone;200;Горячее;Main Courses;110
+Корейка Ягненка Жареная;Roasted Lamb Loin;220;Горячая Закуска;Hot Starters;75
+Корейка Ягненка Запечённая;Baked Lamb Loin;180;Горячее;Main Courses;75
+Корейка Ягнёнка Тушеная с Зеленью;Stewed Lamb Loin with Greens;250;Горячее;Main Courses;50
+Котлета Пожарская;Pozharskaya Cutlet;220;Горячее;Main Courses;120
 Котлетки из Говядины;Beef Cutlets;210;Горячее;Main Courses;
-Котлетки из Индейки;Turkey Cutlets;180;Горячее;Main Courses;
 Котлетки из Судака;Pike Perch Cutlet;175;Горячее;Main Courses;
-Котлеты Домашние из Телятины;Homemade Veal Cutlets;104;Горячее;Main Courses;
-Котлеты из Телятины;Veal Cutlets;200;Горячее;Main Courses;
+Котлеты Домашние;Homemade Cutlets;180;Горячее;Main Courses;150
+Котлеты Домашние из Телятины;Homemade Veal Cutlets;104;Горячее;Main Courses;120
+Котлеты из Индейки;Turkey Cutlets;230;Горячее;Main Courses;150
+Котлеты из Судака;Pikeperch Cutlet;145;Горячее;Main Courses;150
+Котлеты из Телятины;Veal Cutlets;120;Горячее;Main Courses;120
 Котлеты из Трески;Cod Cutlets;140;Горячее;Main Courses;
+Котлеты из Трески с Соусом Тар-Тар;Cod Cutlets with Tartar Sauce;140;Горячее;Main Courses;120
+Котлеты Куриные Припущенные;Poached Chicken Cutlets;150;Горячее;Main Courses;150
 Котлеты Рыбные;Fish Cutlets;150;Горячее;Main Courses;150
-Крабовый салат;Crab Salad;175;Салаты;Salads;
+Котлеты Щучьи;Pike Cutlets;120;Горячее;Main Courses;150
+Котлеты Щучьи с Икорным Соусом;Pike Cutlets with Caviar Sauce;150;Горячее;Main Courses;150
+Крабовый Салат;Crab Salad;175;Салаты;Salads;150
 Креветки Карабинеры Криспи;Crispy Carabineri;160;Закуска;Starters;
+Креветки Отварные;Boiled Shrimp;85;Закуска;Starters;150
+Креветки Панко с Соусом Васаби;Panko Shrimp with Wasabi Sauce;210;Горячее;Main Courses;100
 Креветки Темпура;Shrimp Tempura;240;Горячее;Main Courses;
-Крем Суп из Тыквы;Pumpkin Cream Soup;55;Супы;Soups;
+Крем Суп из Печеной Тыквы;Baked Pumpkin Cream Soup;37;Супы;Soups;200
+Крем Суп из Тыквы;Pumpkin Cream Soup;55;Супы;Soups;200
 Кролик Тушеный с Луком;Rabbit Stewed with Onions;190;Горячее;Main Courses;
-Крудите из Красных Креветок;Red Shrimp Crudit?s;120;Холодная Закуска;Cold Starters;
+Кролик Тушеный с Овощами;Rabbit Stew with Vegetables;110;Горячее;Main Courses;150
+Крудите;Crudites;90;Салаты;Salads;50
+Крудите из Красных Креветок;Red Shrimp Crudite;120;Холодная Закуска;Cold Starters;
 Крудо из Креветок;Shrimp Crudo;170;Закуска;Starters;
 Крудо из Лангустина;Langoustine Crudo;80;Холодная Закуска;Cold Starters;
 Кукуруза;Corn;95;Гарнир;Side Dishes;150
-Кукуруза Отварная;Boiled Corn;85;Гарнир;Side Dishes;
+Кукуруза Отварная;Boiled Corn;85;Гарнир;Side Dishes;100
+Куриная Грудка Гриль;Grilled Chicken Breast;110;Горячее;Main Courses;150
 Куриная Грудка Запеченная;Baked Chicken Breast;160;Горячее;Main Courses;
+Куриная Грудка с Гречкой;Chicken Breast with Buckwheat;150;Горячее;Main Courses;250
 Куриная Грудка Су-вид;Chicken Breast Sous-vide;110;Горячее;Main Courses;150
-Куриные биточки на Пару;Steamed Chicken Cutlets;145;Горячее;Main Courses;
+Куриная Лапша Домашняя с Ножкой;Homemade Chicken Noodles with Leg;70;Супы;Soups;200
+Куриная Ножка Конфи;Chicken Leg Confit;180;Горячее;Main Courses;140
+Куриная Печень с Луком;Chicken Liver with Onions;140;Горячее;Main Courses;200
+Куриные Биточки на Пару;Steamed Chicken Cutlets;145;Горячее;Main Courses;
 Куриные Котлеты;Chicken Cutlets;160;Горячее;Main Courses;140
+Куриные Котлеты на Пару;Steamed Chicken Cutlets;;Горячее;Main Courses;
 Куриные Котлеты Паровые;Steamed Chicken Cutlets;145;Горячее;Main Courses;
-Куриный Бульон;Chicken Broth;120;Супы;Soups;
-Куриный Бульон с Зеленью;Chicken Broth with Herbs;90;Супы;Soups;150
+Куриные Потрошки с Толченым Картофелем;Chicken Giblets with Mashed Potatoes;110;Закуска;Starters;80
+Куриные Шашлычки;Chicken Skewers;160;Горячее;Main Courses;150
+Куриный Бульон;Chicken Broth;120;Супы;Soups;200
+Куриный Бульон Кудрявый с Зеленью;Curly Chicken Broth with Herbs;20;Супы;Soups;200
+Куриный Бульон с Зеленью;Chicken Broth with Herbs;90;Супы;Soups;200
+Куриный Бульон с Курицей и Яйцом;Chicken Broth with Chicken and Egg;35;Супы;Soups;200
+Куриный Бульон с Лапшой;Chicken Bouillon with Noodles;50;Супы;Soups;200
+Куриный Бульон с Лапшой и Курицей;Chicken Broth with Noodles and Chicken;55;Супы;Soups;200
 Куриный Бульон с Ножкой;Chicken Broth with Leg;45;Супы;Soups;200
-Куриный Бульон с Омлетом и Зеленью;Chicken Bouillon with Omelet and Greens;40;Супы;Soups;
-Куриный Бульон с Пельменями;Chicken Broth with Dumplings;95;Супы;Soups;
-Куриный Бульон с Перепелиным Яйцом;Chicken Broth with Quail Egg;50;Супы;Soups;
-Куриный Бульон с Фрикадельками;Chicken Bouillon with Meatballs;50;Супы;Soups;
-Куриный Паштет;Chicken P?t?;260;Завтрак;Breakfast;
-Куриный Рулет;Chicken Roulade;150;Завтрак;Breakfast;40
-Куриный Суп Лапша с Фрикадельками;Chicken Noodle Soup with Meatballs;90;Супы;Soups;
-Куриный Суп с Брокколи;Chicken and Broccoli Soup;60;Супы;Soups;
-Куриный Суп с Вермишелью;Chicken Noodle Soup;55;Супы;Soups;
+Куриный Бульон с Омлетом и Зеленью;Chicken Bouillon with Omelet and Greens;40;Супы;Soups;200
+Куриный Бульон с Пельменями;Chicken Broth with Dumplings;95;Супы;Soups;200
+Куриный Бульон с Перепелиным Яйцом;Chicken Broth with Quail Egg;50;Супы;Soups;200
+Куриный Бульон с Перепелиным Яйцом и Шпинатом;Chicken Broth with Quail Egg and Spinach;;Супы;Soups;200
+Куриный Бульон с Потрошками;Chicken Broth with Giblets;45;Супы;Soups;200
+Куриный Бульон с Тефтелями;Chicken Broth with Meatballs;60;Супы;Soups;200
+Куриный Бульон с Фрикадельками;Chicken Bouillon with Meatballs;50;Супы;Soups;200
+Куриный Бульон с Яйцом и Зеленью;Chicken Broth with Egg and Herbs;;Супы;Soups;
+Куриный Паштет;Chicken Plate;260;Завтрак;Breakfast;45
+Куриный Паштет 777;Chicken Plate 777;200;;;45
+Куриный Рулет;Chicken Roulade;150;Завтрак;Breakfast;100
+Куриный Суп Лапша;Chicken Noodle Soup;55;Супы;Soups;200
+Куриный Суп Лапша с Фрикадельками;Chicken Noodle Soup with Meatballs;90;Супы;Soups;200
+Куриный Суп с Брокколи;Chicken and Broccoli Soup;60;Супы;Soups;200
+Куриный Суп с Вермишелью;Chicken Noodle Soup;55;Супы;Soups;200
 Куриный Суп с Потрошками;Chicken Soup with Giblets;60;Супы;Soups;200
+Куриный Суп с Щавелем;Chicken Soup with Sorrel;;Супы;Soups;
 Курица в Сливочном Соусе с Кинзой;Chicken with Creamy Sauce and Cilantro;190;Горячее;Main Courses;
 Курица Запеченная;Baked Chicken;210;Горячее;Main Courses;
 Курица с Овощами и Кунжутом;Chicken with Vegetables and Sesame Seeds;190;Горячее;Main Courses;
-Кутабы с Зеленью;Kutabs with Herbs;220;Закуска;Starters;
-Лагман;Lagman;110;Супы;Soups;250
+Курочка Запечённая;Baked Chicken;190;Горячее;Main Courses;150
+Кутабы с Зеленью;Kutabs with Herbs;220;Закуска;Starters;60
+Лагман;Lagman;110;Супы;Soups;200
+Лапша Гречневая с Овощами;Buckwheat Noodles with Vegetables;140;Гарнир;Side Dishes;
+Лапша Куриная с Потрошками;Chicken Noodles with Giblets;80;Горячее;Main Courses;150
 Лапша Пшеничная с Курицей и Овощами;Wheat Noodles with Chicken and Vegetables;160;Горячее;Main Courses;
+Лахмаджун;Lakhmadjun;188;Горячая Закуска;Hot Starters;150
+Лахмаджун с Ягнёнком;Lahmacun with Lamb;230;Закуска;Starters;80
 Ледяная Рыба;Ice Fish;95;Горячее;Main Courses;
-Ленивые Вареники;Lazy Dumplings;165;Завтрак;Breakfast;
+Ленивые Вареники;Lazy Dumplings;165;Завтрак;Breakfast;80
 Ленивые Вареники с Земляникой;Lazy Dumplings with Wild Strawberries;180;Завтрак;Breakfast;
 Лимонный Курд;Lemon Curd;350;Завтрак;Breakfast;
 Листовой Салат с Печеной Свеклой;Leaf Salad with Baked Beetroot;30;Салаты;Salads;
+Листья Салата с Куриной Грудкой;Salad Leaves with Chicken Breast;120;Салаты;Salads;120
 Лобио;Lobio;145;Гарнир;Side Dishes;130
+Лобио из Зеленой Фасоли;Green Bean Lobio;110;Горячая Закуска;Hot Starters;120
 Лобио из Стручковой Фасоли;Green Bean Lobio;100;Закуска;Starters;
-Луковый Суп;Onion Soup;40;Супы;Soups;
+Лопатка Ягненка Запечённая с Овощами;Lamb Shoulder Roasted with Vegetables;230;Горячее;Main Courses;150
+Лопатка Ягненка Тушеная с Овощами;Stewed Lamb Shoulder with Vegetables;190;Горячее;Main Courses;120
+Лосось в Соусе из Шпината;Salmon in Spinach Sauce;170;Горячее;Main Courses;250
+Лосось в Соусе Терияки;Salmon with Teriyaki Sauce;;Горячее;Main Courses;
+Лосось в Соусе Терияки с Водорослями Вакаме;Salmon in Teriyaki Sauce with Wakame Seaweed;;Горячее;Main Courses;
+Лосось Гриль;Grilled Salmon;200;Горячее;Main Courses;150
+Лосось Гриль со Спаржей и Шпинатом;Grilled Salmon with Asparagus and Spinach;;Горячее;Main Courses;
+Лосось Гриль со Шпинатом;Grilled Salmon with Spinach;180;Горячее;Main Courses;150
+Лосось на Пару;Steamed Salmon;180;Горячее;Main Courses;
+Лосось на Пару с Травами;Steamed Salmon with Herbs;190;Горячее;Main Courses;150
+Лосось с Авокадо;Salmon with Avocado;215;Завтрак;Breakfast;60
+Лосось Терияки;Salmon Teriyaki;;Горячее;Main Courses;
+Луковый Суп;Onion Soup;40;Супы;Soups;200
+Луковый Суп с Крутоном;Onion Soup with Croutons;45;Супы;Soups;200
+Луковый Суп с Репой;Onion Soup with Turnips;39;Супы;Soups;200
 Люля;Lulya;270;Шашлык;BBQ;
+Люля из Ягнёнка;Lamb Lyulya;240;Горячая Закуска;Hot Starters;75
 Люля Кебаб;Lyulya Kebab;220;Шашлык;BBQ;
+Макароны по-Флотски;Navy Style Pasta;175;Гарнир;Side Dishes;140
 Макароны Фузилли;Fusilli Pasta;130;Гарнир;Side Dishes;
-Мампар;Mampar;100;Супы;Soups;
+Мампар;Mampar;100;Супы;Soups;200
 Манго;Mango;60;Завтрак;Breakfast;30
+Манго с Рикоттой и Клубникой;Mango with Ricotta and Strawberries;100;Завтрак;Breakfast;100
 Манная Каша;Semolina Porridge;75;Завтрак;Breakfast;200
 Манная Каша с Земляничным Вареньем;Semolina Porridge with Strawberry Jam;135;Завтрак;Breakfast;150
 Манты;Manty;250;Горячее;Main Courses;
+Манты с Ягнёнком;Manti with Lamb;200;Горячее;Main Courses;150
 Мастава;Mastava;60;Супы;Soups;200
-Мастава с Ягненком;Mastava with Lamb;110;Супы;Soups;
+Мастава с Ягненком;Mastava with Lamb;110;Супы;Soups;200
 Маш с Овощами;Mung Beans with Vegetables;120;Гарнир;Side Dishes;
-Машевый Суп;Mung Bean Soup;80;Супы;Soups;
-Машхурда;Mashkhurda;80;Супы;Soups;
+Машевый Суп;Mung Bean Soup;80;Супы;Soups;200
+Машхурда;Mashkhurda;80;Супы;Soups;200
 Медальоны из Говядины;Beef Medallions;220;Горячее;Main Courses;150
+Медальоны из Говяжий Вырезки;Beef Tenderloin Medallions;145;Горячее;Main Courses;150
+Медальоны из Телятины;Veal Medallions;170;Горячее;Main Courses;150
 Медальоны из Телячьей Вырезки;Medallions of Veal Tenderloin;160;Горячее;Main Courses;150
 Мидии в Белом Вине;Mussels in White Wine;65;Закуска;Starters;
 Микс Салат с Артишоками и Томатами Черри;Mix Salad with Artichokes and Cherry Tomatoes;70;Салаты;Salads;
-Микс Салат с Жареным Сыром Тофу и Кунжутом;Mix-Salad with Fried Tofu Cheese and Sesame Seeds;125;Салаты;Salads;
-Микс Салат с Жареным Сыром Халуми;Mixed Salad with Fried Halloumi Cheese;160;Салаты;Salads;
-Микс Салат с Крабом и Апельсиновой Заправкой;Mixed Salad with Crab and Orange Dressing;120;Салаты;Salads;
-Микс Салат с Куриной Грудкой и Зеленой Фасолью;Mixed Salad with Chicken Breast and Green Beans;85;Салаты;Salads;
+Микс Салат с Водорослями Чука;Mix Salad with Chuka Seaweed;;Салаты;Salads;
+Микс Салат с Жареным Сыром Тофу и Кунжутом;Mix Salad with Fried Tofu Cheese and Sesame Seeds;125;Салаты;Salads;
+Микс Салат с Жареным Сыром Халуми;Mix Salad with Fried Halloumi Cheese;160;Салаты;Salads;
+Микс Салат с Зелеными Овощами;Mix Salad with Green Vegetables;70;Закуска;Starters;150
+Микс Салат с Камчатским Крабом;Mix Salad with Kamchatka Crab;130;Салаты;Salads;120
+Микс Салат с Крабом;Mix Salad with Crab;120;Салаты;Salads;120
+Микс Салат с Крабом и Апельсиновой Заправкой;Mix Salad with Crab and Orange Dressing;120;Салаты;Salads;120
+Микс Салат с Куриной Грудкой в Ореховом Соусе;Mixed Salad with Chicken Breast in Walnut Sauce;;Салаты;Salads;
+Микс Салат с Куриной Грудкой и Зеленой Фасолью;Mix Salad with Chicken Breast and Green Beans;85;Салаты;Salads;
 Микс Салат с Куриной Печенью;Mix Salad with Chicken Liver;160;Салаты;Salads;150
-Микс Салат с Мюнхенской Заправкой;Mixed Salad with Munich Dressing;91;Салаты;Salads;100
-Микс Салат с Овощами;Mixed Salad with Vegetables;50;Салаты;Salads;
+Микс Салат с Курицей в Ореховом Соусе;Mix Salad with Chicken in Walnut Sauce;250;Салаты;Salads;200
+Микс Салат с Мюнхенской Заправкой;Mix Salad with Munich Dressing;91;Салаты;Salads;100
+Микс Салат с Овощами;Mix Salad with Vegetables;50;Салаты;Salads;
+Микс Салат с Овощами Гриль;Mix Salad with Grilled Vegetables;60;Салаты;Salads;
+Микс Салат с Огурцом и Редисом;Mixed Salad with Cucumber and Radish;25;Салаты;Salads;120
+Микс Салат с Огурцом, Редисом и Яйцом;Mixed Salad with Cucumber, Radish, and Egg;55;Салаты;Salads;120
+Микс Салат с Ореховой Заправкой;Mix Salad with Nut Dressing;;Салаты;Salads;
 Микс Салат с Перепелкой;Mix Salad with Quail;140;Салаты;Salads;150
+Микс Салат с Перепелкой и Печёным Перцем;Mix Salad with Quail and Baked Peppers;120;Салаты;Salads;150
+Микс Салат с Печеной Свеклой и Козьим Сыром;Mixed Salad with Baked Beets and Goat Cheese;;Салаты;Salads;
+Микс Салат с Печеной Тыквой и Мюнхенской Заправкой;Mixed Salad with Roasted Pumpkin and Munich Dressing;90;Салаты;Salads;120
+Микс Салат с Печеным Перцем;Mixed Salad with Baked Peppers;70;Салаты;Salads;120
+Микс Салат с Печеным Перцем и Козьем Сыром;Mix Salad with Baked Peppers and Goat Cheese;140;Салаты;Salads;120
+Микс Салат с Помидорами Черри и Медово-Горчичной Заправкой;Mix Salad with Cherry Tomatoes and Honey Mustard Dressing;70;Салаты;Salads;150
 Микс Салат с Помидорами Черри и Мюнхенской Заправкой;Mix Salad with Cherry Tomatoes and Munich Dressing;100;Салаты;Salads;150
-Микс Салат с Яблоком и Орехом Пекан;Mixed Salad with Apple and Pecan Nuts;110;Салаты;Salads;
-Микс-Салат;Mixsalad;20;Салаты;Salads;150
-Микс-Салат с Жареным Тофу и Кунжутом;Mixsalad with Fried Tofu and Sesame Seeds;125;Салаты;Salads;
-Микс-Салат с Квашеной Капустой;Mixsalad with Sauerkraut;25;Салаты;Salads;
-Микс-Салат с Киноа и Авокадо;Mixed Salad with Quinoa and Avocado;150;Салаты;Salads;
-Микс-Салат с Копченой Форелью;Mixsalad with Smoked Trout;120;Салаты;Salads;
-Микс-Салат с Крабом, Конкассе и Кукурузой;Mix-salad with Crab, Concasse and Corn;130;Салаты;Salads;
-Мильфей из Свеклы с Гуакамоле;Beetroot Millefeuille with Guacamole;100;Завтрак;Breakfast;
+Микс Салат с Томатами и Моцареллой;Mixed Salad with Tomatoes and Mozzarella;100;Салаты;Salads;120
+Микс Салат с Тунцом;Mix Salad with Tuna;90;Салаты;Salads;120
+Микс Салат с Тунцом и Перепелиным Яйцом;Mix Salad with Tuna and Quail Egg;86;Салаты;Salads;200
+Микс Салат с Яблоком и Орехом Пекан;Mix Salad with Apple and Pecan Nuts;110;Салаты;Salads;
+Микс Салата с Киноа и Соусом из Шпината;Mixed Salad with Quinoa and Spinach Sauce;90;Салаты;Salads;120
+Микс-Салат;Mix Salad;20;Салаты;Salads;150
+Микс-Салат с Жареным Тофу и Кунжутом;Mix Salad with Fried Tofu and Sesame Seeds;125;Салаты;Salads;
+Микс-Салат с Квашеной Капустой;Mix Salad with Sauerkraut;25;Салаты;Salads;
+Микс-Салат с Квашеной Капустой и Мюнхенской Заправкой;Mix Salad with Sauerkraut and Munich Dressing;40;Салаты;Salads;150
+Микс-Салат с Киноа и Авокадо;Mix Salad with Quinoa and Avocado;150;Салаты;Salads;
+Микс-Салат с Копченой Форелью;Mix Salad with Smoked Trout;120;Салаты;Salads;150
+Микс-Салат с Крабом, Конкассе и Кукурузой;Mix Salad with Crab, Concasse and Corn;130;Салаты;Salads;
+Микс-салат с Печеной Тыквой;Mixed Salad with Baked Pumpkin;70;Салаты;Salads;120
+Микс-салат с Сыром Страчателла;Mixed Salad with Stracciatella Cheese;;Салаты;Salads;
+Мильфей из Печеной Свеклы с Гуакамоле;Baked Beet Mille-feuille with Guacamole;95;Завтрак;Breakfast;60
+Мильфей из Свеклы;Beet Mille-feuille;80;Завтрак;Breakfast;50
+Мильфей из Свеклы с Гуакамоле;Beetroot Mille-feuille with Guacamole;100;Завтрак;Breakfast;
+Мильфей с Копченой Форелью;Mille-feuille with Smoked Trout;300;Завтрак;Breakfast;40
 Мильфей со Свеклой и Авокадо;Mille-feuille with Beetroot and Avocado;200;Завтрак;Breakfast;
-Минестроне;Minestrone;100;Супы;Soups;150
+Минестроне;Minestrone;100;Супы;Soups;200
+Мини Голубцы с Крабом;Mini Cabbage Rolls with Crab;150;Горячая Закуска;Hot Starters;100
+Мини Кальмары с Перечным Соусом;Mini Squid with Pepper Sauce;120;Салаты;Salads;100
+Мини Кальмары Фаршированные в Томатном Соусе с Пюре;Mini Squid Stuffed in Tomato Sauce with Puree;86;;;170
+Мини Картофель Жареный;Roasted Baby Potatoes;196;Гарнир;Side Dishes;100
+Мини Картофель Отварной с Укропом;Mini Boiled Potatoes with Dill;80;Гарнир;Side Dishes;100
+Мини Картофель с Зеленью;Mini Potatoes with Herbs;120;Гарнир;Side Dishes;100
 Мини Пенне;Mini Penne;130;Гарнир;Side Dishes;
+Мини Пенне в Соусе из Зелени;Mini Penne with Green Sauce;;Гарнир;Side Dishes;
+Мини Пенне в Соусе Песто;Mini Penne in Pesto Sauce;250;Гарнир;Side Dishes;
+Мини Романо с Огурцом;Mini Romano with Cucumber;21;Завтрак;Breakfast;60
+Мини Романо с Песто и Зелеными Овощами;Mini Romano Lettuce with Pesto and Green Vegetables;100;Салаты;Salads;100
 Мини Чебуреки;Mini Chebureki;290;Закуска;Starters;
-Молодая Капуста с Рукколой;Young Cabbage with Arugula;50;Салаты;Salads;
-Молодая Капуста с Рукколой и Черри;Young Cabbage with Arugula and Cherry Tomatoes;35;Салаты;Salads;
-Молодой Отварной Картофель;Young Boiled Potatoes;75;Гарнир;Side Dishes;
+Мини Чебуреки с Ягнёнком;Mini Chebureki with Lamb;220;Закуска;Starters;70
+Мисо Суп;Miso Soup;40;Супы;Soups;200
+Мисо Суп с Лососем;Miso Soup with Salmon;60;Супы;Soups;200
+Молодая Капуста с Рукколой;Young Cabbage with Rucola;50;Салаты;Salads;120
+Молодая Капуста с Рукколой и Черри;Young Cabbage with Rucola and Cherry Tomatoes;35;Салаты;Salads;
+Молодой Картофель;New Potatoes;75;Гарнир;Side Dishes;120
+Молодой Картофель Жареный с Луком;Fried Potatoes with Onions;160;Гарнир;Side Dishes;180
+Молодой Картофель Отварной;Boiled Baby Potatoes;75;Гарнир;Side Dishes;100
+Молодой Картофель с Розмарином;New Potatoes with Rosemary;120;Гарнир;Side Dishes;150
+Молодой Картофель с Укропом;Potatoes with Dill;61;Гарнир;Side Dishes;100
 Морковные Котлеты;Carrot Cutlets;120;Горячее;Main Courses;100
+Морковь по-Ташкентски;Tashkent-Style Carrots;120;Салаты;Salads;150
+Морской Палтус с Томатами Запечённый;Baked Halibut with Tomatoes;110;Горячее;Main Courses;140
+Мохора;Mohora;68;Супы;Soups;200
 Моцарелла с Песто и Томатами;Mozzarella with Pesto and Tomatoes;220;Салаты;Salads;
+Мясное Ассорти;Meat Assortment;250;Закуска;Starters;120
 Наггетсы Куриные;Chicken Nuggets;250;Горячее;Main Courses;
 Натуральный Йогурт с Гранолой;Natural Yogurt with Granola;150;Завтрак;Breakfast;
+Ньоки Болоньезе;Gnocchi Bolognese;170;Горячая Закуска;Hot Starters;120
+Ньоки с Грибами;Gnocci with Mushrooms;180;Горячее;Main Courses;150
+Ньоки с Трюфелем и Пармезаном;Gnocci with Truffles and Parmesan;520;Горячее;Main Courses;150
+Ньоки с Тушеной Говядиной и Травами;Gnocci with Stewed Beef and Herbs;210;Горячее;Main Courses;200
+Ньокки с Рагу из Телячьих Хвостов;Gnocchi with Veal Tail Ragout;160;Горячее;Main Courses;140
 Обжаренные Овощи;Fried Vegetables;120;Гарнир;Side Dishes;
+Обжаренный Брокколи;Fried Broccoli;40;Гарнир;Side Dishes;100
+Обжаренный Мини Картофель с Цветной Капустой;Fried Baby Potatoes with Cauliflower;120;Гарнир;Side Dishes;100
 Овощи Гриль;Grilled Vegetables;80;Гарнир;Side Dishes;100
-Овощи Запеченные;Baked Vegetables;30;Гарнир;Side Dishes;
-Овощи Запеченные в Собственном Соку;Baked Vegetables;30;Гарнир;Side Dishes;
+Овощи Запечённые;Baked Vegetables;48;Гарнир;Side Dishes;150
+Овощи Запеченные в Собственном Соку;Vegetables Baked in Their Own Juice;30;Гарнир;Side Dishes;
+Овощи Запечённые в Томате;Vegetables Baked in Tomato;;;;
 Овощи на Пару;Steamed Vegetables;20;Гарнир;Side Dishes;100
-Овощи Натуральные;Natural Vegetables;31;Салаты;Salads;
-Овощи Свежие;Fresh Vegetables;25;Завтрак;Breakfast;100
+Овощи Натуральные;Natural Vegetables;31;Салаты;Salads;45
+Овощи Отварные;Boiled Vegetables;30;Гарнир;Side Dishes;100
+Овощи Печёные;Baked Vegetables;50;Гарнир;Side Dishes;120
+Овощи Свежие;Fresh Vegetables;25;Завтрак;Breakfast;70
+Овощи Свежие с Телятиной;Fresh Vegetables with Veal;100;Горячее;Main Courses;200
 Овощи Тушеные;Stewed Vegetables;60;Гарнир;Side Dishes;100
+Овощи Тушеные в Томатах;Vegetables Stewed with Tomatoes;40;Гарнир;Side Dishes;120
+Овощи Тушеные в Томатном Соусе;Vegetables Stewed in Tomato Sauce;;Горячее;Main Courses;
+Овощи Унаги;Unagi-Style Vegetables;100;Гарнир;Side Dishes;100
 Овощная Икра с Сыром Скаморца;Vegetable Caviar with Scamorza Cheese;150;Салаты;Salads;
 Овощная Сальса;Vegetable Salsa;25;Завтрак;Breakfast;
+Овощная Тарелка;Vegetable Platter;25;Салаты;Salads;120
 Овощное Рагу;Vegetable Stew;90;Гарнир;Side Dishes;100
-Овощное Соте;Vegetable Saute;70;Гарнир;Side Dishes;
-Овощной Пикантный Салат;Spicy Vegetable Salad;50;Салаты;Salads;
-Овощной Салат;Vegetable Salad;45;Салаты;Salads;
-Овощной Салат с Авокадо и Крымским Луком;Vegetable Salad with Avocado and Crimean Onion;160;Салаты;Salads;
-Овощной Салат с Ароматным Маслом;Vegetable Salad with Aromatic Oil;80;Салаты;Salads;150
-Овощной Салат с Оливковым Маслом;Vegetable Salad with Olive Oil;80;Салаты;Salads;
+Овощное Рагу с Говядиной;Vegetable Ragout with Beef;102;Горячее;Main Courses;150
+Овощное Соте;Vegetable Saute;70;Гарнир;Side Dishes;100
+Овощной Пикантный Салат;Spicy Vegetable Salad;50;Салаты;Salads;150
+Овощной Салат;Vegetable Salad;45;Салаты;Salads;200
+Овощной Салат с Авокадо и Крымским Луком;Vegetable Salad with Avocado and Crimean Onion;160;Салаты;Salads;150
+Овощной Салат с Ароматным Маслом;Vegetable Salad with Fragrant Oil;80;Салаты;Salads;150
+Овощной Салат с Горошком;Vegetable Salad with Peas;90;Салаты;Salads;120
+Овощной Салат с Грецким Орехом;Vegetable Salad with Walnuts;85;Салаты;Salads;150
+Овощной Салат с Грецким Орехом и Зеленью;Vegetable Salad with Walnuts and Greens;70;Салаты;Salads;120
+Овощной Салат с Зелёным Горошком;Vegetable Salad with Green Peas;60;Салаты;Salads;120
+Овощной Салат с Красным Луком;Vegetable Salad with Red Onions;60;Салаты;Salads;150
+Овощной Салат с Крымским Луком;Vegetable Salad with Crimean Onions;;Салаты;Salads;
+Овощной Салат с Луком и Сметаной;Vegetable Salad with Onions and Sour Cream;85;Салаты;Salads;120
+Овощной Салат с Оливковым Маслом;Vegetable Salad with Olive Oil;80;Салаты;Salads;120
+Овощной Салат с Тунцом;Vegetable Salad with Tuna;105;Салаты;Salads;150
+Овощной Салат с Фасолью;Vegetable Salad with Beans;76;Салаты;Salads;150
 Овощной Салат со Сметаной;Vegetable Salad with Sour Cream;80;Салаты;Salads;120
+Овощной Салат со Сметаной и Ароматным Маслом;Vegetable Salad with Sour Cream and Aromatic Oil;90;Салаты;Salads;120
 Овощной Суп;Vegetable Soup;35;Супы;Soups;200
-Овощной Суп – Пюре;Vegetable Cream Soup;155;Супы;Soups;
-Овощной Суп из Цветной Капусты с Репой;Cauliflower and Turnip Vegetable Soup;50;Супы;Soups;
-Овощной Суп с Капустой;Vegetable Cabbage Soup;30;Супы;Soups;
-Овощной Суп с Молодым Горошком;Vegetable Soup with Young Green Peas;30;Супы;Soups;
-Овощной Суп с Тыквой;Vegetable Soup with Pumpkin;30;Супы;Soups;
+Овощной Суп ? Пюре;Vegetable Cream Soup;155;Супы;Soups;200
+Овощной Суп из Цветной Капусты с Репой;Cauliflower and Turnip Vegetable Soup;50;Супы;Soups;200
+Овощной Суп с Грибами;Vegetable Soup with Mushrooms;30;Супы;Soups;200
+Овощной Суп с Капустой;Vegetable Cabbage Soup;30;Супы;Soups;200
+Овощной Суп с Молодым Горошком;Vegetable Soup with Young Green Peas;30;Супы;Soups;200
+Овощной Суп с Тыквой;Vegetable Soup with Pumpkin;30;Супы;Soups;200
 Овсяная Каша на Воде с Абрикосом;Oatmeal with Apricot;65;Завтрак;Breakfast;
-Овсяная Каша на Воде с Курагой;Oatmeal Porridge on Water with Dried Apricots;70;Завтрак;Breakfast;
+Овсяная Каша на Воде с Курагой;Oatmeal Porridge on Water with Dried Apricots;70;Завтрак;Breakfast;180
 Овсяная Каша Цельнозерновая;Whole Grain Oatmeal;120;Завтрак;Breakfast;200
-Окрошка на Квасе или Кефире;Okroshka on Kvass or Kefir;50;Супы;Soups;
-Окрошка на Квасе, Кефире или Айране;Okroshka with Kvass, Kefir or Ayran;55;Супы;Soups;
+Окрошка на Квасе или Кефире;Okroshka on Kvass or Kefir;50;Супы;Soups;200
+Окрошка на Квасе, Кефире или Айране;Okroshka with Kvass, Kefir or Ayran;55;Супы;Soups;200
 Оладьи Бездрожжевые на Кефире;Yeast-Free Pancakes with Kefir;200;Завтрак;Breakfast;
+Оладьи из Брокколи;Broccoli Pancakes;110;Завтрак;Breakfast;50
 Оладьи из Индейки;Turkey Pancakes;170;Горячее;Main Courses;
+Оладьи из Тыквы;Pumpkin Pancakes;55;Завтрак;Breakfast;80
 Оладьи из Цукини;Zucchini Fritters;120;Завтрак;Breakfast;
+Оладьи из Цукини с Лососем;Zucchini Pancakes with Salmon;112;Завтрак;Breakfast;60
+Оладьи на Кефире;Kefir Pancakes;220;Завтрак;Breakfast;80
+Оладьи Овощные;Vegetable Pancakes;55;Завтрак;Breakfast;
+Оладьи с Чиа и Семенами Льна на Кокосовом Молоке;Coconut Milk-based Pancakes with Chia and Flax Seeds;270;Завтрак;Breakfast;50
+Оладья из Цукини;Zucchini Pancake;100;Завтрак;Breakfast;80
 Оливье;Olivier Russian Salad;195;Салаты;Salads;150
-Оливье с Курицей;Olivier with Chicken;195;Салаты;Salads;
+Оливье с Куриной Грудкой;Olivier with Chicken Breast;180;Салаты;Salads;150
+Оливье с Курицей;Olivier with Chicken;195;Салаты;Salads;150
+Оливье с Перепёлкой и Раковыми Шейками;Olivier with Quail and Crayfish Necks;170;Салаты;Salads;120
 Оливье с Цыпленком;Olivier Salad with Chicken;180;Салаты;Salads;150
 Омлет;Omelet;170;Завтрак;Breakfast;120
 Омлет Закрученный;Rolled Omelet;180;Завтрак;Breakfast;120
+Омлет из Перепелиных Яиц;Quail Egg Omelette;125;Завтрак;Breakfast;120
+Омлет Классический;Classic Omelette;125;Завтрак;Breakfast;120
 Омлет на Пару;Steamed Omelette;120;Завтрак;Breakfast;
+Омлет Радужный с Томатами и Авокадо;Rainbow Omelette with Tomatoes and Avocado;160;Завтрак;Breakfast;150
 Омлет с Зеленью;Omelet with Greens;160;Завтрак;Breakfast;
 Омлет с Крабом;Omelet with Crab;175;Завтрак;Breakfast;
 Омлет с Сыром;Omelet with Cheese;170;Завтрак;Breakfast;
 Омлет с Сыром и Зеленью;Omelet with Cheese and Greens;170;Завтрак;Breakfast;150
 Омлет с Сыром Пармезан;Omelet with Parmesan Cheese;185;Завтрак;Breakfast;
 Омлет с Томатами;Omelet with Tomatoes;160;Завтрак;Breakfast;
-Омлет со Шпинатом;Omelet with Spinach;154;Завтрак;Breakfast;
+Омлет со Шпинатом;Omelet with Spinach;154;Завтрак;Breakfast;120
 Омлет со Шпинатом и Пармезаном;Omelet with Spinach and Parmesan;180;Завтрак;Breakfast;
+Омлет Студенческий с Горошком;Student Omelette with Peas;150;;;140
+Опята Маринованные;Pickled Honey Mushrooms;25;Закуска;Starters;120
+Осетрина;Grilled Sturgeon;160;Горячее;Main Courses;150
+Осетрина в Томатном Соусе;Sturgeon with Tomato Sauce;130;Горячее;Main Courses;150
 Осетрина в Томатном Соусе на Сковороде;Sturgeon with Tomato Sauce;145;Горячее;Main Courses;
+Осетрина Запечённая;Baked Sturgeon;160;Горячее;Main Courses;70
 Осетрина на Сковородке;Fried Sturgeon;190;Горячее;Main Courses;
-Осетрина Отварная;Boiled Sturgeon;140;Горячее;Main Courses;
+Осетрина Отварная;Boiled Sturgeon;140;Горячее;Main Courses;120
+Осетрина с Овощами в Томатном Соусе;Sturgeon with Vegetables in Tomato Sauce;120;Горячее;Main Courses;150
 Отбивная из Говядины;Beef Chop;283;Горячее;Main Courses;
-Отварная Белая Спаржа;Boiled White Asparagus;25;Гарнир;Side Dishes;
+Отбивные из Говядины;Beef Chops;;Горячее;Main Courses;
+Отварная Белая Спаржа;Boiled White Asparagus;25;Гарнир;Side Dishes;150
 Отварное Каре Телятины;Boiled Rack of Veal;131;Горячее;Main Courses;
 Открытый Хачапури из Теста Фило;Open Khachapuri from Phyllo Dough;270;Завтрак;Breakfast;
+Пак Чой с цыплёнком по-Азиатски;Asian Style Pak Choi with Chicken;130;Горячая Закуска;Hot Starters;120
+Пак-Чой;Pak Choi;50;Гарнир;Side Dishes;100
 Палтус;Halibut;110;Горячее;Main Courses;
+Панини из Круассана с Телятиной;Veal Croissant Panini;229;Завтрак;Breakfast;120
+Панини с Курицей;Chicken Panini;220;Завтрак;Breakfast;80
 Панини с Цыпленком;Panini with Chicken;260;Горячее;Main Courses;
 Панини с Цыпленком на Безглютеновой Булке;Gluten-free Panini with Chicken;225;Завтрак;Breakfast;
 Панкейки;Pancakes;230;Завтрак;Breakfast;
 Панкейки Шоколадные;Chocolate Pancakes;280;Завтрак;Breakfast;
-Папайя;Papaya;45;Завтрак;Breakfast;40
-Пате из Утиной Печени с Инжиром;Duck Liver P?t? with Fig;350;Завтрак;Breakfast;
+Папайя;Papaya;45;Завтрак;Breakfast;30
+Паприкаш из Курицы;Chicken Paprikash;145;Горячее;Main Courses;150
+Пармеджано;Parmigiano;200;Горячая Закуска;Hot Starters;100
+Пастрами из Говядины;Beef Pastrami;260;Завтрак;Breakfast;75
+Пате из Утиной Печени с Инжиром;Duck Liver Pate with Fig;350;Завтрак;Breakfast;
 Паштет;Pate;145;Завтрак;Breakfast;30
 Паштет из Гусиной Печени с Грушей;Goose Liver Pate with Pear;360;Завтрак;Breakfast;
+Паштет из Куриной Печени;Chicken Liver Pate;240;Завтрак;Breakfast;40
 Паштет из Печени с Инжиром;Liver Pate with Figs;275;Завтрак;Breakfast;
-Паштет из Сельди;Herring P?t?;220;Завтрак;Breakfast;
+Паштет из Сельди;Herring Pate;220;Завтрак;Breakfast;
+Паштет из Тунца;Tuna Pate;107;Завтрак;Breakfast;50
 Паштет из Фуа-Гра с Инжиром;Foie-Gras Pate with Figs;480;Завтрак;Breakfast;
-Паштет Печеночный;Liver P?t?;310;Завтрак;Breakfast;
+Паштет Печеночный;Liver Pate;310;Завтрак;Breakfast;40
 Пельмени;Dumplings;220;Горячее;Main Courses;
-Пельмени Домашние с Цыпленком;Homemade Dumplings with Chicken;194;Горячее;Main Courses;
+Пельмени Домашние с Цыпленком;Homemade Dumplings with Chicken;194;Горячее;Main Courses;140
 Пельмени Жареные;Fried Dumplings;260;Горячее;Main Courses;
 Пенне с Маслом;Penne with Butter;125;Гарнир;Side Dishes;
+Пенне с Рагу из Индейки;Penne with Turkey Ragout;110;Горячее;Main Courses;140
 Пенне с Рагу из Телячьих Хвостов;Penne with Veal Tail Ragout;200;Горячее;Main Courses;
+Пенне с Томленой Говядиной;Penne with Stewed Beef;350;Горячее;Main Courses;200
+Перепела Жареные;Fried Quails;180;Горячее;Main Courses;120
 Перепела Запеченные;Baked Quails;240;Горячее;Main Courses;
-Перепелка Запеченная;Oven Baked Quail;190;Горячее;Main Courses;
+Перепела на Сковороде;Pan-Seared Quails;180;Горячее;Main Courses;140
+Перепелка Жареная;Fried Quail;;Горячее;Main Courses;
+Перепёлка Жареная;Roasted Quail;134;Горячее;Main Courses;150
+Перепелка Запечённая;Baked Quail;200;Горячее;Main Courses;
 Перепелка с Брокколи и Томатами Черри;Quail with Broccoli and Cherry Tomatoes;170;Горячее;Main Courses;
+Перец Фаршированный Запеченный в Овощах;Peppers Stuffed Baked in Vegetables;;Горячее;Main Courses;
 Перец Фаршированный Курицей;Chicken Stuffed Pepper;150;Горячее;Main Courses;
 Персики и Нектарины;Peaches and Nectarines;40;Завтрак;Breakfast;
-Перцы Фаршированные Курицей;Bell Peppers Stuffed with Chicken;85;Горячее;Main Courses;
+Перцы Фаршированные Курицей;Bell Peppers Stuffed with Chicken;85;Горячее;Main Courses;150
 Перцы Фаршированные Телятиной;Peppers Stuffed with Veal;132;Горячее;Main Courses;150
 Перцы Фаршированные Ягненком;Peppers Stuffed with Lamb;160;Горячее;Main Courses;
 Перчики Фаршированные;Stuffed Peppers;150;Горячее;Main Courses;
-Печеное Яблоко;Baked Apple;80;Завтрак;Breakfast;
+Печёная Молодая Капуста с Соусом из Миндаля;Baked Baby Cabbage with Almond Sauce;125;Гарнир;Side Dishes;100
+Печеное Яблоко;Baked Apple;80;Завтрак;Breakfast;75
+Печёное Яблоко;Oven Baked Apple;56;Завтрак;Breakfast;100
+Печеное Яблоко с Орехами;Baked Apple with Nuts;95;Завтрак;Breakfast;85
 Печеный Картофель с Начинками;Baked Potatoes with Toppings;210;Горячее;Main Courses;
-Печень;Liver;180;Шашлык;BBQ;
+Печень;Liver;180;Шашлык;BBQ;150
 Печень Жареная с Луком;Fried Liver with Onions;190;Горячее;Main Courses;
-Печень с Луком;Liver with Onion;170;Горячее;Main Courses;160
-Печень Телячья;Veal Liver;132;Горячее;Main Courses;
-Печень Телячья с Луком;Veal Liver with Onions;130;Горячее;Main Courses;
+Печень с Луком;Liver with Onion;120;Горячее;Main Courses;150
+Печень Телячья;Veal Liver;132;Горячее;Main Courses;160
+Печень Телячья с Луком;Veal Liver with Onions;130;Горячее;Main Courses;200
+Пирожки из Теста Фило с Тунцом;Phyllo Pastries with Tuna;230;Завтрак;Breakfast;50
+Пирожки с Луком и Яйцом;Pirozhki with Spring Onions and Eggs;260;Завтрак;Breakfast;50
+Пицца;Pizza;250;Горячее;Main Courses;100
+Пицца из Цветной Капусты;Cauliflower Pizza;130;Горячая Закуска;Hot Starters;80
 Плов;Pilaf;287;Горячее;Main Courses;150
+Плов Праздничный;Festive Plov;243;Горячее;Main Courses;150
+Плов с Индейкой;Pilaf with Turkey;;Горячее;Main Courses;
+Плов с Телятиной;Veal Pilaf;;Горячее;Main Courses;
 Пожарские Котлеты;Pozharsky Cutlets;235;Горячее;Main Courses;150
 Половина Жареного Цыпленка;Half Roasted Chicken;330;Горячее;Main Courses;
+Помело;Pomelo;35;Завтрак;Breakfast;30
 Помидоры на Гриле;Grilled Tomatoes;30;Гарнир;Side Dishes;
+Помидоры с Бурратой;Tomatoes with Burrata;240;Салаты;Salads;150
+Помидоры с Бурратой и Базиликом;Tomatoes with Burrata and Basil;162;Салаты;Salads;150
+Помидоры с Бурратой и Рукколой;Tomatoes with Burrata and Rucola;110;Салаты;Salads;120
 Помидоры с Красным Луком;Tomatoes with Red Onions;25;Салаты;Salads;
+Помидоры с Красным Луком и Базиликом;Tomatoes with Red Onion and Basil;25;Салаты;Salads;120
+Помидоры с Красным Луком и Сметаной;Tomatoes with Red Onions and Sour Cream;65;Салаты;Salads;150
 Помидоры с Луком и Базиликом;Tomato with Onion and Basil;30;Салаты;Salads;
+Попкорн из Креветок;Shrimp Popcorn;180;Закуска;Starters;70
+Попкорн из Креветок с Картофелем Пай;Shrimp Popcorn with Potato Pie;150;Закуска;Starters;75
 Потрошка Куриные с Беби Картофелем;Chicken Giblets with Baby Potatoes;160;Закуска;Starters;
 Поцанела;Panzanella;120;Салаты;Salads;
+Почки Телячьи в Томатном Соусе;Veal Kidneys in Tomato Sauce;163;Закуска;Starters;120
+Почки Телячьи с Картофельным Пюре;Veal Kidneys with Mashed Potatoes;110;Закуска;Starters;75
 Простокваша с Гранолой;Soured Milk with Granola;180;Завтрак;Breakfast;
 Пюре из Авокадо;Avocado puree;161;Завтрак;Breakfast;
+Пюре из Брокколи и Зеленого Горошка;Broccoli and Green Pea Puree;60;Гарнир;Side Dishes;100
 Пюре из Брокколи с Авокадо;Broccoli and Avocado Puree;35;Гарнир;Side Dishes;
 Пюре из Тыквы;Pumpkin Puree;45;Гарнир;Side Dishes;
+Пюре Картофельное с Мускатом;Mashed Potatoes with Nutmeg;100;Гарнир;Side Dishes;100
+Пюре с Жареным Луком Фри;Mashed Potatoes with Fried Onions;;Гарнир;Side Dishes;
+Рагу из Индейки;Turkey Ragout;120;Горячее;Main Courses;150
+Рагу из Кабачков;Zucchini Ragout;73;Гарнир;Side Dishes;100
 Рагу из Молодого Шпината;Baby Spinach Ragout;63;Гарнир;Side Dishes;
 Рагу из Стручковой Фасоли в Томатном Соусе;Green Bean Stew with Tomato Sauce;65;Горячая Закуска;Hot Starters;
 Рагу из Чечевицы;Lentil Ragout;110;Гарнир;Side Dishes;
-Рагу из Шпината;Spinach Ragout;60;Горячее;Main Courses;
-Рассольник с Телятиной;Rassolnik with Veal;140;Супы;Soups;200
-Рибай Стейк;Ribeye Steak;270;Горячее;Main Courses;200
+Рагу из Шпината;Spinach Ragout;60;Горячее;Main Courses;100
+Раки Отварные;Boiled Crayfish;75;Закуска;Starters;100
+Рассольник с Телятиной;Rassolnik with Veal;110;Супы;Soups;200
+Ребра Ягнёнка Томленые с Картофелем;Stewed Lamb Ribs with Potatoes;75;Закуска;Starters;264
+Рёбрышки Ягнёнка Томлёные;Stewed Lamb Ribs;210;;;75
+Рибай Стейк;Ribeye Steak;260;Горячее;Main Courses;180
+Ризони со Шпинатом;Risoni with Spinach;170;Гарнир;Side Dishes;100
+Ризотто с Белым Трюфелем;Risotto with White Truffle;170;Горячее;Main Courses;150
 Ризотто с Лангустином;Risotto with Langoustine;150;Горячее;Main Courses;250
 Ризотто с Лисичками и Бураттой;Risotto with Chanterelles and Burrata;220;Горячее;Main Courses;
 Рийет из Утки;Duck Rillettes;310;Завтрак;Breakfast;
 Рис;Rice;120;Гарнир;Side Dishes;100
-Рис Отварной;Boiled Rice;115;Гарнир;Side Dishes;
+Рис Жареный с Яйцом и Брокколи;Fried Rice with Egg and Broccoli;120;Гарнир;Side Dishes;100
+Рис Жареный с Яйцом и Шпинатом;Fried Rice with Egg and Spinach;;Гарнир;Side Dishes;
+Рис Отварной;Boiled Rice;115;Гарнир;Side Dishes;100
 Рис Отварной по-Домашнему;Homemade-Style Boiled Rice;130;Гарнир;Side Dishes;
+Рис Отварной с Брокколи;Boiled Rice with Broccoli;95;Гарнир;Side Dishes;100
+Рис Отварной с Зеленью;Boiled Rice with Greens;57;Гарнир;Side Dishes;
+Рис Отварной со Шпинатом;Boiled Rice with Spinach;;Гарнир;Side Dishes;
 Рис Припущенный;Steamed Rice;115;Гарнир;Side Dishes;
-Рис с Овощами;Rice with Vegetables;120;Гарнир;Side Dishes;
+Рис с Брокколи;Rice with Broccoli;;Гарнир;Side Dishes;
+Рис с Вермишелью;Rice with Vermicelli;120;Гарнир;Side Dishes;150
+Рис с Овощами;Rice with Vegetables;120;Гарнир;Side Dishes;100
 Рисовая Вермишель с Овощами;Rice Vermicelli with Vegetables;125;Гарнир;Side Dishes;
 Рисовый Пудинг с Ягодами;Rice Pudding with Berries;123;Завтрак;Breakfast;
+Ролл из Огурца со Сливочным Сыром;Cucumber Roll with Cream Cheese;83;Завтрак;Breakfast;50
+Ролл из Цукини с Индейкой;Zucchini and Turkey Roll;;;;
+Ролл из Цукини с Овощами;Zucchini Roll with Vegetables;70;Завтрак;Breakfast;40
+Роллы;Sushi Rolls;170;Холодная Закуска;Cold Starters;50
 Ромштекс из Говядины;Beef Rump Steak;230;Горячее;Main Courses;
 Ростбиф из Говядины;Roast Beef;200;Горячее;Main Courses;
-Руккола с Вяленой Свеклой и Сливой;Arugula with Dried Beetroot and Plum;95;Салаты;Salads;
+Ростбиф из Индейки;"Turkey ""Roast Beef""";73;Завтрак;Breakfast;30
+Ростбиф из Курицы;Roast Beef Chicken;111;Завтрак;Breakfast;30
+Рубленые Котлеты Куриные;Chopped Chicken Cutlets;180;Горячее;Main Courses;150
+Руккола с Вяленой Свеклой и Сливой;Rucola with Dried Beetroot and Plum;95;Салаты;Salads;
 Руккола с Печеной Свеклой;Rucola with Baked Beetroot;60;Салаты;Salads;
-Руккола с Томатами Черри;Rocket with Cherry Tomatoes;30;Салаты;Salads;
-Рулет Куриный;Chicken Roll;200;Завтрак;Breakfast;
+Руккола с Печеной Свеклой и Козьим Сыром;Rucola with Roasted Beets and Goat Cheese;90;Салаты;Salads;120
+Руккола с Томатами Черри;Rucola with Cherry Tomatoes;30;Салаты;Salads;130
+Руккола с Томатами Черри и Крымским Луком;Rucola with Cherry Tomatoes and Crimean Onions;65;Салаты;Salads;150
+Руккола с Томатами Черри и Пармезаном;Rucola with Cherry Tomatoes and Parmesan;60;Салаты;Salads;130
+Руккола со Свёклой и Козьим Сыром;Rucola with Beetroot and Goat Cheese;157;Салаты;Salads;100
+Рулет из Баклажан;Eggplant Roll;120;Завтрак;Breakfast;30
+Рулет из Индейки;Turkey Roll;140;Завтрак;Breakfast;100
+Рулет из Целой Утки Запечённый;Baked Duck Roll;210;Горячее;Main Courses;120
+Рулет из Цукини с Овощами;Zucchini Roll with Vegetables;70;Завтрак;Breakfast;50
+Рулет Куриный;Chicken Roll;200;Завтрак;Breakfast;50
+Рулет с Брынзой и Зеленью;Roll with Feta Cheese and Greens;80;;;100
 Рулет с Куриным Яйцом и Луком;Roll with Chicken Egg and Onion;180;Горячее;Main Courses;
+Рулет с Сёмгой;Salmon Roll;180;Завтрак;Breakfast;80
 Рулетики из Баклажан с Помидорами и Огурцами;Eggplant Rolls with Tomatoes and Cucumbers;130;Закуска;Starters;
+Рулетики из Печеной Свеклы;Baked Beetroot Rolls;160;Завтрак;Breakfast;40
 Рулетики из Цуккини с Сыром и Зеленью;Zucchini Rolls with Cheese and Herbs;120;Закуска;Starters;
+Рулетики с Крабом;Crab Rolls;130;Закуска;Starters;75
+Рулетики с Сыром и Зеленью;Rolls with Cheese and Herbs;215;Горячая Закуска;Hot Starters;50
 Рулетики со Слабосоленой Семгой и Огурцом;Rolls with Lightly Salted Salmon and Cucumber;210;Завтрак;Breakfast;
+Рыбец;Shemaya;120;Закуска;Starters;100
+Рыбное Ассорти;Assorted Fish;180;Закуска;Starters;120
+Рыбное Ассорти под Маринадом;Assorted Fish with Marinade;110;Горячее;Main Courses;150
+Рыбные Биточки с Брокколи;Fish Cakes with Broccoli;110;Горячее;Main Courses;150
 Рыбные Котлетки на Пару;Steamed Fish Cutlets;120;Горячее;Main Courses;
 Рыбные Равиоли;Fish Ravioli;180;Горячее;Main Courses;
-Салат Армянский;Armenian Style Sald;80;Салаты;Salads;
+Рыбные Тефтели с Овощами;Fish Meatballs with Vegetables;110;Горячее;Main Courses;150
+Сазан Жареный;Fried Carp;120;Горячее;Main Courses;50
+"Салат ""Берлинский""""";Berlin Salad;140;Салаты;Salads;120
+"Салат ""Мимоза""";Mimosa Salad;180;Салаты;Salads;120
+Салат Айсберг с Тунцом;Lettuce Salad with Tuna;65;;;120
+Салат Армянский;Armenian-Style Salad;80;Салаты;Salads;
 Салат Весенний;Spring Salad;100;Салаты;Salads;
 Салат Витаминный;"""Vitamin"" Salad";70;Салаты;Salads;150
-Салат Витаминный с Яблоком;Vitamin Salad with Apple;60;Салаты;Salads;150
-Салат Греческий;Greek Salad;130;Салаты;Salads;
+Салат Витаминный с Красной Капустой;Vitamin Salad with Red Cabbage;40;Салаты;Salads;120
+Салат Витаминный с Яблоком;Vitamin Salad with Apple;146;Салаты;Salads;150
+Салат Греческий;Greek Salad;130;Салаты;Salads;120
+Салат Греческий с Брынзой;Greek Salad with Feta Cheese;;Салаты;Salads;
 Салат Гулистан;Gulistan Salad;50;Салаты;Salads;
-Салат из Моркови с Яблоком;Salad with Carrot and Apple;45;Салаты;Salads;
+Салат из Баклажан с Перцем и Томатами;Eggplant Salad with Peppers and Tomatoes;90;Салаты;Salads;120
+Салат из Молодой Капусты с Зелёным Горошком;Young Cabbage Salad with Green Peas;;Салаты;Salads;
+Салат из Молодой Капусты с Кунжутом;Young Cabbage Salad with Sesame Seeds;112;Салаты;Salads;
+Салат из Молодой Капусты с Овощами;Young Cabbage Salad with Vegetables;40;Салаты;Salads;120
+Салат из Молодой Капусты с Огурцом и Зеленью;Young Cabbage Salad with Cucumber and Greens;40;Салаты;Salads;120
+Салат из Молодой Капусты с Огурцом и Кунжутом;Young Cabbage Salad with Cucumber and Sesame;;Салаты;Salads;
+Салат из Молодой Капусты с Рукколой;Young Cabbage Salad with Rucola;25;Салаты;Salads;150
+Салат из Моркови с Яблоком;Carrot and Apple Salad;45;Салаты;Salads;
+Салат из Огурца с Яйцом и Сметаной;Cucumber Salad with Egg and Sour Cream;;Салаты;Salads;
 Салат из Огурцов с Красным Луком и Йогуртом;Cucumber Salad with Red Onion and Yogurt;65;Салаты;Salads;
 Салат из Огурцов с Красным Луком, Йогуртом и Зеленью;Cucumber Salad with Red Onion, Yogurt and Herbs;70;Салаты;Salads;
 Салат из Паровых Овощей;Steamed Vegetable Salad;60;Салаты;Salads;
 Салат из Печеной Пекинской Капустой;Baked Chinese Cabbage Salad;90;Салаты;Salads;
+Салат из Печеной Свеклы и Грецким Орехом;Roasted Beetroot and Walnut Salad;208;Салаты;Salads;150
 Салат из Печеной Свеклы с Инжиром;Baked Beetroot Salad with Figs;100;Салаты;Salads;
 Салат из Печеной свеклы с Козьим Сыром;Roasted Beetroot Salad with Goat Cheese;120;Салаты;Salads;
 Салат из Печеной Свеклы с Пекинской Капустой;Roasted Beetroot Salad with Chinese Cabbage;122;Салаты;Salads;
+Салат из Печеной Свеклы с Пекинской Капустой и Ароматным Маслом;Roasted Beetroot Salad with Chinese Cabbage and Fragrant Oil;70;Салаты;Salads;120
+Салат из Печеной Свёклы с Рукколой и Брынзой;Roasted Beetroot Salad with Rucola and Feta Cheese;;Салаты;Salads;
+Салат из Печеной Свёклы с Рукколой и Козьим Сыром;Roasted Beetroot Salad with Rucola and Goat Cheese;112;Салаты;Salads;
+Салат из Печеных Баклажан с Томатами;Baked Eggplant Salad with Tomatoes;;Салаты;Salads;
 Салат из Печеных Баклажан с Томатами и Луком;Baked Eggplant Salad with Tomatoes and Onions;55;Салаты;Salads;
+Салат из Помидор с Красным Луком;Tomato and Red Onion Salad;30;Салаты;Salads;150
+Салат из Рукколы с Перепелкой и Томатами Черри;Rucola Salad with Quail and Cherry Tomatoes;90;Салаты;Salads;120
+Салат из Свежей Капусты с Кукурузой и Яйцом;Fresh Cabbage Salad with Corn and Egg;80;Салаты;Salads;120
+Салат из Свежей Капусты с Кунжутом;Fresh Cabbage Salad with Sesame Seeds;;Салаты;Salads;
+Салат из Свежей Капусты с Огурцом и Кунжутом;Fresh Cabbage Salad with Cucumber and Sesame;70;Салаты;Salads;120
+Салат из Свежих Овощей;Fresh Vegetable Salad;17;Салаты;Salads;150
+Салат из Свежих Овощей с Ароматным Маслом;Fresh Vegetable Salad with Fragrant Oil;55;Салаты;Salads;120
+Салат из Свежих Овощей с Оливковым Маслом;Fresh Vegetable Salad with Olive Oil;80;Салаты;Salads;120
+Салат из Свежих Овощей со Сметаной;Fresh Vegetable Salad with Sour Cream;;Салаты;Salads;
 Салат из Свеклы с Оливковым Маслом;Beetroot Salad with Olive Oil;116;Салаты;Salads;
+Салат из Томатов с Базиликом и Сыром Страчателла;Tomato Salad with Basil and Stracciatella Cheese;;Салаты;Salads;
+Салат из Томатов с Моцареллой и Базиликом;Tomato Salad with Mozzarella and Basil;110;Салаты;Salads;120
+Салат из Томатов с Моцареллой и Песто;Tomato Salad with Mozzarella and Pesto;130;Салаты;Salads;120
+Салат из Томатов с Сыром Страчателла;Tomato Salad with Stracciatella Cheese;110;Салаты;Salads;120
+Салат из Хрустящих Баклажан с Томатом;Crispy Eggplant Salad with Tomato;130;Салаты;Salads;130
 Салат Капрезе с Песто;Caprese Salad with Pesto;169;Салаты;Salads;
+Салат Коул-Слоу;Coleslaw Salad;130;Салаты;Salads;150
 Салат Нисуаз;Nicoise Salad;95;Салаты;Salads;130
 Салат Нисуаз с Тунцом;Nicoise Salad with Tuna;210;Салаты;Salads;
 Салат Овощной с Авокадо;Vegetable Salad with Avocado;115;Салаты;Salads;150
-Салат Овощной с Зеленью;Vegetable Salad with Herbs;60;Салаты;Salads;
+Салат Овощной с Авокадо и Зеленью;Vegetable Salad with Avocado and Greens;90;Салаты;Salads;150
+Салат Овощной с Зеленью;Vegetable Salad with Herbs;60;Салаты;Salads;150
+Салат Овощной с Йогуртом;Vegetable Salad with Yogurt;45;Салаты;Salads;120
 Салат Овощной с Капустой;Vegetable Salad with Cabbage;40;Салаты;Salads;
 Салат Окрошечный на Кефире;Okroshka Style Salad with Kefir;50;Салаты;Salads;
 Салат Панцанелла;Panzanella Salad;130;Салаты;Salads;150
+Салат Перепелкой, Рукколой и Томатами Черри;Salad with Quail, Rucola and Cherry Tomatoes;;;;
 Салат Пикантный;Piquant Salad;60;Салаты;Salads;
 Салат с Авокадо и Камчатским Крабом;Avocado and Kamchatka Crab Salad;150;Салаты;Salads;
-Салат с Артишоками;Salad with Artichokes;90;Салаты;Salads;
-Салат с Артишоками и Кенийской Фасолью;Salad with Artichokes and Kenyan Beans;90;Салаты;Salads;
+Салат с Айсбергом и Отварной Курицей;Iceberg Lettuce and Boiled Chicken Salad;110;Салаты;Salads;120
+Салат с Артишоками;Artichokes Salad;90;Салаты;Salads;150
+Салат с Артишоками и Кенийской Фасолью;Artichokes and Kenyan Beans Salad;90;Салаты;Salads;
+Салат с Артишоками и Оливками;Artichokes and Olives Salad;97;Салаты;Salads;130
+Салат с Артишоками и Тунцом;Artichoke and Tuna Salad;148;Салаты;Salads;120
 Салат с Артишоками и Фасолью;Artichoke and Bean Salad;140;Салаты;Salads;
 Салат с Баклажанами и Зеленью;Eggplant Salad with Greens;95;Салаты;Salads;
 Салат с Говядиной, Кенийской Фасолью и Овощами;Beef Salad with Kenyan Beans and Vegetables;140;Салаты;Salads;
 Салат с Зеленой Фасолью;Green Bean Salad;100;Салаты;Salads;
-Салат с Капустой и Зеленью;Salad with Cabbage and Greens;35;Салаты;Salads;
-Салат с Капустой и Огурцом;Salad with Cabbage and Cucumber;40;Салаты;Salads;
+Салат с Кальмаром, Огурцом и Ореховым Соусом;Salad with Squid, Cucumber and Walnut Sauce;120;Салаты;Salads;120
+Салат с Капустой и Зеленью;Cabbage and Greens Salad;35;Салаты;Salads;
+Салат с Капустой и Огурцом;Cabbage and Cucumber Salad;40;Салаты;Salads;
 Салат с Капустой и Яблоком;Cabbage and Apple Salad;55;Салаты;Salads;
-Салат с Капустой, Огурцом и Шпинатом;Salad with Cabbage, Cucumber and Spinach;50;Салаты;Salads;
-Салат с Миксом из Томатов;Salad with Tomato Mix;35;Салаты;Salads;
-Салат с Молодой Капустой, Огурцом и Курицей;Salad with Young Cabbage, Cucumber and Chicken;130;Салаты;Salads;
+Салат с Капустой, Огурцом и Шпинатом;Cabbage, Cucumber and Spinach Salad;50;Салаты;Salads;
+Салат с Кремом из Свеклы, Грушей и Козьим Сыром;Beetroot Cream, Pears and Goat Cheese Salad;182;Салаты;Salads;100
+Салат с Миксом из Томатов;Tomato Mix Salad;35;Салаты;Salads;
+Салат с Молодой Капустой, Огурцом и Курицей;Young Cabbage, Cucumber and Chicken Salad;130;Салаты;Salads;
 Салат с Моцареллой;Salad with Mozzarella;200;Салаты;Salads;
-Салат с Овощами Гриль и Песто;Salad with Grilled Vegetables and Pesto;120;Салаты;Salads;
-Салат с Овощами Гриль, Помидорами Черри и Рукколой;Salad with Grilled Vegetables, Cherry Tomatoes and Arugula;140;Салаты;Salads;
+Салат с Овощами Гриль и Песто;Grilled Vegetables and Pesto Salad;120;Салаты;Salads;
+Салат с Овощами Гриль, Помидорами Черри и Рукколой;Grilled Vegetables, Cherry Tomatoes and Rucola Salad;140;Салаты;Salads;
 Салат с Ростбифом из Говядины;Roast Beef Salad;200;Салаты;Salads;
-Салат с Рукколой;Rocket Salad;90;Салаты;Salads;
+Салат с Рукколой;Rucola Salad;90;Салаты;Salads;
 Салат с Рукколой и Телятиной;Rucola and Veal Salad;150;Салаты;Salads;
-Салат с Сыром Халуми;Salad with Halloumi Cheese;160;Салаты;Salads;
-Салат с Телячьим Языком и Редькой;Salad with Veal Tongue and Radish;160;Салаты;Salads;
+Салат с Рукколой, Печеной Свёклой и Козьим Сыром;Rucola, Roasted Beetroot, and Goat Cheese Salad;90;Салаты;Salads;120
+Салат с Рукколой, Печеной Тыквой и Козьим Сыром;Rucola, Roasted Pumpkin, and Goat Cheese Salad;120;Салаты;Salads;150
+Салат с Сыром Халуми;Halloumi Cheese Salad;160;Салаты;Salads;
+Салат с Телятиной и Фасолью;Veal and Bean Salad;120;Салаты;Salads;120
+Салат с Телячьим Языком и Редькой;Veal Tongue and Radish Salad;160;Салаты;Salads;
 Салат с Томатами и Авокадо;Tomato and Avocado Salad;120;Салаты;Salads;
-Салат с Томатами и Брокколи;Salad with Tomatoes and Broccoli;45;Салаты;Salads;
-Салат с Фасолью и Томатами;Salad with Beans and Tomatoes;110;Салаты;Salads;
+Салат с Томатами и Брокколи;Tomatoes and Broccoli Salad;45;Салаты;Salads;
+Салат с Тунцом;Tuna Salad;90;Салаты;Salads;150
+Салат с Фасолью и Томатами;Beans and Tomatoes Salad;110;Салаты;Salads;
 Салат с Фасолью и Тунцом;Bean and Tuna Salad;130;Салаты;Salads;
-Салат с Фасолью, Рукколой и Томатами;Salad with Beans, Rucola and Tomatoes;115;Салаты;Salads;
+Салат с Фасолью, Рукколой и Томатами;Beans, Rucola and Tomatoes Salad;115;Салаты;Salads;
+Салат с Фунчозой и Овощами;Glass Noodle Salad with Vegetables;120;Салаты;Salads;150
 Салат со Свеклой и Инжиром;Beetroot and Fig Salad;110;Салаты;Salads;
-Салат со Свеклой, Огурцом и Зеленью;Salad with Beetroot, Cucumber and Herbs;55;Салаты;Salads;
-Салат со Свеклой, Огурцом и Красным Луком;Salad with Beetroot, Cucumber and Red Onion;50;Салаты;Salads;
-Салат со Свеклой, Рукколой и Козьим Сыром;Beetroot, Arugula and Goat Cheese Salad;100;Салаты;Salads;
-Салат со Шпинатом, Огурцом и Сметаной;Spinach, Cucumber and Sour Cream Salad;70;Салаты;Salads;
+Салат со Свеклой и Черносливом;Beetroot and Prunes Salad;73;Салаты;Salads;130
+Салат со Свеклой, Огурцом и Зеленью;Beetroot, Cucumber and Herbs Salad;55;Салаты;Salads;
+Салат со Свеклой, Огурцом и Красным Луком;Beetroot, Cucumber and Red Onion Salad;50;Салаты;Salads;
+Салат со Свеклой, Рукколой и Козьим Сыром;Beetroot, Rucola and Goat Cheese Salad;100;Салаты;Salads;
+Салат со Шпинатом и Огурцом;Spinach and Cucumber Salad;20;Салаты;Salads;120
+Салат со Шпинатом Редисом и Огурцом;Spinach, Radish, and Cucumber Salad;150;Салаты;Salads;40
+Салат со Шпинатом, Огурцом и Сметаной;Spinach, Cucumber and Sour Cream Salad;70;Салаты;Salads;150
+Салат Табуле;Tabbouleh Salad;90;Салаты;Salads;130
 Салат Ташкент;Tashkent Salad;145;Салаты;Salads;150
-Самса;Samsa;310;Закуска;Starters;
+Салат Ташкент с Телячьим Языком;Tashkent Salad with Veal Tongue;;Салаты;Salads;
+Салат Тбилиси;Tbilisi Salad;140;Салаты;Salads;120
+Салат Тбилиси с Говядиной;Tbilisi Salad with Beef;;Салаты;Salads;
+Салат Фунчоза;Funchoza Salad;;Салаты;Salads;
+Салат Фунчоза с Овощами;Funchoza Salad with Vegetables;82;Салаты;Salads;
+Салат Чука с Овощами;Chuka Salad with Vegetables;60;Салаты;Salads;130
+Самса;Samsa;310;Закуска;Starters;50
+Самса с Зеленью;Samsa with Greens;190;Горячая Закуска;Hot Starters;50
+Самса с Тыквой;Samsa with Pumpkin;180;Горячая Закуска;Hot Starters;50
+Самса с Ягнёнком;Samsa with Lamb;262;Горячая Закуска;Hot Starters;50
+Сациви;Satsivi;285;Закуска;Starters;120
+Сациви из Курицы;Chicken Satsivi;180;Горячее;Main Courses;120
 Сациви из Перепелок;Quail Satsivi;200;Горячее;Main Courses;
-Свекла с Грецким Орехом;Beetroot with Walnuts;130;Салаты;Salads;
+Сациви из Цыплят;Chicken Satsivi;190;Горячее;Main Courses;160
+Сашими;Sashimi;100;Холодная Закуска;Cold Starters;50
+Сашими из Желтохвоста;Yellowtail Sashimi;146;Холодная Закуска;Cold Starters;50
+Сашими из Тунца;Tuna Sashimi;100;Холодная Закуска;Cold Starters;50
+Свежие Овощи и Зелень;Fresh Vegetables and Greens;20;Закуска;Starters;120
+Свекла с Грецким Орехом;Beetroot with Walnuts;130;Салаты;Salads;120
 Свекла с Козьим Сыром;Beetroot with Goat Cheese;120;Салаты;Salads;
-Свекольник;Beetroot Soup;40;Супы;Soups;
-Свекольник Холодный;Cold Beetroot Soup;45;Супы;Soups;
+Свекольник;Beetroot Soup;40;Супы;Soups;200
+Свекольник Холодный;Cold Beetroot Soup;45;Супы;Soups;200
 Свекольный Салат;Beetroot Salad;70;Салаты;Salads;
-Семга;Salmon;200;Горячее;Main Courses;
-Семга в Сливочном Соусе;Salmon with Creamy Sauce;220;Горячее;Main Courses;
-Семга Слабосоленая;Lightly Salted Salmon;185;Завтрак;Breakfast;
-Семга Слабосоленая с Авокадо;Lightly Salted Salmon with Avocado;180;Завтрак;Breakfast;
-Семга со Шпинатом;Salmon with Spinach;210;Горячее;Main Courses;
+Свекольный Салат по-Грузински;Beetroot Salad Georgian-style;72;Салаты;Salads;150
+Свекольный Салат с Грецким Орехом;Beetroot Salad with Walnuts;91;Салаты;Salads;100
+Свекольный Салат с Красным Луком и Грецким Орехом;Beetroot Salad with Red Onions and Walnuts;161;Салаты;Salads;150
+Свекольный Салат с Фасолью и Шпинатом;Beetroot Salad with Beans and Spinach;95;Салаты;Salads;150
+Селёдка под Шубой;Herring under a Fur Coat;170;Салаты;Salads;120
+Сельдь и Килька Пряного Посола;Spicy-Salted Herring and Sprat;190;Закуска;Starters;100
+Сельдь под шубой;Dressed herring;150;Салаты;Salads;120
+Сёмга;Salmon;200;Горячее;Main Courses;
+Сёмга в Сливочном Соусе;Salmon with Creamy Sauce;220;Горячее;Main Courses;
+Сёмга Слабой Соли;Lightly Salted Salmon;200;Завтрак;Breakfast;45
+Сёмга Слабосоленая;Lightly Salted Salmon;185;Завтрак;Breakfast;
+Сёмга Слабосоленая с Авокадо;Lightly Salted Salmon with Avocado;180;Завтрак;Breakfast;
+Сёмга со Шпинатом;Salmon with Spinach;210;Горячее;Main Courses;
+Сёмга Терияки;Salmon Teriyaki;180;Горячее;Main Courses;150
+Семечки из Ягнёнка;Lamb Bites;210;;;75
 Сибас в Соли;Sea Bass in Salt;180;Горячее;Main Courses;150
+Сибас в Соусе с Белым Вином;Sea Bass with White Wine Sauce;210;Горячее;Main Courses;150
 Сибас Гриль;Grilled Sea Bass;130;Горячее;Main Courses;
+Сибас Жареный;Fried Sea Bass;140;Горячее;Main Courses;150
+Сибас Жареный в Панировке;Breaded Fried Sea Bass;170;Горячее;Main Courses;150
 Сибас Запеченный;Oven Baked Sea Bass;120;Горячее;Main Courses;
 Сибас Запеченный в Соли;Sea Bass Baked in Salt;124;Горячее;Main Courses;160
-Сибас на Пару;Steamed Sea Bass;115;Горячее;Main Courses;
+Сибас Запечённый со Шпинатным Соусом;Baked Sea Bass with Spinach Sauce;120;Горячее;Main Courses;150
+Сибас на Пару;Steamed Sea Bass;115;Горячее;Main Courses;250
+Сибас на Пару с Соусом из Тушеных Овощей;Steamed Sea Bass with Stewed Vegetable Sauce;;Горячее;Main Courses;
+Сибас на Пару Целиком;Steamed Seabass Whole;115;Горячее;Main Courses;200
 Сибас по-Средиземноморски;Mediterranean-Style Sea Bass;150;Горячее;Main Courses;
 Сибас со Спаржей на пару;Steamed Sea Bass with Asparagus;120;Горячее;Main Courses;
+Сибас Су-вид;Sea Bass Sous-vide;;Горячее;Main Courses;
+Скрембл;Scrambled Eggs;150;Завтрак;Breakfast;150
+Скрембл из Перепелинных Яиц;Scrambled Quail Eggs;150;Завтрак;Breakfast;150
 Скрембл с Помидорами;Scrambled Eggs with Tomatoes;120;Завтрак;Breakfast;150
 Скрембл с Помидорами и Зеленью;Scramble with Tomatoes and Herbs;140;Завтрак;Breakfast;130
-Скрембл с Томатами;Scramble with Tomatoes;170;Завтрак;Breakfast;
+Скрембл с Томатами;Scramble with Tomatoes;170;Завтрак;Breakfast;150
 Скрэмбл;Scramble;150;Завтрак;Breakfast;
 Скрэмбл Белковый с Томатом;Egg White Scramble with Tomatoes;60;Завтрак;Breakfast;
+Скрэмбл с Томатами;Scrambled Eggs with Tomatoes;100;Завтрак;Breakfast;150
 Скрэмбл с Томатом и Зеленью;Scrambled Eggs with Tomatoes and Greens;135;Завтрак;Breakfast;
+Скумбрия Холодного Копчения;Cold?Smoked Mackerel;220;Закуска;Starters;100
 Слабосоленый Лосось с Авокадо;Lightly Salted Salmon with Avocado;180;Закуска;Starters;
 Сладкие Томаты с Овощной Сальсой;Sweet Tomatoes with Vegetable Salsa;25;Салаты;Salads;
-Слива;Plum;50;Завтрак;Breakfast;40
+Слива;Plum;50;Завтрак;Breakfast;30
 Слива Запеченная;Baked Plum;70;Завтрак;Breakfast;
-Солянка;Solyanka;150;Супы;Soups;
-Солянка из Молодой Капусты с Сосисками;Young Cabbage Solyanka with Sausages;130;Горячее;Main Courses;
-Солянка Мясная;Meat Solyanka;120;Супы;Soups;
-Солянка Сборная Мясная;Assorted Meat Solyanka;110;Супы;Soups;
+Соленья;Assorted Pickles;15;Закуска;Starters;100
+Соленья и Маринады;Pickles and Marinades;15;Закуска;Starters;120
+Солянка;Solyanka;150;Супы;Soups;200
+Солянка из Молодой Капусты с Сосисками;Young Cabbage Solyanka with Sausages;130;Горячее;Main Courses;150
+Солянка Мясная;Meat Solyanka;120;Супы;Soups;200
+Солянка Сборная Мясная;Assorted Meat Solyanka;110;Супы;Soups;200
 Сосиски в Тесте;Sausage Bread Rolls;310;Закуска;Starters;
 Спагетти Арабьята;Spaghetti Arrabiata;120;Горячее;Main Courses;
 Спагетти Болоньезе;Spaghetti Bolognese;190;Горячее;Main Courses;
 Спагетти Вонголе;Spaghetti Vongole;134;Горячее;Main Courses;150
-Спагетти Песто;Spaghetti Pesto;190;Горячее;Main Courses;
-Спагетти Помодоро;Spaghetti Pomodoro;120;Горячее;Main Courses;
+Спагетти Качо э Пепе;Spaghetti Cacio e Pepe;360;Горячее;Main Courses;150
+Спагетти Песто;Spaghetti Pesto;190;Горячее;Main Courses;150
+Спагетти Помодоро;Spaghetti Pomodoro;120;Горячее;Main Courses;200
+Спагетти с Белым Трюфелем;Spaghetti with White Truffle;190;Горячее;Main Courses;200
+Спагетти с Креветками и Кальмарами;Spaghetti with Shrimp and Squid;;;;
+Спагетти с Креветками и Шпинатом;Spaghetti with Shrimp and Spinach;;Горячее;Main Courses;
 Спагетти с Маслом;Spaghetti with Butter;120;Гарнир;Side Dishes;100
-Спаржа;Asparagus;25;Гарнир;Side Dishes;
+Спагетти с Морепродуктами;Spaghetti with Seafood;;Горячее;Main Courses;
+Спагетти с Цуккини;Spaghetti with Zucchini;200;Горячее;Main Courses;200
+Спаржа;Asparagus;25;Гарнир;Side Dishes;100
+Спаржа на Пару;Steamed Asparagus;25;Гарнир;Side Dishes;90
 Спаржа Обжаренная;Fried Asparagus;40;Гарнир;Side Dishes;
 Спаржа Отварная;Boiled Asparagus;22;Гарнир;Side Dishes;
-Спринг Ролл с Овощами;Vegetable Spring Roll;150;Завтрак;Breakfast;
+Спаржа с Брокколи на Пару;Steamed Asparagus with Broccoli;;Гарнир;Side Dishes;
+Спаржа со Шпинатом и Луком;Asparagus with Spinach and Onions;;Гарнир;Side Dishes;
+Спринг Ролл с Овощами;Vegetable Spring Roll;150;Завтрак;Breakfast;60
+Стейк из Лосося;Salmon Steak;210;Горячее;Main Courses;150
+Стейк из Молодой Капусты;Young Cabbage Steak;35;Горячее;Main Courses;150
 Стейк из Молодой Капусты с Овощным Соусом;Young Cabbage Steak with Vegetable Sauce;100;Горячая Закуска;Hot Starters;
-Стейк из Семги Запеченный с Соусом Песто;Baked Salmon Steak with Pesto Sauce;250;Горячее;Main Courses;
-Стейк из Семги под Соусом Терияки;Salmon Steak with Teriyaki Sauce;220;Горячее;Main Courses;150
-Стейк из Семги Терияки;Teriyaki Salmon Steak;210;Горячее;Main Courses;
-Стейк Лосося;Salmon Steak;210;Горячее;Main Courses;
+Стейк из Палтуса;Halibut Steak;110;Горячее;Main Courses;150
+Стейк из Сельдерея;Celery Steak;72;Горячая Закуска;Hot Starters;100
+Стейк из Сёмги Запеченный с Соусом Песто;Baked Salmon Steak with Pesto Sauce;250;Горячее;Main Courses;
+Стейк из Сёмги под Соусом Терияки;Salmon Steak with Teriyaki Sauce;220;Горячее;Main Courses;150
+Стейк из Сёмги Терияки;Teriyaki Salmon Steak;210;Горячее;Main Courses;
+Стейк Лосося Терияки;Teriyaki Salmon Steak;200;Горячее;Main Courses;150
 Стейк Рибай на Кости;Bone In Ribeye Steak;330;Горячее;Main Courses;
 Стейк Тибон;T-Bone Steak;310;Горячее;Main Courses;
+Стерлядка Фаршированная;Stuffed Sturgeon;150;Закуска;Starters;1150
+Стерлядь Томленая с Томатами и Оливками;Sturgeon with Tomatoes and Olives;170;Горячее;Main Courses;150
+Судак Жареный;Fried Pike Perch;;Гарнир;Side Dishes;
 Судак Запеченный;Pikeperch Baked;125;Горячее;Main Courses;
-Судак Запеченный под Маринадом;Pikeperch Baked with Marinade;120;Горячее;Main Courses;
+Судак Запеченный под Маринадом;Pikeperch Baked with Marinade;120;Горячее;Main Courses;150
+Судак Запеченный с Травами;Pike Perch Baked with Herbs;;Горячее;Main Courses;
+Судак Запечённый со Спаржей;Baked Pike Perch with Asparagus;133;Горячее;Main Courses;300
 Судак Отварной;Boiled Pike Perch;85;Горячее;Main Courses;
-Судак под Маринадом;Pikeperch with Marinade;125;Горячее;Main Courses;
+Судак под Маринадом;Pikeperch with Marinade;125;Горячее;Main Courses;150
 Судак по-Польски;Pike Perch Polish Style;150;Горячее;Main Courses;150
 Сулугуни;Suluguni Cheese;286;Завтрак;Breakfast;30
-Суп - Пюре из Моркови и Сельдерея;Carrot and Celery Cream-soup;50;Супы;Soups;
-Суп – Пюре из Тыквы;Pumpkin Cream Soup;55;Супы;Soups;
-Суп – Пюре из Цукини;Zucchini Cream Soup;25;Супы;Soups;200
-Суп - Пюре из Цукини с Брокколи и Шпинатом;Zucchini Soup-Puree with Broccoli and Spinach;70;Супы;Soups;
-Суп - Пюре из Чечевицы;Lentil Cream Soup;80;Супы;Soups;
+Суп Гороховый с Копченой Курицей;Pea Soup with Smoked Chicken;70;Супы;Soups;200
+Суп из Белой Фасоли со Шпинатом;White Bean Soup with Spinach;200;Супы;Soups;200
+Суп из Красной Чечевицы с Курицей;Red Lentil Soup with Chicken;80;Супы;Soups;200
+Суп из Ласточкиного Гнезда;Swallow's Nest Soup;30;Супы;Soups;200
 Суп из Чечевицы;Lentil Soup;85;Супы;Soups;200
-Суп Куриный;Chicken Soup;55;Супы;Soups;
-Суп Лапша Куриный;Chicken Noodle Soup;55;Супы;Soups;200
-Суп Лапша с Фрикадельками;Noodle Soup with Meatballs;177;Супы;Soups;
-Суп Овощной с Фасолью;Vegetable Soup with Beans;50;Супы;Soups;150
-Суп Рыбный;Fish Soup;145;Супы;Soups;
+Суп Кокосовый с Цыпленком;Coconut Soup with Chicken;100;Супы;Soups;200
+Суп Крестьянский Грибной;Peasant Mushroom Soup;50;Супы;Soups;200
+Суп Куриный;Chicken Soup;55;Супы;Soups;200
+Суп Куриный по-Деревенски;Country-Style Chicken Soup;70;Супы;Soups;200
+Суп Куриный по-Домашнему;Homemade Chicken Soup;70;Супы;Soups;200
+Суп Куриный с Галушками;Chicken Soup with Halusky;45;Супы;Soups;200
+Суп Куриный с Лапшой;Chicken Noodle Soup;55;Супы;Soups;200
+Суп Куриный с Овощами и Репой;Chicken Soup with Vegetables and Turnips;120;Супы;Soups;200
+Суп Лапша с Фрикадельками;Noodle Soup with Meatballs;177;Супы;Soups;200
+Суп Луковый с Репой и Спаржей;Onion Soup with Turnip and Asparagus;35;Супы;Soups;200
+Суп Минестроне;Minestrone Soup;45;Супы;Soups;200
+Суп Овощной с Фасолью;Vegetable Soup with Beans;50;Супы;Soups;200
+Суп Овощной со Шпинатом;Vegetable Soup with Spinach;60;Супы;Soups;200
+Суп Рыбный;Fish Soup;145;Супы;Soups;200
+Суп с Белыми Грибами и Перловкой;Soup with Porcini Mushrooms and Barley;200;Супы;Soups;200
+Суп с Говядиной по-Домашнему;Homemade Beef Soup;70;Супы;Soups;200
+Суп с Копченым Цыпленком и Кукурузой;Smoked Chicken and Corn Soup;65;Супы;Soups;200
 Суп с Куриными Потрошками;Chicken Giblets Soup;90;Супы;Soups;200
-Суп с Фрикадельками из Курицы;Chicken Meatball Soup;65;Супы;Soups;
-Суп Тыквенный;Pumpkin Soup;70;Супы;Soups;
-Суп Харчо;Kharcho Soup;120;Супы;Soups;
-Суп Шурпа;Shurpa Soup;110;Супы;Soups;
-Суп Щавелевый с Курицей;Sorrel Soup with Chicken;60;Супы;Soups;
-Сыр;Cheese;270;Завтрак;Breakfast;
+Суп с Лососем и Водорослями Вакамэ;Salmon and Wakame Seaweed Soup;;;;
+Суп с Молодой Капустой;Young Cabbage Soup;45;Салаты;Salads;200
+Суп с Фрикадельками и Вермишелью;Soup with Meatballs and Vermicelli;60;Супы;Soups;200
+Суп с Фрикадельками из Курицы;Chicken Meatball Soup;65;Супы;Soups;200
+Суп Тыквенный;Pumpkin Soup;70;Супы;Soups;200
+Суп Фасолевый по-Тоскански;Tuscan-Style Bean Soup;80;Супы;Soups;200
+Суп Харчо;Kharcho Soup;120;Супы;Soups;200
+Суп Шурпа;Shurpa Soup;110;Супы;Soups;200
+Суп Щавелевый с Курицей;Sorrel Soup with Chicken;60;Супы;Soups;200
+Суп Щавелевый с Курицей и Перепелиным Яйцом;Sorrel Soup with Chicken and Quail Egg;;Супы;Soups;
+Суп Щавелевый с Курицей и Яйцом;Sorrel Soup with Chicken and Egg;115;Супы;Soups;200
+Суп-Гуляш;Goulash Soup;90;Супы;Soups;200
+Суп-пюре из Брокколи с Шпинатом;Broccoli Soup-Puree with Spinach;45;Супы;Soups;200
+Суп-пюре из Молодого Горошка;Young Pea Puree Soup;60;Супы;Soups;200
+Суп-пюре из Моркови и Сельдерея;Carrot and Celery Cream Soup;50;Супы;Soups;200
+Суп-пюре из Тыквы;Pumpkin Soup-Puree;55;Супы;Soups;200
+Суп-пюре из Тыквы с Пастернаком;Pumpkin and Parsnip Soup-Puree;45;Супы;Soups;200
+Суп-пюре из Цветной Капусты с Морковью и Пастернаком;Cauliflower Soup with Carrots and Parsnips Puree-Soup;40;Супы;Soups;200
+Суп-пюре из Цукини;Zucchini Cream Soup;25;Супы;Soups;200
+Суп-пюре из Цукини с Брокколи и Шпинатом;Zucchini Soup-Puree with Broccoli and Spinach;70;Супы;Soups;200
+Суп-пюре из Чечевицы;Lentil Cream Soup;80;Супы;Soups;200
+Суп-пюре с Тыквой и Пастернаком;Pumpkin and Parsnip Soup-Puree;45;Супы;Soups;200
+Суши;Sushi;140;Холодная Закуска;Cold Starters;50
+Сыр;Cheese;270;Завтрак;Breakfast;40
 Сыр Козий;Goat Cheese;157;Завтрак;Breakfast;35
-Сыр Плавленый;Processed Cheese;280;Завтрак;Breakfast;20
-Сыр Российский;«Rossiyskiy» Cheese;274;Завтрак;Breakfast;20
+Сыр Плавленый;Processed Cheese;280;Завтрак;Breakfast;30
+Сыр Российский;Rossiyskiy Cheese;274;Завтрак;Breakfast;20
+Сырная Тарелка;Cheese Platter;300;Закуска;Starters;80
 Сырник с Вишней;Cheesecake with Cherry;250;Завтрак;Breakfast;
-Сырники;Syrniki;177;Завтрак;Breakfast;70
+Сырники;Syrniki;177;Завтрак;Breakfast;80
+Сырники с Изюмом;Cheesecakes with Raisins;220;Завтрак;Breakfast;70
 Сырники с Кокосово-Ванильным Соусом;Syrniki with Coconut-Vanilla Sauce;270;Завтрак;Breakfast;
+Сырники с Ягодным Соусом;Syrniki with Berry Sauce;220;Завтрак;Breakfast;100
 Сэндвич с Томатами и Сыром;Tomato and Cheese Sandwich;260;Завтрак;Breakfast;
-Сэндвич с Цыпленком;Chicken Sandwich;130;Горячее;Main Courses;
-Сэндвич с Цыпленком в Безглютеновой Булочке;Chicken Sandwich in a Gluten Free Bun;180;Завтрак;Breakfast;
+Сэндвич с Цыпленком;Chicken Sandwich;130;Завтрак;Breakfast;150
+Сэндвич с Цыпленком в Безглютеновой Булочке;Chicken Sandwich with a Gluten Free Bun;180;Завтрак;Breakfast;200
 Сэндвич с Цыпленком и Огурцом;Chicken and Cucumber Sandwich;250;Завтрак;Breakfast;
 Тако в Мини Романо с Цыпленком и Огурцом;Taco in Mini Romaine with Chicken and Cucumber;170;Завтрак;Breakfast;
+Тако из Мини Романо с Куриной Грудкой;Mini Romano Chicken Breast Tacos;90;Завтрак;Breakfast;80
+Тако с Мини Романо и Цыпленком;Taco with Mini Romano and Chicken;170;Завтрак;Breakfast;30
+Тако с Рваной Говядиной и Гуакамоле;Pulled Beef Tacos with Guacamole;190;Закуска;Starters;80
 Тальята из Телятины;Veal Tagliata;130;Горячее;Main Courses;150
-Тальята из Телятины Су-Вид;Veal Tagliata Sous-Vide;200;Горячее;Main Courses;
+Тальята из Телятины Су-Вид;Veal Tagliata Sous-Vide;200;Горячее;Main Courses;150
 Тальята из Телячьей Вырезки;Veal Tenderloin Tagliata;190;Горячее;Main Courses;
+Тальята с Соусом Фуагра;Tagliatta with Fois Gras Sauce;230;Горячее;Main Courses;150
 Тапенада из Оливок;Olive Tapenade;230;Салаты;Salads;
 Тартар из Свеклы и Авокадо;Beetroot and Avocado Tartare;160;Салаты;Salads;
-Творог с Вареньем;Cottage Cheese with Jam;140;Завтрак;Breakfast;
+Творог с Вареньем;Cottage Cheese with Jam;140;Завтрак;Breakfast;100
 Творог с Вишневым Вареньем;Cottage Cheese with Cherry Jam;140;Завтрак;Breakfast;
 Творог с Вишней;Cottage Cheese with Cherries;150;Завтрак;Breakfast;
-Творог с Голубикой;Cottage Cheese with Blueberries;120;Завтрак;Breakfast;
+Творог с Голубикой;Cottage Cheese with Blueberries;120;Завтрак;Breakfast;120
+Творог с Земляничным Вареньем;Cottage Cheese with Wild Strawberry Jam;150;Завтрак;Breakfast;50
 Творог с Медом;Cottage Cheese with Honey;146;Завтрак;Breakfast;70
-Творог с Медом и Голубикой;Cottage Cheese with Honey and Blueberries;135;Завтрак;Breakfast;
+Творог с Медом и Голубикой;Cottage Cheese with Honey and Blueberries;135;Завтрак;Breakfast;100
 Творожная Запеканка с Вишневым Джемом;Cottage Cheese Casserole with Cherry Jam;200;Завтрак;Breakfast;
-Творожная Запеканка со Сливой;Cottage Cheese Casserole with Plum;160;Завтрак;Breakfast;
+Творожная Запеканка с Голубикой;Cottage Cheese Casserole with Blueberries;170;Завтрак;Breakfast;120
+Творожная Запеканка со Сливой;Cottage Cheese Casserole with Plum;160;Завтрак;Breakfast;100
 Творожный Пудинг;Curd Pudding;210;Завтрак;Breakfast;
 Телятина на Кости;Veal on the Bone;180;Горячее;Main Courses;180
 Телятина на Кости Жаренная;Fried Veal on the Bone;200;Горячее;Main Courses;
 Телятина на Кости с Лисичками;Veal on the Bone with Chanterelles;175;Горячее;Main Courses;
+Телятина с Овощами по-Азиатски;Asian-Style Veal with Vegetables;150;Горячее;Main Courses;150
 Телятина су-вид;Veal sous vide;210;Горячее;Main Courses;150
-Телячий Бульон с Телятиной;Veal Broth with Veal;30;Супы;Soups;
+Телячий Бульон с Телятиной;Veal Broth with Veal;30;Супы;Soups;200
+Телячий Язык с Пюре из Брокколи и Соусом из Печеных Перцев;Veal Tongue with Broccoli Puree and Roasted Pepper Sauce;140;Горячая Закуска;Hot Starters;120
+Телячий Язык с Соусом из Печеного Перца;Veal Tongue with Roasted Pepper Sauce;130;Горячее;Main Courses;145
+Телячьи Почки в Томатном Соусе с Овощами;Veal Kidneys in Tomato Sauce with Vegetables;120;Закуска;Starters;80
+Телячьи Хвосты с Овощами;Veal Tails with Vegetables;140;Закуска;Starters;140
 Телячья Вырезка Су-вид;Veal Tenderloin Sous Vide;130;Горячее;Main Courses;130
 Теплый Салат из Кабачка с Соусом из Печеного Перца;Warm Zucchini Salad with Roasted Pepper Sauce;80;Салаты;Salads;150
+Теплый Салат с Баклажанами и Помидорами;Warm Salad with Eggplant and Tomatoes;60;;;150
+Тефтели в Соусе из Овощей;Meatballs in Vegetable Sauce;;Горячее;Main Courses;
+Тефтели из Индейки;Turkey Meatballs;82;Горячее;Main Courses;150
+Тефтели из Индейки Томлёные с Луком;Turkey Meatballs Stewed with Onions;122;Горячее;Main Courses;150
 Тефтели из Курицы с Овощами;Chicken Meatballs with Vegetables;160;Горячее;Main Courses;
-Тефтели из Телятины;Veal Meatballs;180;Горячее;Main Courses;200
+Тефтели из Телятины;Veal Meatballs;220;Горячее;Main Courses;140
+Тефтели из Телятины на Пару;Steamed Veal Meatballs;180;Горячее;Main Courses;
+Тефтели из Телятины с Овощами;Veal Meatballs with Vegetables;;Гарнир;Side Dishes;
 Тефтели из Ягненка;Lamb Meatballs;190;Горячее;Main Courses;
 Тефтели Куриные;Chicken Meatballs;140;Гарнир;Side Dishes;150
-Тефтели Куриные в Томатном Соусе;Chicken Meatballs with Tomato Sauce;150;Горячее;Main Courses;
-Томатный Суп;Tomato Soup;40;Супы;Soups;
+Тефтели Куриные в Томатном Соусе;Chicken Meatballs with Tomato Sauce;150;Горячее;Main Courses;120
+Тефтели Куриные в Томатном Соусе с Фасолью;Chicken Meatballs in Tomato Sauce with Beans;120;Горячее;Main Courses;150
+Тефтели Куриные с Овощами;Chicken Meatballs with Vegetables;110;Горячее;Main Courses;145
+Тефтели с Овощами;Meatballs with Vegetables;130;Супы;Soups;200
+Тефтели Тушеные с Овощами;Stewed Meatballs with Vegetables;;Горячее;Main Courses;
+Томатный Суп;Tomato Soup;40;Супы;Soups;200
 Томаты с Базиликом;Tomatoes with Basil;25;Салаты;Salads;
+Томаты с Красным Луком и Базиликом;Tomatoes with Red Onion and Basil;20;Салаты;Salads;
 Томаты с Рукколой и Базиликом;Tomatoes with Rucola and Basil;30;Салаты;Salads;
 Томаты с Ялтинским Луком и Базиликом;Tomatoes with Yalta Onion and Basil;25;Салаты;Salads;
-Томленые Овощи;Stewed Vegetables;60;Гарнир;Side Dishes;
-Тосканский Фасолевый Суп;Tuscan Bean Soup;85;Супы;Soups;
+Томлёная Бедро Индейки;Stewed Turkey Thigh;120;Горячее;Main Courses;200
+Томленая Индейка в Собственном Соку;Stewed Turkey in Its Own Juice;137;Горячее;Main Courses;
+Томленое в Бульоне Филе Дорадо;Dorado Fillet Stewed in Bouillon;120;Горячее;Main Courses;150
+Тосканский Классический Суп;Tuscan Classic Soup;149;Супы;Soups;200
+Тосканский Фасолевый Суп;Tuscan Bean Soup;85;Супы;Soups;200
 Тост;Toast;154;Завтрак;Breakfast;30
-Тост Гречишный;Buckwheat Toast;250;Завтрак;Breakfast;
+Тост Гречишный;Buckwheat Toast;250;Завтрак;Breakfast;30
 Тост из Белого Хлеба;White Bread Toast;90;Завтрак;Breakfast;
 Тост из Бородинского Хлеба (1 кусок);Borodinsky Bread Toast (1 slice);70;Завтрак;Breakfast;
-Тост из Отрубного Хлеба;Bran Bread Toast;250;Завтрак;Breakfast;
+Тост из Отрубного Хлеба;Bran Bread Toast;250;Завтрак;Breakfast;25
 Тост с Колбасой и Сыром;Toast with Sausage and Cheese;270;Завтрак;Breakfast;
-Тушеная Индейка;Braised Turkey;100;Горячее;Main Courses;
-Тушеная Утиная Ножка;Braised Duck Leg;240;Горячее;Main Courses;130
-Тушеные Телячьи Хвосты;Braised Veal Tails;260;Горячее;Main Courses;150
+Тост с Сыром;Toast with Cheese;225;Завтрак;Breakfast;40
+Треска Жареная;Fried Cod Fish;111;Горячее;Main Courses;200
+Треска Запеченная;Baked Cod;90;Горячее;Main Courses;150
+Тушёная Зеленая Фасоль;Stewed Green Beans;46;Гарнир;Side Dishes;100
+Тушеная Индейка;Stewed Turkey;100;Горячее;Main Courses;
+Тушеная Индейка с Луком;Braised Turkey with Onions;;Горячее;Main Courses;
+Тушеная Утиная Ножка;Stewed Duck Leg;240;Горячее;Main Courses;130
+Тушеная Шея Индейки;Stewed Turkey Neck;150;Горячее;Main Courses;150
+Тушеные Говяжьи Хвосты;Stewed Beef Tails;270;Горячее;Main Courses;150
+Тушеные Телячьи Хвосты;Stewed Veal Tails;260;Горячее;Main Courses;140
 Тыква Запеченная;Baked Pumpkin;45;Гарнир;Side Dishes;
+Тыква Печёная;Baked Pumpkin;35;Завтрак;Breakfast;90
+Тыква Печеная в Меду;Pumpkin Baked in Honey;100;Завтрак;Breakfast;175
 Тыква с Луком и Зирой;Pumpkin with Onion and Cumin;45;Гарнир;Side Dishes;
+Тыква Тушеная с Луком и Зирой;Stewed Pumpkin with Onion and Cumin;80;Гарнир;Side Dishes;100
 Тыква Тушенная с Луком и Зирой;Pumpkin Stewed with Onions and Cumin;70;Гарнир;Side Dishes;
-Тыквенный Суп – Пюре;Pumpkin Puree Soup;50;Супы;Soups;200
-Тыквенный Суп - Пюре с Имбирем;Pumpkin Soup-Puree with Ginger;54;Супы;Soups;
-Устрицы Французские Fin de Clair;French Oysters Fin de Clair;70;Закуска;Starters;
+Тыквенный Крем-Суп;Pumpkin Cream Soup;60;Супы;Soups;200
+Тыквенный Суп с Крутонами;Pumpkin Soup with Croutons;60;;;200
+Тыквенный Суп-пюре с Имбирем;Pumpkin Soup-Puree with Ginger;54;Супы;Soups;200
+Угра Ош;Ugra-osh;54;Супы;Soups;200
+Уолдорф Салат с Яблоком;Waldorf Apple Salad;75;;;150
+Устрицы;Oysters;60;Холодная Закуска;Cold Starters;100
+Устрицы Французские Fin de Clair;French Oysters Fine de Claire;70;Закуска;Starters;
 Утиная Грудка;Duck Breast;200;Горячее;Main Courses;150
+Утиная Грудка по-Азиатски;Asian-Style Duck Breast;180;Горячее;Main Courses;120
+Утиная Грудка с Айвой;Duck Breast with Quince;220;Горячее;Main Courses;140
+Утиная Грудка с Карамельной Морковью;Duck Breast with Caramelized Carrots;240;Горячее;Main Courses;150
+Утиная Грудка с Клюквенный Соусом;Duck Breast with Cranberry Sauce;220;Горячее;Main Courses;150
 Утиная Грудка со Сливой;Duck Breast with Plum;230;Горячее;Main Courses;
-Утиная Ножка Томленая;Stewed Duck Leg;220;Горячее;Main Courses;
+Утиная Грудка Су-вид;Duck Breast Sous-vide;200;Горячее;Main Courses;150
+Утиная Ножка Томленая;Stewed Duck Leg;220;Горячее;Main Courses;130
 Утиная Ножка Томленая в Печи с Тушеной Квашенной Капустой;Duck Leg on Sauerkraut;220;Горячее;Main Courses;
 Утка Запеченная;Baked Duck;330;Горячее;Main Courses;
-Уха из Осетрины;Sturgeon Fish Soup;90;Супы;Soups;
+Уха;"""Ukha"" Fish Soup";90;Супы;Soups;200
+Уха из Осетрины;Sturgeon Fish Soup;90;Супы;Soups;200
+Уха из Сибаса;Seabass Fish Soup;;Горячее;Main Courses;
+Уха из Судака;Pike-Perch Fish Soup;35;Супы;Soups;200
+Уха из Трёх Видов Рыбы;3-Fish Fish Soup;90;Супы;Soups;200
 Фаланги Краба Запеченные;Baked Crab Phalanges;95;Горячая Закуска;Hot Starters;
 Фаршированные Перцы;Stuffed Bell Peppers;140;Горячее;Main Courses;150
 Фасоль в Томатном Соусе;Beans in Tomato Sauce;87;Гарнир;Side Dishes;100
@@ -626,277 +1195,199 @@ ru;en;kcal;catRu;catEn;gr
 Фасоль Кенийская с Грибами;Kenyan Beans with Mushrooms;90;Гарнир;Side Dishes;
 Фасоль Кенийская с Чесноком;Kenyan Beans with Garlic;85;Гарнир;Side Dishes;
 Фасоль Стручковая;Green Beans;35;Гарнир;Side Dishes;
+Фасоль Тушеная;Stewed Beans;90;Гарнир;Side Dishes;100
 Филе Барабульки Запеченное;Oven Baked Surmullet Fillet;120;Горячее;Main Courses;
+Филе Говядины;Beef Fillet;188;Горячее;Main Courses;150
 Филе Говядины Гриль;Grilled Beef Fillet;240;Горячее;Main Courses;
 Филе Дорадо;Dorado Fillet;130;Горячее;Main Courses;
 Филе Дорадо на Пару;Steamed Dorado Fillet;105;Горячее;Main Courses;150
-Филе Миньон;Beef Fillet;210;Горячее;Main Courses;160
+Филе Дорадо на Пару с Соусом из Шпината;Steamed Dorado Fillet with Spinach Sauce;120;Горячее;Main Courses;150
+Филе Дорадо на Пару со Шпинатом;Steamed Dorado Fillet with Spinach;95;Горячее;Main Courses;200
+Филе Индейки с Клюквенным Соусом;Turkey Fillet with Cranberry Sauce;130;Горячее;Main Courses;140
+Филе Миньон;Filet Mignon;210;Горячее;Main Courses;160
 Филе Миньон с Овощами Нуазет;Beef Fillet with Noisette Vegetables;180;Горячее;Main Courses;
+Филе Морского Окуня в Томатном Соусе Запечённое;Baked Sea Bass Fillet with Tomato Sauce;90;Горячее;Main Courses;150
+Филе Морского Палтуса по Средиземноморски;Mediterranean-Style Halibut Fillet;110;Горячее;Main Courses;150
 Филе Морского Языка Томленое в Бульоне;Stewed Sole Fillet in Broth;80;Горячее;Main Courses;
+Филе Палтуса со Шпинатом;Halibut fillet with spinach;110;Горячее;Main Courses;150
 Филе по-Средиземноморски;Mediterranean-style Fillet;100;Горячее;Main Courses;
-Филе Семги;Salmon Fillet;210;Горячее;Main Courses;
-Филе Семги в Соусе Терияки;Salmon Fillet in Teriyaki Sauce;250;Горячее;Main Courses;
-Филе Семги Запеченное;Baked Salmon Fillet;200;Горячее;Main Courses;150
+Филе Сёмги;Salmon Fillet;210;Горячее;Main Courses;
+Филе Сёмги в Соусе Терияки;Salmon Fillet in Teriyaki Sauce;250;Горячее;Main Courses;
+Филе Сёмги Запеченное;Baked Salmon Fillet;200;Горячее;Main Courses;150
+Филе Сёмги с Овощами Папильот;Salmon Fillet with Vegetables En Papillote;200;Горячее;Main Courses;150
 Филе Сибаса в Белом Соусе;Sea Bass Fillet in White Sauce;150;Горячее;Main Courses;
-Филе Сибаса Запеченное;Baked Sea Bass Fillet;110;Горячее;Main Courses;
-Филе Сибаса на Пару;Steamed Sea Bass Fillet;120;Горячее;Main Courses;
+Филе Сибаса на Пару;Steamed Sea Bass Fillet;100;Горячее;Main Courses;120
 Филе Сибаса по-Средиземноморски;Sea Bass Fillet Mediterranean-style;151;Горячее;Main Courses;
 Филе Сибаса Припущенное;Sea Bass Fillet;110;Горячее;Main Courses;
-Филе Сибаса со Шпинатом;Seabass Fillet with Spinach;120;Горячее;Main Courses;
+Филе Сибаса с Паровыми Овощами;Sea Bass Fillet with Steamed Vegetables;90;Горячее;Main Courses;150
+Филе Сибаса с Соусом из Шпината;Sea Bass Fillet with Spinach Sauce;110;Горячее;Main Courses;150
+Филе Сибаса со Шпинатом;Seabass Fillet with Spinach;120;Горячее;Main Courses;140
+Филе Сибаса Су-вид;Sous-Vide Sea Bass Fillet;97;Горячее;Main Courses;180
 Филе Судака на Пару;Steamed Pike perch fillet;90;Горячее;Main Courses;
+Филе Судака на Пару с Овощами;Steamed Pike Perch Fillet with Vegetables;70;Горячее;Main Courses;120
+Филе Судака на Сковороде;Pan-fried Pike Perch;90;Горячее;Main Courses;150
 Филе Телятины Су-Вид;Veal Fillet Sous-Vide;120;Горячее;Main Courses;
 Филе Трески Жареное с Овощами;Fried Cod Fillet with Vegetables;140;Горячее;Main Courses;
 Филе Трески на Пару;Steamed Cod Fillet;90;Горячее;Main Courses;
+Филе Тюрбо Запечённое с Креветкой;Oven Baked Turbot Fillet with Prawns;170;Горячее;Main Courses;150
+Форель Горячего Копчения;Hot?Smoked Trout;190;Закуска;Starters;100
 Французский Омлет;French Omelette;170;Завтрак;Breakfast;
 Французский Тост;French Toast;220;Завтрак;Breakfast;
+Французский Тост с Лососем;French Toast with Salmon;220;Завтрак;Breakfast;80
 Фрикасе из Перепелки;Quail Fricassee;227;Горячее;Main Courses;
 Фруктовое Ассорти;Assorted Fruits;50;Завтрак;Breakfast;
+Фруктово-Ягодный Салат;Fruit and Berry Salad;80;Завтрак;Breakfast;150
 Фруктовый Салат;Fruit Salad;60;Завтрак;Breakfast;100
+Фруктовый Салат с Йогуртом;Fruit Salad with Yogurt;120;Завтрак;Breakfast;120
 Фруктовый Салат с Кокосовым Йогуртом;Fruit Salad with Coconut Yoghurt;63;Завтрак;Breakfast;
 Фрукты;Fruits;50;Завтрак;Breakfast;100
-Фуа-гра на Булочке Бриошь с Ягодным Соусом;Foie Gras on Brioche with Berry Sauce;400;Горячая Закуска;Hot Starters;
+Фрукты Свежие;Fresh Fruits;40;Завтрак;Breakfast;100
+Фуа-гра на Булочке Бриошь с Ягодным Соусом;Foie Gras on Brioche with Berry Sauce;320;Горячая Закуска;Hot Starters;
 Фузилли с Маслом;Fusilli with Butter;130;Гарнир;Side Dishes;
 Фульмидас из Фасоли;Ful Medames with Beans;140;Завтрак;Breakfast;
 Фунчоза с Овощами;Funchoza with Vegetables;140;Салаты;Salads;
-Ханум с Овощами;Khanum with Vegetables;120;Горячее;Main Courses;
+Ханум с Овощами;Khanum with Vegetables;120;Горячее;Main Courses;150
 Ханум с Тыквой;Pumpkin Khanoum;130;Горячее;Main Courses;
 Ханум с Ягненком;Khanum with Lamb;230;Горячая Закуска;Hot Starters;
-Харчо;Kharcho;120;Супы;Soups;
+Ханум с Ягнёнком;Khanum with Lamb;190;Горячее;Main Courses;140
+Харчо;Kharcho;120;Супы;Soups;200
 Харчо с Телятиной;Kharcho with Veal;90;Супы;Soups;200
-Хашлама из Телятины;Veal Khashlama;170;Горячее;Main Courses;
+Харчо с Телятиной и Хрящами;Kharcho with Veal and Cartilage;;Супы;Soups;
+Хашлама из Телятины;Veal Khashlama;170;Горячее;Main Courses;140
+Хвосты Телячьи с Картофельным Пюре;Veal Tails with Mashed Potatoes;140;Горячее;Main Courses;120
 Хвосты Телячьи Тушенные с Овощами;Veal Tails Stewed with Vegetables;190;Горячее;Main Courses;
-Хвосты Телячьи Тушеные;Stewed Veal Tails;190;Горячее;Main Courses;
 Хлеб Безглютеновый;Gluten-Free Bread;188;Завтрак;Breakfast;
+Холодец;Kholodets;60;Холодная Закуска;Cold Starters;80
+Холодец из Телятины;Veal Aspic;;Закуска;Starters;
+Хоровац;Khorovats;220;Горячая Закуска;Hot Starters;120
 Хрустящие Лангустины;Crispy Langoustines;210;Горячее;Main Courses;
+Хрустящий Баклажан с Помидором;Crispy Eggplant with Tomato;120;Салаты;Salads;120
 Хумус;Hummus;170;Завтрак;Breakfast;50
+Хумус с Кинзой;Hummus with Cilantro;270;Завтрак;Breakfast;50
 Хумус с Овощами;Hummus with Vegetables;160;Завтрак;Breakfast;
 Хумус Эдамаме;Hummus Edamame;180;Гарнир;Side Dishes;
-Хурда;Khurda;135;Супы;Soups;
-Хурда с Курицей;Khurda with Chicken;63;Супы;Soups;
+Хурда;Khurda;135;Супы;Soups;200
+Хурда с Курицей;Khurda with Chicken;63;Супы;Soups;200
 Цезарь с Креветками;Caesar Salad with Shrimps;180;Салаты;Salads;130
-Цезарь с Курицей;Caesar with Chicken;190;Салаты;Salads;
-Цезарь с Цыпленком;Caesar with Chicken;190;Салаты;Salads;
+Цезарь с Куриной Грудкой;Caesar with Chicken Breast;170;Салаты;Salads;120
+Цезарь с Курицей;Caesar with Chicken;190;Салаты;Salads;150
+Цезарь с Цыпленком;Caesar with Baby Chicken;190;Салаты;Salads;
+Цукини Гриль;Grilled Zucchini;28;Гарнир;Side Dishes;150
+Цукини с Крабом;Zucchini with Crab;120;Завтрак;Breakfast;50
+Цукини с Луком;Zucchini with Onions;45;Гарнир;Side Dishes;100
+Цукини с Томатами;Zucchini with Tomatoes;40;Гарнир;Side Dishes;100
 Цуккини Жареные;Fried Zucchini;130;Гарнир;Side Dishes;
 Цыпленок Жареный;Fried Chicken;200;Горячее;Main Courses;160
 Цыпленок су-вид Жареный;Sous Vide Fried Chicken;180;Горячее;Main Courses;
+Цыпленок Табака;Chicken Tabaka;175;Горячее;Main Courses;150
 Цыплята;Baby Chicken;200;Горячее;Main Courses;
-Цыплята Запеченные;Baked Baby Chicken;210;Горячее;Main Courses;
-Цыплята Табака;Chicken Tabaka;230;Горячее;Main Courses;
+Цыплята Запеченные;Baked Baby Chicken;210;Горячее;Main Courses;150
+Цыплята Запеченные с Имбирем;Roasted Chicken with Ginger;190;Горячее;Main Courses;150
+Цыплята Табака;Chicken Tapaka;230;Горячее;Main Courses;150
 Чахохбили из Курицы;Chicken Chakhokhbili;160;Горячее;Main Courses;180
-Чахохбили из Цыплят;Chicken Chakhokhbili;160;Горячее;Main Courses;150
-Черный Петух Тушеный;Braised Black Rooster;140;Горячее;Main Courses;
+Чахохбили из Цыплят;Baby Chicken Chakhokhbili;160;Горячее;Main Courses;150
+Черный Петух Тушеный;Stewed Black Rooster;140;Горячее;Main Courses;
+Черный Рис с Брокколи;Black Rice with Broccoli;;Гарнир;Side Dishes;
+Черный Рис с Овощами;Black Rice with Vegetables;;Гарнир;Side Dishes;
 Чилийский Сибас под Соусом Сальморильо;Chilean Seabass with Salmorillo Sauce;150;Горячее;Main Courses;
 Чкмерули из Курицы;Chicken Chkmeruli;170;Горячее;Main Courses;
 Чука Салат с Телятиной и Ореховым Соусом;Chuka Salad with Veal and Walnut Sauce;275;Салаты;Salads;
+Чука Салат с Телятиной, Овощами и Ореховой Заправкой;Chuka Salad with Veal, Vegetables, and Nut Dressing;110;Салаты;Salads;120
 Чука Салат с Телячьим Языком и Ореховым Соусом;Chuka Salad with Veal Tongue and Nut Sauce;140;Салаты;Salads;
-Шаверма с Курицей;Chicken Shawarma;260;Закуска;Starters;
-Шавля;Shavlya;250;Горячее;Main Courses;
-Шакшука;Shakshuka;140;Завтрак;Breakfast;
+Шаверма с Курицей;Chicken Shawarma;240;Закуска;Starters;80
+Шакшука;Shakshuka;140;Завтрак;Breakfast;160
+Шамайка;Shamaika;130;Закуска;Starters;100
 Шатобриан;Chateaubriand;210;Горячее;Main Courses;150
+Шауля;Shavlya;160;Горячее;Main Courses;180
 Шаурма;Shawarma;220;Горячая Закуска;Hot Starters;
 Шашлык Кусковой из Ягненка (от Камиллы);Lamb Skewer;230;Шашлык;BBQ;
 Шашлыки Куриные;Chicken Kebabs;220;Горячее;Main Courses;
 Шашлычки из Говядины;Beef Skewers;250;Горячее;Main Courses;
-Шашлычки из Цыплят;Chicken Skewers;210;Горячее;Main Courses;
-Шеи Индейки Тушеные;Braised Turkey Necks;150;Закуска;Starters;
+Шашлычки из Цыплят;Baby Chicken Skewers;210;Горячее;Main Courses;
+Шеи Индейки Тушеные;Stewed Turkey Necks;150;Закуска;Starters;
 Шеи Индейки Тушеные с Луком;Turkey Necks Stewed with Onions;160;Горячее;Main Courses;180
+Шея Индейки Тушеная с Луком;Braised Turkey Neck with Onions;140;Горячее;Main Courses;150
+Шея Ягненка Запечённая с Овощами;Baked Lamb Neck with Vegetables;188;Горячее;Main Courses;200
+Шилпилдок;Shilpildok;225;Горячее;Main Courses;150
 Шнитцель из Телятины по-Милански;Veal Milanese Schnitzel;300;Горячее;Main Courses;
-Шницель Куриный;Chicken Schnitzel;210;Горячее;Main Courses;150
-Шницель Министерский;Minister’s Schnitzel;240;Горячее;Main Courses;
-Шурпа;Shurpa;130;Супы;Soups;
-Шурпа с Телятиной;Shurpa with Veal;100;Супы;Soups;
-Щавелевый Суп;Sorrel Soup;35;Супы;Soups;
-Щавелевый Суп с Телятиной;Sorrel Soup with Veal;56;Супы;Soups;
-Щи Зеленые с Яйцом;Green Shchi with Egg;60;Супы;Soups;
+Шницель из Телятины;Veal Schnitzel;280;Горячее;Main Courses;200
+Шницель Куриный;Chicken Schnitzel;185;Горячее;Main Courses;150
+Шницель Министерский;Minister's Schnitzel;240;Горячее;Main Courses;
+Шпинат Припущенный с Луком;Spinach Sauteed with Onions;35;Гарнир;Side Dishes;75
+Шпинат с Чесноком;Spinach with Garlic;57;Гарнир;Side Dishes;150
+Шурпа;Shurpa;130;Супы;Soups;200
+Шурпа из Говядины;Beef Shurpa;;Супы;Soups;
+Шурпа из Ягненка;Lamb Shurpa;;Супы;Soups;
+Шурпа с Телятиной;Shurpa with Veal;100;Супы;Soups;200
+Шурпа с Ягненком;Lamb Shurpa;195;Супы;Soups;200
+Щавелевый Суп;Sorrel Soup;35;Супы;Soups;200
+Щавелевый Суп с Телятиной;Sorrel Soup with Veal;56;Супы;Soups;200
+Щи Зеленые;Green Shchi;40;Супы;Soups;200
+Щи Зеленые с Телятиной и Яйцом;Green Shchi with Veal and Egg;60;Супы;Soups;200
+Щи Зеленые с Яйцом;Green Shchi with Egg;60;Супы;Soups;200
 Щи из Квашенной Капусты;Sauerkraut Shchi;75;Супы;Soups;200
+Щи из Квашеной Капусты с Телятиной;Sauerkraut Soup with Veal;34;Супы;Soups;200
+Щи из Кислой Капусты с Телятиной;Sauerkraut Shchi with Veal;;Супы;Soups;
 Щи из Молодой Капусты с Телятиной;Shchi with Young Cabbage and Veal;50;Супы;Soups;200
 Щи из Свежей Капусты;Fresh Cabbage Shchi;30;Супы;Soups;200
-Щи из Телятины с Хрящами;Veal Shchi with Cartilage;75;Супы;Soups;
-Щи с Телятиной;Cabbage Soup with Veal;70;Супы;Soups;
-Щи с Щавелем;Shchi with Sorrel;115;Супы;Soups;
-Щи с Щавелем и Яйцом;Shchi with Sorrel and Egg;65;Супы;Soups;
+Щи из Телятины с Хрящами;Veal Shchi with Cartilage;75;Супы;Soups;200
+Щи Кислые с Телятиной;Sour Shchi with Veal;40;Супы;Soups;200
+Щи с Телятиной;Cabbage Soup with Veal;70;Супы;Soups;200
+Щи с Щавелем;Shchi with Sorrel;115;Супы;Soups;200
+Щи с Щавелем и Яйцом;Shchi with Sorrel and Egg;65;Супы;Soups;200
+Щи Свежие с Телятиной;Fresh Shchi with Veal;45;Супы;Soups;200
 Ягненок Запеченный;Baked Lamb;250;Горячее;Main Courses;
-Ягненок Тушеный с Луком;Braised Lamb with Onions;260;Горячее;Main Courses;
-Ягоды;Berries;50;Завтрак;Breakfast;
+Ягненок Тушеный с Луком;Stewed Lamb with Onions;260;Горячее;Main Courses;
+Ягненок Тушеный с Овощами;Lamb Stew with Vegetables;150;Горячее;Main Courses;150
+Ягодное Ассорти;Berry Assortment;35;Завтрак;Breakfast;45
+Ягоды;Berries;50;Завтрак;Breakfast;75
 Язык Телячий Отварной;Boiled Veal Tongue;160;Горячее;Main Courses;
+Язык Телячий с Брокколи;Veal Tongue with Broccoli;200;Гарнир;Side Dishes;131
 Язык Телячий с Луком;Veal Tongue with Onions;160;Горячее;Main Courses;150
 Язык Телячий Тушеный с Луком;Stewed Veal Tongue with Onion;190;Горячее;Main Courses;
 Язычки Ягненка с Луком;Lamb Tongues with Onions;210;Горячее;Main Courses;
 Яичница;Fried Eggs;170;Завтрак;Breakfast;100
 Яичница Глазунья;Fried Eggs;170;Завтрак;Breakfast;100
 Яичница Глазунья с Сосисками;Fried Eggs with Sausages;220;Завтрак;Breakfast;
-Яичница Двухсторонняя;Two-Sided Fried Eggs;170;Завтрак;Breakfast;
-Яичница по-Ташкентски;Tashkent-Style Fried Eggs;180;Завтрак;Breakfast;
-Яичница с Помидорами;Fried Eggs with Tomatoes;125;Завтрак;Breakfast;
+Яичница Двухсторонняя;Two-Sided Fried Eggs;170;Завтрак;Breakfast;80
+Яичница из Перепелиных Яиц;Fried Quail Eggs;126;Завтрак;Breakfast;100
+Яичница по-Ташкентски;Tashkent-Style Fried Eggs;180;Завтрак;Breakfast;150
+Яичница с Помидорами;Fried Eggs with Tomatoes;125;Завтрак;Breakfast;120
 Яйца Бенедикт с Лососем;Eggs Benedict with Salmon;250;Завтрак;Breakfast;
+Яйцо 5 минут;5-minute Egg;160;Завтрак;Breakfast;120
 Яйцо Отварное;Boiled Egg;155;Завтрак;Breakfast;80
 Яйцо Отварное (1 штука);Boiled Egg (1 piece);70;Завтрак;Breakfast;
 Яйцо Пашот на Тосте;Poached Egg on Toast;160;Завтрак;Breakfast;
-Яйцо Пашот со Спаржей;Poached Egg with Asparagus;90;Завтрак;Breakfast;
-Яйцо Пашот со Шпинатом;Poached Egg with Spinach;100;Завтрак;Breakfast;150
-Микс Салат с Тунцом и Перепелиным Яйцом;Mixed Salad with Tuna and Quail Egg;86;Салаты;Salads;200
-Уха из Судака;Pike-Pike Soup;35;Супы;Soups;250
-Томлёная Бедро Индейки;Stewed Turkey Thigh;120;Горячее;Main Courses;200
-Перепёлка Жареная;Roasted Quail;134;Горячее;Main Courses;150
-Филе Сибаса Су-вид;Sous-Vide Sea Bass Fillet;97;Горячее;Main Courses;180
-Спаржа на Пару;Steamed Asparagus;25;Гарнир;Side Dishes;90
-Микс Салат с Перепелкой и Печёным Перцем;Mixed Salad with Quail and Baked Peppers;120;Салаты;Salads;150
-Помидоры с Бурратой и Базиликом;Tomatoes with Burrata and Basil;162;Салаты;Salads;150
-Почки Телячьи в Томатном Соусе;Veal Kidneys in Tomato Sauce;163;Закуска;Starters;120
-Котлеты Домашние;Homemade Cutlets;180;Горячее;Main Courses;150
-Молодой Картофель с Укропом;Potatoes with Dill;61;Гарнир;Side Dishes;100
-Каша Рисовая с Яблоком и Корицей;Rice Porridge with Apple and Cinnamon;125;Завтрак;Breakfast;200
-Блинчики с Рикоттой;Ricotta Pancakes;184;Завтрак;Breakfast;120
-Яичница из Перепелиных Яиц;Scrambled Quail Eggs;126;Завтрак;Breakfast;100
-Микс Салат с Курицей в Ореховом Соусе;Mixed Salad with Chicken in Walnut Sauce;250;Салаты;Salads;200
-Куриный Бульон Кудрявый с Зеленью;Curly Chicken Broth with Herbs;20;Супы;Soups;300
-Лосось Гриль;Grilled Salmon;200;Горячее;Main Courses;150
-Запеченные Котлеты из Телятины;Baked Veal Cutlets;230;Горячее;Main Courses;160
-Говядина по-Азиатски;Beef Asian-style;149;Горячее;Main Courses;200
-Молодой Картофель Жареный с Луком;Fried Potatoes with Onions;160;Гарнир;Side Dishes;180
-Луковый Суп с Репой;Onion Soup with Turnips;39;Супы;Soups;200
-Стейк из Палтуса;Halibut Steak;110;Горячее;Main Courses;150
-Бельгийские Вафли с Творожным Муссом и Протёртой Малиной;Belgian Waffles with Curd Mousse and Raspberry Puree;271;Завтрак;Breakfast;70
-Белковый Омлет со Шпинатом;Protein Omelette with Spinach;140;Завтрак;Breakfast;130
-Салат Фунчоза с Овощами;Funchoza Salad with Vegetables;82;Салаты;Salads;
-Салат из Печеной Свёклы с Рукколой и Козьим Сыром;Roasted Beetroot Salad with Arugula and Goat Cheese;112;Салаты;Salads;
-Куриный Бульон с Потрошками;Chicken Broth with Giblets;45;Супы;Soups;
-Гречневая Лапша с Говядиной и овощами;Buckwheat Noodles with Beef and Vegetables;200;Горячее;Main Courses;
-Томленая Индейка в Собственном Соку;Braised Turkey in Its Own Juice;137;Горячее;Main Courses;
-Рис Отварной с Зеленью;Boiled Rice with Greens;57;Гарнир;Side Dishes;
-Ростбиф из Курицы;Roast Beef Chicken;111;Завтрак;Breakfast;30
-Голубика;Blueberry;57;Завтрак;Breakfast;20
-Салат из Свежих Овощей с Ароматным Маслом;Fresh Vegetable Salad with Fragrant Oil;55;Салаты;Salads;
-Щи из Квашеной Капусты с Телятиной;Sauerkraut Soup with Veal;34;Супы;Soups;
-Куриный Бульон с Курицей и Яйцом;Chicken Broth with Chicken and Egg;35;Супы;Soups;
-Рубленые Котлеты Куриные;Chopped Chicken Cutlets;180;Горячее;Main Courses;
-Лосось на Пару;Steamed Salmon;180;Горячее;Main Courses;
-Перепелка Запечённая;Baked Quail;200;Горячее;Main Courses;
-Картофельное Пюре с Жареным Луком;Mashed Potatoes with Fried Onions;90;Гарнир;Side Dishes;
-Лапша Гречневая с Овощами;Buckwheat Noodles with Vegetables;140;Гарнир;Side Dishes;
-Руккола с Томатами Черри и Крымским Луком;Arugula with Cherry Tomatoes and Crimean Onions;65;Салаты;Salads;150
-Сациви;Satsivi;285;Закуска;Starters;120
-Микс Салат с Овощами Гриль;Mixed Salad with Grilled Vegetables;60;Салаты;Salads;
-Томаты с Красным Луком и Базиликом;Tomatoes with Red Onion and Basil;20;Салаты;Salads;
-Щи Кислые с Телятиной;Sour Shchi with Veal;40;Супы;Soups;
-Жареная Говядина с Луком;Fried Beef with Onions;200;Горячее;Main Courses;
-Стейк из Молодой Капусты;Young Cabbage Steak;35;Горячее;Main Courses;150
-Гречка с Луком и Грибами;Buckwheat with Onions and Mushrooms;130;Гарнир;Side Dishes;
-Мини Пенне в Соусе Песто;Mini Penne in Pesto Sauce;250;Гарнир;Side Dishes;
-Овощи Отварные;Boiled Vegetables;30;Гарнир;Side Dishes;100
-Панини из Круассана с Телятиной;Veal Croissant Panini;229;Завтрак;Breakfast;120
-Свекольный Салат с Грецким Орехом;Beetroot Salad with Walnuts;91;Салаты;Salads;100
-Макароны по-Флотски;Navy Style Pasta;175;Гарнир;Side Dishes;140
-Телячий Язык с Пюре из Брокколи и Соусом из Печеных Перцев;Veal Tongue with Broccoli Purée and Roasted Pepper Sauce;140;Горячая Закуска;Hot Starters;120
-Тефтели из Телятины;Veal Meatballs;180;Горячее;Main Courses;200
-Капуста Тушеная;Braised Cabbage;65;Гарнир;Side Dishes;100
-Карпаччо из Томатов;Tomato Carpaccio;35;Салаты;Salads;150
-Микс Салат с Тунцом;Mixed Salad with Tuna;90;Салаты;Salads;120
-Пармеджано;Parmigiano;200;Горячая Закуска;Hot Starters;100
-Карпаччо из Цветной Капусты;Cauliflower Carpaccio;35;Холодная Закуска;Cold Starters;60
-Суп - Пюре из Молодого Горошка;Young Pea Purée Soup;60;Супы;Soups;200
-Брокколини;Broccolini;35;Гарнир;Side Dishes;100
-Мини Картофель с Зеленью;Mini Potatoes with Herbs;120;Гарнир;Side Dishes;100
-Милфей из Свеклы;Beet Millefeuille;80;Завтрак;Breakfast;50
-Лосось с Авокадо;;;;;
-Ролл из Цукини с Индейкой;;;;;
-Оладьи Овощные;;;;;
-Бульон;;;;;
-Картофельная Вафля с Творожным Сыром и Лососем;Potato Waffle with Cream Cheese and Salmon;180;Завтрак;Breakfast;80
-Щи Зеленые с Телятиной и Яйцом;Щи Зеленые с Телятиной и Яйцом;60;;;200
-Медальоны из Телятей Вырезки;;;;;
-Салат Чука с Овощами;Chuka Salad with Vegetables;60;Салаты;Salads;130
-Сашими из Тунца;Tuna Sashimi;100;Холодная Закуска;Cold Starters;100
-Устрицы;Oysters;60;Холодная Закуска;Cold Starters;100
-Щи Зеленые;Green Shchi;40;Супы;Soups;200
-Гаспачо с Крабом;Gazpacho with Crab;70;Супы;Soups;200
-Спагетти с Белым Трюфелем;Spaghetti with White Truffle;190;Горячее;Main Courses;200
-Треска Запеченная;Baked Cod;90;Горячее;Main Courses;150
-Медальоны из Телятины;Veal Medallions;170;Горячее;Main Courses;150
-Запеченный Мини Романо;Baked Mini Romano;100;Гарнир;Side Dishes;50
-Карпачо из Цветной Капусты;Cauliflower Carpaccio;30;Салаты;Salads;150
-Помело;Pomelo;35;Завтрак;Breakfast;30
-Запеканка Творожная с Яблоками;Cottage Cheese Casserole with Apples;160;Завтрак;Breakfast;80
-Горячий Бутерброд с Телятиной;Hot Sandwich with Veal;220;Завтрак;Breakfast;50
-Рулет из Цукини с Овощами;Zucchini Roll with Vegetables;70;Завтрак;Breakfast;50
-Пирожки из Теста Фило с Тунцом;Phyllo Pastries with Tuna;230;Завтрак;Breakfast;50
-Скрэмбл с Томатами;Scrambled Eggs with Tomatoes;100;Завтрак;Breakfast;150
-Манго с Рикоттой и Клубникой;Mango with Ricotta and Strawberries;100;Завтрак;Breakfast;100
-Оладьи из Брокколи;Broccoli Pancakes;110;Завтрак;Breakfast;50
-Буженина из Цыпленка;Roast Chicken Ham;160;Завтрак;Breakfast;40
-Каша Пшенная с Тыквой;Millet Porridge with Pumpkin;120;Завтрак;Breakfast;200
-Яйцо Пашой со Шпинатом;Poached Egg with Spinach;100;Завтрак;Breakfast;150
-Рулет из Баклажан;Eggplant Roll;120;Завтрак;Breakfast;30
-Цукини с Крабом;Zucchini with Crab;120;Завтрак;Breakfast;50
-Безглютеновый Сэндвич с Цыпленком;Gluten-Free Chicken Sandwich;80;Завтрак;Breakfast;200
-Каша Овсяная с Ягодами;Oatmeal with Berries;100;Завтрак;Breakfast;200
-Салат Коул-Слоу;Coleslaw Salad;130;Салаты;Salads;150
-Лобио из Зеленой Фасоли;Green Bean Lobio;110;Горячая Закуска;Hot Starters;120
-Суп Фасолевый по-Тоскански;Tuscan-Style Bean Soup;80;Супы;Soups;200
-Рагу из Индейки;Turkey Ragout;120;Горячее;Main Courses;150
-Обжаренный Мини Картофель с Цветной Капустой;Sautéed Baby Potatoes with Cauliflower;120;Гарнир;Side Dishes;100
-Тыква Тушеная с Луком и Зирой;Stewed Pumpkin with Onion and Cumin;80;Гарнир;Side Dishes;100
-Суп Куриный с Лапшой;Chicken Noodle Soup;55;Супы;Soups;200
-Микс Салат с Зелеными Овощами;Mixed Salad with Green Vegetables;70;Закуска;Starters;150
-Ньоки Болоньезе;Gnocchi Bolognese;170;Горячая Закуска;Hot Starters;120
-Филе Дорадо на Пару с Соусом из Шпината;Steamed Dorado Fillet with Spinach Sauce;120;Горячее;Main Courses;150
-Димляма из Индейки;Turkey Dimlama;130;Горячее;Main Courses;150
-Запеченные Фрикадельки из Ягненка;Запеченные Фрикадельки из Ягненка;190;Горячее;Main Courses;150
-Картофельный Гратен;Potato Gratin;150;Гарнир;Side Dishes;100
-Мини Романо с Песто и Зелеными Овощами;Mini Romano Lettuce with Pesto and Green Vegetables;100;Салаты;Salads;100
-Карпаччо из Цукини;Zucchini Carpaccio;50;Холодная Закуска;Cold Starters;75
-Голубцы с Курицей на Пару;Steamed Chicken Cabbage Rolls;100;Горячая Закуска;Hot Starters;100
-Суп с Копченым Цыпленком и Кукурузой;Smoked Chicken and Corn Soup;65;Супы;Soups;200
-Утиная Грудка с Карамельной Морковью;Duck Breast with Caramelized Carrots;240;Горячее;Main Courses;150
-Пюре из Брокколи и Зеленого Горошка;Broccoli and Green Pea Purée;60;Гарнир;Side Dishes;100
-Сырники с Ягодным Соусом;Syrniki with Berry Sauce;220;Завтрак;Breakfast;100
-Горячий Бутерброд на Безглютеновой Булочке с Цыпленком;Hot Gluten-Free Bun Sandwich with Chicken;210;Завтрак;Breakfast;60
-Боул Фруктовый;Fruit Bowl;70;Завтрак;Breakfast;150
-Скрембл;Scrambled Eggs;150;Завтрак;Breakfast;150
-Французский Тост с Лососем;French Toast with Salmon;220;Завтрак;Breakfast;80
-Салат Табуле;Tabbouleh Salad;90;Салаты;Salads;130
-Суп Кокосовый с Цыпленком;Coconut Soup with Chicken;100;Супы;Soups;200
-Ризотто с Белым Трюфелем;Risotto with White Truffle;170;Горячее;Main Courses;150
-Стейк из Лосося;Salmon Steak;210;Горячее;Main Courses;150
-Творог с Земляничным Вареньем;Cottage Cheese with Wild Strawberry Jam;150;Завтрак;Breakfast;50
-Сыр Плавленный;Processed Cheese;270;Завтрак;Breakfast;20
-Тако с Мини Романо и Цыпленком;Taco with Mini Romano and Chicken;170;Завтрак;Breakfast;30
-Милей из Печеной Свеклы с Гуакамоле;Baked Beet Mille-Feuille with Guacamole;120;Завтрак;Breakfast;60
-Оладья из Цукини;Zucchini Pancake;100;Завтрак;Breakfast;60
-Каша Манная с Вишневым Вареньем;Semolina Porridge with Cherry Jam;120;Завтрак;Breakfast;150
-Милфей из Печеной Свеклы с Гуакамоле;Beetroot Mille-Feuille with Guacamole;95;Завтрак;Breakfast;60
-Овощной Салат с Грецким Орехом;Vegetable Salad with Walnuts;85;Салаты;Salads;150
-Кальмары с Белой Спаржей в Томатном Соусе;Squid with White Asparagus in Tomato Sauce;95;Горячая Закуска;Hot Starters;120
-Зеленый Суп - Пюре из Цукини, Сельдерея и Шпината;Green Cream Soup with Zucchini, Celery, and Spinach;55;Супы;Soups;200
-Доверсоль а ля Меньер;Dover Sole à la Meunière;160;Горячее;Main Courses;150
-Паприкаш из Курицы;Chicken Paprikash;145;Горячее;Main Courses;150
-Голубцы из Телятины;Veal Cabbage Rolls;135;Горячее;Main Courses;130
-Жареное Каре Ягненка;Grilled Rack of Lamb;270;Горячее;Main Courses;150
-Котлеты из Моркови;Carrot Cutlets;140;Гарнир;Side Dishes;100
-Цукини с Луком;Zucchini with Onions;45;Гарнир;Side Dishes;100
-Салат с Фунчозой и Овощами;Glass Noodle Salad with Vegetables;120;Салаты;Salads;150
-Конвертик из Лаваша с Сулугуни и Зеленью;Lavash Envelope with Suluguni Cheese and Herbs;250;Горячая Закуска;Hot Starters;80
-Салат из Хрустящих Баклажан с Томатом;Crispy Eggplant Salad with Tomato;130;Салаты;Salads;130
-Суши;Sushi;140;Холодная Закуска;Cold Starters;50
-Роллы;Sushi Rolls;170;Холодная Закуска;Cold Starters;50
-Сашими;Sashimi;100;Холодная Закуска;Cold Starters;50
-Мисо Суп;Miso Soup;40;Супы;Soups;200
-Куриный Бульон с Лапшой;Chicken Bouillon with Noodles;50;Супы;Soups;200
-Креветки Панко с Соусом Васаби;Panko Shrimp with Wasabi Sauce;210;Горячее;Main Courses;100
-Стейк Лосося Терияки;Teriyaki Salmon Steak;200;Горячее;Main Courses;150
-Куриные Шашлычки;Chicken Skewers;160;Горячее;Main Courses;150
-Телятина с Овощами по-Азиатски;Asian-Style Veal with Vegetables;150;Горячее;Main Courses;150
-Жареный Рис;Fried Rice;180;Гарнир;Side Dishes;100
-Овощи Унаги;Unagi-Style Vegetables;100;Гарнир;Side Dishes;100
-Цыплята Запеченные с Имбирем;Roasted Chicken with Ginger;190;Горячее;Main Courses;150
-Салат Овощной с Авокадо и Зеленью;Vegetable Salad with Avocado and Greens;90;Салаты;Salads;150
-Пицца из Цветной Капусты;Cauliflower Pizza;130;Горячая Закуска;Hot Starters;80
-Бульон Кудрявый с Зеленью;Curly Noodle Bouillon with Herbs;40;Супы;Soups;200
-Жаркое из Курицы с Овощами;Chicken Stew with Vegetables;120;Горячее;Main Courses;180
-Цукини с Томатами;Zucchini with Tomatoes;40;Гарнир;Side Dishes;100
-Микс Салат с Помидорами Черри и Медово-Горчичной Заправкой;Mix Salad with Cherry Tomatoes and Honey Mustard Dressing;70;Салаты;Salads;150
-Хоровац;Khorovats;220;Горячая Закуска;Hot Starters;120
-Томленое в Бульоне Филе Дорадо;Dorado Fillet Braised in Bouillon;120;Горячее;Main Courses;150
-Куриная Грудка с Гречкой;Chicken Breast with Buckwheat;150;Горячее;Main Courses;250
-Обжаренный Брокколи;Sautéed Broccoli;40;Гарнир;Side Dishes;100
-Омлет из Перепелиных Яиц;Quail Egg Omelette;200;Завтрак;Breakfast;120
+Яйцо Пашот со Спаржей;Poached Egg with Asparagus;90;Завтрак;Breakfast;150
+Яйцо Пашот со Шпинатом;Poached Egg with Spinach;110;Завтрак;Breakfast;90
+Яйцо Фаршированное Печенью Трески;Deviled Egg with Cod Liver;260;Закуска;Starters;100
+Салат со Cвеклой по-Грузински;Georgian Style Beet Salad;117;Салаты;Salads;150
+Зеленый Микс-Салат;Green Mixed Salad;35;Салаты;Salads;150
+Айва Запечённая с Орехами и Мёдом;Baked Quince with Nuts and Honey;77;Завтрак;Breakfast;100
+Суп из Кролика;Rabbit Soup;66;Супы;Soups;200
+Филе Сёмги на Пару;Steamed Salmon Fillet;150;Горячее;Main Courses;150
+Курица с Рисом по-Азиатски;Asian Style Chicken with Rice;113;Горячее;Main Courses;150
+Жаркое по-Ташкентски с Макаронами;Tashkent-Style Stew with Pasta;260;Горячее;Main Courses;150
+Салат с Вяленой Свеклой и Козьим Сыром;Salad with Dried Beets and Goat Cheese;120;Салаты;Salads;150
+Творожный Мусс с Ягодами;Curd Mousse with Berries;97;Завтрак;Breakfast;100
+Ребра Ягнёнка Томленые;Stewed Lamb Ribs;150;Горячая Закуска;Hot Starters;250
+Чечевичный Суп с Телятиной;Lentil Soup with Veal;180;Супы;Soups;200
+Пюре из Сельдерея;Celery Puree;40;Гарнир;Side Dishes;100
+Салат с Морской Капустой и Морковью;Seaweed and Carrot Salad;74;Салаты;Salads;150
+Куриный Суп с Фрикадельками;Chicken Soup with Meatballs;60;Супы;Soups;200
+Айвар;Ajvar;80;Завтрак;Breakfast;50
+Микс-Салат с Песто;Mix Salad with Pesto;50;Закуска;Starters;150
+Рыбные Тефтели в Томатном Соусе;Fish Meatballs in Tomato Sauce;81;Горячее;Main Courses;150
+Тартар из Печёных Овощей;Roasted Vegetable Tartare;90;Гарнир;Side Dishes;100
+Сибас Запеченный с Цукини;Sea Bass Baked with Zucchini;70;Горячее;Main Courses;150
+Молодая Спаржа на Пару;Steamed Young Asparagus;23;Гарнир;Side Dishes;100
+Орзо;Orzo;360;Гарнир;Side Dishes;100
+Язык Гриль с Соусом из Хрена;Grilled Tongue with Horseradish Sauce;180;Горячая Закуска;Hot Starters;150
+Боул Фруктовый с Кокосовым Йогуртом;Fruit Bowl with Coconut Yogurt;75;Завтрак;Breakfast;120
+Каша с Чиа и Семенами Льна;Porridge with Chia and Flax Seeds;48;Завтрак;Breakfast;150
+Салат с Артишоками и Красной Фасолью;Artichokes and Red Beans Salad;90;Салаты;Salads;150
+Салат Чука;Chuka Salad;140;Салаты;Salads;150
+Сибас в Кисло-Сладком Соусе;Sea Bass in Sweet and Sour Sauce;170;Горячее;Main Courses;150
+Бедро Цыплёнка Терияки;Teriyaki Chicken Thigh;157;Горячее;Main Courses;150
+Оладьи из Шпината;Spinach Pancakes;38;Завтрак;Breakfast;80
+Мини Романо с Тунцом;Mini Romano with Tuna;44;Завтрак;Breakfast;40

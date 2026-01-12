@@ -1634,16 +1634,20 @@
       return m ? [m[1], m[2]] : ['', t]; // если одно слово — "префикс" пустой
     }
 
-    function getKcalGrInfo(line, lang) {
-      const key = U.cleanName(line || '');
-      if (!state.idx || /[:：]\s*$/.test((line || '').trim())) {
+    function getKcalGrInfo(line, lang, ruRefLine) {
+      const hasRuRef = (lang === 'en' && ruRefLine != null);
+      const refLine = hasRuRef ? ruRefLine : line;
+      const lineToCheck = refLine || line;
+      if (!state.idx || isGroupLine(lineToCheck)) {
         return { grams: null, kcalDish: null, kcal100: null, missing: false };
       }
-      const kcal100 = (lang === 'ru'
+      const key = U.cleanName(lineToCheck || '');
+      const useRu = (lang === 'ru') || hasRuRef;
+      const kcal100 = (useRu
         ? state.idx.nameToKcalRU.get(key)
         : state.idx.nameToKcalEN.get(key)) ?? null;
 
-      const grRaw = (lang === 'ru'
+      const grRaw = (useRu
         ? state.idx.nameToGrRU.get(key)
         : state.idx.nameToGrEN.get(key));
 
@@ -1667,8 +1671,8 @@
       return { grams: String(gr), kcalDish: String(kcalDish), kcal100, missing: false };
     }
 
-    function makeSuffixHTML(line, lang, showInfo /*true=показывать*/) {
-      const info = getKcalGrInfo(line, lang);
+    function makeSuffixHTML(line, lang, showInfo /*true=показывать*/, ruRefLine) {
+      const info = getKcalGrInfo(line, lang, ruRefLine);
       if (!showInfo) return { html: '', missing: info.missing };
 
       const isRu = (lang === 'ru');
@@ -1704,7 +1708,8 @@
       const n = Math.max(ruLines.length, enLines.length);
 
       for (let i = 0; i < n; i++) {
-        const ru = ruLines[i] || '';
+        const ruRef = ruLines[i];
+        const ru = ruRef || '';
         const en = enLines[i] || '';
 
         // RU окно
@@ -1724,7 +1729,7 @@
           if (/[:：]\s*$/.test(en)) {
             enHtml.push(`<strong>${U.escHtml(en)}</strong>`);
           } else {
-            const { html: sufE, missing: missE } = makeSuffixHTML(en, 'en', showKcal);
+            const { html: sufE, missing: missE } = makeSuffixHTML(en, 'en', showKcal, ruRef);
             if (missE) state.missingSet.add(en);
             const [prefixE, lastE] = splitLastWord(en);
             enHtml.push(`• ${U.escHtml(prefixE)} ${lastE
@@ -1871,7 +1876,7 @@
       d.head.appendChild(style);
 
       // фабрика страницы
-      const makePage = (lines, lang) => {
+      const makePage = (lines, lang, ruRefLines) => {
         const page = d.createElement('div'); page.className = 'page';
 
         if (state.coverUrl) {
@@ -1887,7 +1892,9 @@
 
         const content = d.createElement('div'); content.className = 'content';
 
-        for (const raw of lines) {
+        for (let i = 0; i < lines.length; i++) {
+          const raw = lines[i];
+          const ruRef = (lang === 'en' && Array.isArray(ruRefLines)) ? ruRefLines[i] : undefined;
           if (!raw) continue;
           const ln = d.createElement('div');
           const span = d.createElement('span');
@@ -1898,7 +1905,7 @@
             span.innerHTML = `<strong>${U.escHtml(raw)}</strong>`;
           } else {
             ln.className = 'ln ln-dish';
-            const { html: suf, missing } = makeSuffixHTML(raw, lang, showKcal);
+            const { html: suf, missing } = makeSuffixHTML(raw, lang, showKcal, ruRef);
             const [pfx, last] = splitLastWord(raw);
             span.innerHTML = `• ${U.escHtml(pfx)} ${last
               ? `<span class="tail">${U.escHtml(last)}${suf}</span>`
@@ -1916,7 +1923,7 @@
       };
       // создаём две страницы (RU и EN)
       makePage(ruLines, 'ru');
-      makePage(enLines, 'en');
+      makePage(enLines, 'en', ruLines);
 
       // === Автоподгонка: сначала локально длинные строки, затем единый масштаб для обеих страниц
       w.addEventListener('load', () => {
