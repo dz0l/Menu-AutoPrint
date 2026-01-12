@@ -331,7 +331,7 @@
 
     /* ========== БАННЕР ПРОВЕРКИ ========== */
     .review-banner {
-      display: none;
+      display: block;
       background: linear-gradient(180deg, rgba(13, 25, 48, .9), rgba(13, 25, 48, .86));
       border: 1px dashed rgba(155, 175, 205, .35);
       border-radius: 12px;
@@ -959,6 +959,7 @@
       // подтянуть EN и пересчитать
       fillMissingEnFromBase?.();
       autoRecalc?.();
+      updateReviewBanner();
       return true;
     }
 
@@ -1212,6 +1213,7 @@
       // Дозаполним EN (где пусто/???), затем пересчёт предпросмотра
       fillMissingEnFromBase?.();
       autoRecalc?.();
+      updateReviewBanner();
     }
 
     document.getElementById('btnLoadBase').addEventListener('click', () => document.getElementById('fileBase').click());
@@ -1292,6 +1294,31 @@
     const rvUnk = document.getElementById('rvUnk');
     const btnReview = document.getElementById('btnReview');
 
+    function updateReviewBanner(text) {
+      const src = (text ?? taRU.value ?? '').replace(/\r/g, '');
+      if (!state.idx) {
+        state.smartDecisions = [];
+        rvOk.textContent = `Автопривязано: 0`;
+        rvRev.textContent = `Нужно проверить: 0`;
+        rvUnk.textContent = `Не найдено: 0`;
+        return;
+      }
+      const catalog = state.idx.RU_NAMES || [];
+      state.smartDecisions = U.analyzePasted(src, catalog);
+
+      let auto = 0, rev = 0, unk = 0;
+      for (const d of state.smartDecisions) {
+        if (d.status === 'auto') auto++;
+        else if (d.status === 'review') rev++;
+        else if (d.status === 'unknown') unk++;
+      }
+      rvOk.textContent = `Автопривязано: ${auto}`;
+      rvRev.textContent = `Нужно проверить: ${rev}`;
+      rvUnk.textContent = `Не найдено: ${unk}`;
+    }
+
+    const debReview = U.debounce(() => updateReviewBanner(), 220);
+
     taRU.addEventListener('paste', (e) => {
       const clip = e.clipboardData?.getData('text/plain');
       if (!clip || !state.idx) return; // если базы нет — обычная вставка
@@ -1304,21 +1331,9 @@
       taRU.setSelectionRange(newCaret, newCaret);
       taRU.dispatchEvent(new Event('input'));
 
-      // анализ
-      const catalog = state.idx.RU_NAMES || [];
-      state.smartDecisions = U.analyzePasted(taRU.value, catalog);
-
-      // считаем статусы
-      let auto = 0, rev = 0, unk = 0;
-      for (const d of state.smartDecisions) {
-        if (d.status === 'auto') auto++;
-        else if (d.status === 'review') rev++;
-        else if (d.status === 'unknown') unk++;
-      }
-      rvOk.textContent = `Автопривязано: ${auto}`;
-      rvRev.textContent = `Нужно проверить: ${rev}`;
-      rvUnk.textContent = `Не найдено: ${unk}`;
-      banner.style.display = (auto || rev || unk) ? 'block' : 'none';
+      
+      updateReviewBanner(taRU.value);
+      banner.style.display = 'block';
     });
 
     btnReview.addEventListener('click', async () => {
@@ -1427,17 +1442,8 @@
       taRU.dispatchEvent(new Event('input'));
 
       // Пересчёт плашек
-      const next = U.analyzePasted(taRU.value, catalog);
-      let auto = 0, rev = 0, unk = 0;
-      for (const d of next) {
-        if (d.status === 'auto') auto++;
-        else if (d.status === 'review') rev++;
-        else if (d.status === 'unknown') unk++;
-      }
-      rvOk.textContent = `Автопривязано: ${auto}`;
-      rvRev.textContent = `Нужно проверить: ${rev}`;
-      rvUnk.textContent = `Не найдено: ${unk}`;
-      banner.style.display = (rev || unk) ? 'block' : 'none';
+      updateReviewBanner(taRU.value);
+      banner.style.display = 'block';
 
       U.showToast(`Обновлено позиций: ${changed}`, 'info');
     });
@@ -1479,6 +1485,7 @@
       }
       // и доступность кнопки "Добавить в базу"
       updateMissingBtn();
+      debReview();
     }
 
     // === Исправляемые блюда (есть в базе, но пустой gr ИЛИ пустой kcal/100г) ===
@@ -1772,6 +1779,7 @@
       state.lastRuLines = ruNew;
       debPreview();
       updateMissingBtn();
+      debReview();
     });
 
     taEN.addEventListener('input', debPreview);
