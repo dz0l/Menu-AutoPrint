@@ -1621,20 +1621,6 @@
       // Группа — строка, оканчивающаяся на ":" (или "："), без калорий
       return /[:：]\s*$/.test(t);
     }
-
-    function calcLineKcal(line, lang) { // lang: 'ru'|'en'
-      if (/[:：]\s*$/.test((line || '').trim())) return ''; // группы без калорий
-      if (!state.idx) return '??';
-      const key = U.cleanName(line);
-      if (lang === 'ru') {
-        const v = state.idx.nameToKcalRU.get(key);
-        return (v ?? '??');
-      } else {
-        const v = state.idx.nameToKcalEN.get(key);
-        return (v ?? '??');
-      }
-    }
-
     function splitLastWord(s) {
       const t = (s || '').trim();
       const m = t.match(/^(.*\S)\s+(\S+)$/);
@@ -1690,18 +1676,6 @@
       const html = ` (${U.escHtml(gramsText)}, ${U.escHtml(kcalText)})`;
       return { html, missing: info.missing };
     }
-
-
-    function autoTranslateRuToEn(linesRU) {
-      if (!state.idx) return [];
-      const out = [];
-      for (const ru of linesRU) {
-        const en = state.idx.RU2EN.get(U.cleanName(ru)) || '';
-        out.push(en || '');
-      }
-      return out;
-    }
-
     function buildPreview() {
       // если предпросмотр выключен тумблером — просто выходим
       const optPrev = document.getElementById('optPreview');
@@ -1960,9 +1934,6 @@
     }); 
 
     /* ================= Помощники подгонки — единственный комплект ================= */
-    function mmToPx(mm) { return mm * (96 / 25.4); }
-    function isFirefox(win) { return /firefox/i.test(win.navigator.userAgent); }
-    function isMobile(win) { return /android|iphone|ipad|ipod|mobile/i.test(win.navigator.userAgent); }
 
     // 1) Подготовка макета: сбросить прошлые метки и применить выбранный режим к ПЕРЕПОЛНЯЮЩИМСЯ строкам
     function preLayout(win) {
@@ -1986,11 +1957,11 @@
 
     // 2) Измерение нужного глобального масштаба для страницы (без применения)
     function measureScaleForPage(win, page) {
-      const extraTB = isFirefox(win) ? 12.7 : (isMobile(win) ? 10 : 0);
-      const extraLR = isFirefox(win) ? 5 : (isMobile(win) ? 5 : 0);
+      const extraTB = U.isFirefox(win) ? 12.7 : (U.isMobile(win) ? 10 : 0);
+      const extraLR = U.isFirefox(win) ? 5 : (U.isMobile(win) ? 5 : 0);
       const A4W = 210, A4H = 297, pad = 15;
-      const availW = mmToPx(A4W - 2 * pad - 2 * extraLR);
-      const availH = mmToPx(A4H - 2 * pad - 2 * extraTB);
+      const availW = U.mmToPx(A4W - 2 * pad - 2 * extraLR);
+      const availH = U.mmToPx(A4H - 2 * pad - 2 * extraTB);
       const c = page.querySelector('.content'); if (!c) return 1;
       c.style.transform = 'scale(1)'; c.style.width = '100%';      // сброс перед измерением
       const needW = c.scrollWidth, needH = c.scrollHeight;

@@ -1,21 +1,21 @@
 /* utils.js — общий модуль утилит для проекта
  * Формат: ES Module (import * as U from './utils.js')
  * Содержит:
- *  - Версия/фичефлаги/хранилище настроек
+ *  - Версия/фиче-флаги
  *  - Нормализация/токенизация/сходство
- *  - Дебаунс/троттлинг/LRU
+ *  - Дебаунс
  *  - CSV-парсер с кавычками и ;, экспорт в CSV
- *  - Индексы поиска по базе (RU/EN) и группы
+ *  - Индексы поиска по базе (RU/EN)
  *  - Подсказки: позиционирование по каретке, ARIA listbox
  *  - Тосты/логгер/микрометрики
  *  - Смарт-вставка (анализ уверенности)
- *  - Провайдеры данных (Local stub, URL, WebDAV, GDrive — заготовки)
+ *  - Горячие клавиши и темы
  */
 
 /* ===========================
    Версия и фиче-флаги
    =========================== */
-export const APP_VERSION = "v1.1.7";
+export const APP_VERSION = "v1.1.8";
 
 const FF_KEY = "menu_feature_flags";
 const DEFAULT_FLAGS = Object.freeze({
@@ -47,27 +47,6 @@ export function flag(name) {
 /* ===========================
    Хранилище настроек (с версионированием)
    =========================== */
-export function loadJSON(key, fallback = null) {
-  try {
-    const s = localStorage.getItem(key);
-    return s ? JSON.parse(s) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-export function saveJSON(key, value) {
-  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
-}
-export function migrateSettings(oldKey, newKey, migrateFn) {
-  const old = loadJSON(oldKey);
-  if (old && !loadJSON(newKey)) {
-    const migrated = migrateFn ? migrateFn(old) : old;
-    saveJSON(newKey, migrated);
-    try { localStorage.removeItem(oldKey); } catch {}
-    return migrated;
-  }
-  return loadJSON(newKey, {});
-}
 
 /* ===========================
    Тосты и логгер
@@ -149,49 +128,6 @@ export function debounce(fn, ms = 150) {
     t = setTimeout(()=>fn(...args), ms);
   };
 }
-export function throttle(fn, ms = 120) {
-  let last = 0, timer = null, lastArgs = null;
-  return (...args) => {
-    const now = Date.now();
-    lastArgs = args;
-    if (now - last >= ms) {
-      last = now;
-      fn(...lastArgs);
-      lastArgs = null;
-    } else if (!timer) {
-      const remain = ms - (now - last);
-      timer = setTimeout(()=>{
-        last = Date.now();
-        fn(...(lastArgs || []));
-        lastArgs = null;
-        timer = null;
-      }, remain);
-    }
-  };
-}
-export class LRUCache {
-  constructor(limit = 32) {
-    this.limit = limit;
-    this.map = new Map();
-  }
-  get(key) {
-    if (!this.map.has(key)) return undefined;
-    const val = this.map.get(key);
-    this.map.delete(key);
-    this.map.set(key, val);
-    return val;
-  }
-  set(key, val) {
-    if (this.map.has(key)) this.map.delete(key);
-    this.map.set(key, val);
-    if (this.map.size > this.limit) {
-      const k = this.map.keys().next().value;
-      this.map.delete(k);
-    }
-  }
-  has(key){ return this.map.has(key); }
-  clear(){ this.map.clear(); }
-}
 
 /* ===========================
    Нормализация / токенизация / сходство
@@ -204,13 +140,6 @@ export function cleanName(s){
     .replace(/\s+/g,' ')
     .trim()
     .toLowerCase();
-}
-export function lineBase(line){
-  const i1 = line.indexOf(' (');
-  const i2 = line.indexOf(' — ');
-  if(i1>0) return line.slice(0,i1).trim();
-  if(i2>0) return line.slice(0,i2).trim();
-  return line.trim();
 }
 export function escHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -344,9 +273,6 @@ export function buildNameIndexes(rows) {
   };
 }
 
-export function makeGroupsSet(groups) {
-  return new Set((groups || []).map(s => s.toLowerCase()));
-}
 
 /* ===========================
    Подсказки: позиция под кареткой и ARIA listbox
@@ -542,66 +468,10 @@ export function analyzePasted(text, catalogNames){
 /* ===========================
    Провайдеры данных (заготовки)
    =========================== */
-export class LocalProvider {
-  constructor(){ this.name = "Local File"; this.readOnly = false; }
-  async loadBase() { throw new Error("LocalProvider.loadBase: используйте <input type='file'> и file.text()"); }
-  async saveBase() { throw new Error("LocalProvider.saveBase: сохранение через download"); }
-  getStatus(){ return { name: this.name, readOnly: this.readOnly }; }
-}
-export class HttpUrlProvider {
-  constructor(url){ this.url = url; this.name = "URL"; this.readOnly = true; }
-  async loadBase(){
-    const res = await fetch(this.url, { cache: "no-store" });
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    return await res.text();
-  }
-  async saveBase(){ throw new Error("HttpUrlProvider: read-only"); }
-  getStatus(){ return { name: `${this.name}: ${this.url}`, readOnly: true }; }
-}
-export class WebDAVProvider {
-  constructor({ endpoint, path, username, password }){
-    this.endpoint = endpoint; this.path = path; this.username = username; this.password = password;
-    this.name = "WebDAV";
-  }
-  async loadBase(){
-    const url = new URL(this.path, this.endpoint).toString();
-    const res = await fetch(url, {
-      method: "GET",
-      headers: this.username ? { "Authorization": "Basic " + btoa(`${this.username}:${this.password}`) } : {}
-    });
-    if(!res.ok) throw new Error("WebDAV GET "+res.status);
-    return await res.text();
-  }
-  async saveBase(csv){
-    const url = new URL(this.path, this.endpoint).toString();
-    const res = await fetch(url, {
-      method: "PUT",
-      headers: Object.assign(
-        { "Content-Type":"text/csv;charset=utf-8" },
-        this.username ? { "Authorization": "Basic " + btoa(`${this.username}:${this.password}`) } : {}
-      ),
-      body: csv
-    });
-    if(!res.ok) throw new Error("WebDAV PUT "+res.status);
-  }
-  getStatus(){ return { name: `${this.name}: ${this.endpoint}${this.path}`, readOnly: false }; }
-}
-export class GoogleDriveProvider {
-  constructor({ fileId }){ this.fileId = fileId; this.name = "GoogleDrive"; }
-  async loadBase(){ throw new Error("GoogleDriveProvider: реализуется с gapi.client.drive.files.get"); }
-  async saveBase(){ throw new Error("GoogleDriveProvider: реализуется с gapi.client.drive.files.update"); }
-  getStatus(){ return { name: `${this.name}: ${this.fileId}`, readOnly: false }; }
-}
 
 /* ===========================
    Разное
    =========================== */
-export function fmtDate(date){
-  try {
-    if (typeof date === "string") date = new Date(date);
-    return date.toLocaleDateString();
-  } catch { return ""; }
-}
 export function mmToPx(mm){ return mm * (96 / 25.4); }
 export function isFirefox(win=window){ return /firefox/i.test(win.navigator.userAgent); }
 export function isMobile(win=window){ return /android|iphone|ipad|ipod|mobile/i.test(win.navigator.userAgent); }
