@@ -15,7 +15,7 @@
 /* ===========================
    Версия и фиче-флаги
    =========================== */
-export const APP_VERSION = "v1.1.8";
+export const APP_VERSION = "v1.1.11";
 
 const FF_KEY = "menu_feature_flags";
 const DEFAULT_FLAGS = Object.freeze({
@@ -222,7 +222,19 @@ export function parseCsvSemicolon(text) {
     }
   }
   row.push(field); rows.push(row);
-  return rows;
+
+  const norm = (v) => (v ?? '').toString().trim().toLowerCase();
+  const HEADER_SETS = [
+    ['ru', 'en', 'kcal', 'catru', 'caten', 'gr'],
+    ['блюдо_ru', 'dish_en', 'ккал', 'категория_ru', 'category_en', 'gr']
+  ];
+  const isHeaderRow = (r) => {
+    if (!Array.isArray(r) || r.length < 2) return false;
+    const head = r.slice(0, 6).map(norm);
+    return HEADER_SETS.some(h => h.every((v, i) => head[i] === v));
+  };
+
+  return rows.filter(r => !isHeaderRow(r));
 }
 export function toCsvSemicolon(rows, header = null) {
   const esc = v => {

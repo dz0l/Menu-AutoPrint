@@ -927,6 +927,7 @@
       groupsSet: null,
       groupRuCanon: null,            // карта групп: (clean без ":" ) -> канон с ":"
       coverUrl: null,
+      coverName: '',
       missingSet: new Set(),         // строки, где ?? ккал
       smartDecisions: null,           // результаты умной вставки
       lastRuLines: []               // последняя версия RU-строк для правильного сдвига EN
@@ -1232,6 +1233,7 @@
     document.getElementById('fileCover').addEventListener('change', async (e) => {
       const f = e.target.files?.[0];
       if (!f) return;
+      state.coverName = f.name || '';
       const url = URL.createObjectURL(f);
       state.coverUrl = url;
       coverStatus.textContent = 'Фон: выбран';
@@ -1798,6 +1800,42 @@
       return today.toLocaleDateString(); // по умолчанию — сегодня
     }
 
+    function getPrintDateStamp() {
+      const today = new Date();
+      let d = today;
+      if (printDateMode?.value === 'tomorrow') {
+        d = new Date(today); d.setDate(d.getDate() + 1);
+      } else if (printDateMode?.value === 'custom' && printDateInput?.value) {
+        const cd = new Date(printDateInput.value + 'T00:00:00');
+        if (!isNaN(cd)) d = cd;
+      }
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = String(d.getFullYear());
+      return `${dd}${mm}${yyyy}`;
+    }
+
+    const COVER_LOCATIONS = {
+      '3k.jpg': '3й корпус',
+      'airlines.jpg': 'Самолёт',
+      'banket.jpg': 'Банкет',
+      'board.jpg': 'Лодка',
+      'dd.jpg': 'ДД',
+      'dubai.jpg': 'Дубай',
+      'kd.jpg': 'КД',
+      'kd-ng.jpg': 'КД НГ',
+      'spa.jpg': 'СПА',
+      'tash.jpg': 'Ташкент',
+      'train.jpg': 'Поезд',
+      'vil126.jpg': 'Вилла-126'
+    };
+    function getCoverLocationName() {
+      const name = (state.coverName || '').trim().toLowerCase();
+      if (!name) return 'Unknown location';
+      return COVER_LOCATIONS[name] || 'Unknown location';
+    }
+
+
     // === ПЕРЕНОС СТРОК: чекбокс в меню настроек ===
     const LONG_MODE_KEY = 'print_long_mode';
     const chkWrap = document.getElementById('chkWrap');
@@ -1815,11 +1853,25 @@
       return (chkWrap?.checked ? 'wrap' : 'shrink');
     }
 
+    function prePrintCheck(showKcal) {
+      const missingBase = collectMissingRU();
+      const fixables = showKcal ? collectFixablesRU() : [];
+      if (!missingBase.length && !fixables.length) return true;
+
+      let msg = 'Перед печатью обнаружены проблемы:\n';
+      if (missingBase.length) msg += `• Нет в базе: ${missingBase.length}\n`;
+      if (showKcal && fixables.length) msg += `• Нет ккал/граммовок: ${fixables.length}\n`;
+      msg += '\nПродолжить печать?';
+      return confirm(msg);
+    }
+
     /* ========= Печать — безопасный предпросмотр в отдельном окне (DOM API) ========= */
     btnPrint?.addEventListener('click', () => {
       const ruLines = normalizeLines(taRU.value);
       const enLines = normalizeLines(taEN.value);
       const showKcal = getPrintKcalEnabled(); // Получаем состояние тумблера "Показывать калории"
+
+      if (!prePrintCheck(showKcal)) return;
 
       // Дата
       const dateStr = getPrintDateString();
@@ -1830,7 +1882,7 @@
       const d = w.document;
 
       // <head> + <style>
-      d.title = 'Предпросмотр печати';
+      d.title = `${getPrintDateStamp()} - ${getCoverLocationName()}`;
       const style = d.createElement('style');
       style.textContent = [
         '@page{size:A4;margin:0}',
