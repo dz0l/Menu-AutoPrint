@@ -909,12 +909,18 @@
     </div>
   </div>
   <script type="module">
-    // Бустим только если метка свежая (< 2 мин)
+    // ?????? ??????? ?? URL (?v=) ??? ?? ????????? ????? (?? 2 ??????)
+    const _v = new URL(location.href).searchParams.get('v');
     const _b = parseInt(localStorage.getItem('force_bust') || '0', 10);
-    const _fresh = _b && (Date.now() - _b) < 120000; // 120000 мс = 2 минуты
-    const _utilsUrl = `./utils.js${_fresh ? `?bust=${_b}` : ''}`;
+    const _fresh = _b && (Date.now() - _b) < 120000; // 120000 ?? = 2 ??????
+    const _ver = _v || (_fresh ? String(_b) : '');
+    const _utilsUrl = `./utils.js${_ver ? `?v=${_ver}` : ''}`;
 
-    // ВСЕГДА импортируем utils динамически (TLA в type="module" поддерживается)
+    function appendVersion(url) {
+      if (!_ver) return url;
+      return url.includes('?') ? `${url}&v=${_ver}` : `${url}?v=${_ver}`;
+    }
+
     const U = await import(_utilsUrl);
 
     // Инициализация темы через U.*
@@ -1110,7 +1116,7 @@
 
     miEditor.addEventListener('click', () => {
       // Открываем редактор базы (полная страница)
-      location.href = 'editor.html';
+      location.href = appendVersion('editor.html');
     });
 
     miDownloadCsv.addEventListener('click', () => {
@@ -1163,8 +1169,11 @@
       } catch { }
 
       // 3) Ставим метку «форс-бастинга» модулей и обычную перезагрузку страницы
-      localStorage.setItem('force_bust', Date.now().toString());
-      location.replace(location.href);
+      const _ts = Date.now().toString();
+      localStorage.setItem('force_bust', _ts);
+      const _url = new URL(location.href);
+      _url.searchParams.set('v', _ts);
+      location.replace(_url.toString());
     });
 
     /* ========= Загрузка базы ========= */
@@ -1772,7 +1781,7 @@
       localStorage.setItem('menu_last_ru', taRU.value);
       localStorage.setItem('menu_last_en', taEN.value);
       U.showToast(`Передано в редактор: ${missing.length}`, 'info');
-      location.href = 'editor.html';
+      location.href = appendVersion('editor.html');
     });
 
     /* ========= Кнопка «Исправить граммовки» (только RU) ========= */
@@ -1784,7 +1793,7 @@
       localStorage.setItem('menu_last_ru', taRU.value);
       localStorage.setItem('menu_last_en', taEN.value);
       U.showToast(`Для исправления данных: ${list.length}`, 'info');
-      location.href = 'editor.html';
+      location.href = appendVersion('editor.html');
     });
 
     function getPrintDateString() {
@@ -1835,6 +1844,12 @@
       return COVER_LOCATIONS[name] || 'Unknown location';
     }
 
+    function getBreakfastTag() {
+      const first = (normalizeLines(taRU.value)[0] || '').trim();
+      return first === 'Завтрак:' ? ' (завтрак)' : '';
+    }
+
+
 
     // === ПЕРЕНОС СТРОК: чекбокс в меню настроек ===
     const LONG_MODE_KEY = 'print_long_mode';
@@ -1882,7 +1897,11 @@
       const d = w.document;
 
       // <head> + <style>
-      d.title = `${getPrintDateStamp()} - ${getCoverLocationName()}`;
+      d.title = `${getPrintDateStamp()} - ${getCoverLocationName()}${getBreakfastTag()}`;
+      const isMob = U.isMobile(w);
+      const cornerX = isMob ? '10mm' : '20px';
+      const cornerY = isMob ? '10mm' : '25px';
+      const cornerFont = isMob ? '11px' : '12px';
       const style = d.createElement('style');
       style.textContent = [
         '@page{size:A4;margin:0}',
@@ -1894,8 +1913,8 @@
         'font-size:var(--menu-font,28px);line-height:1.4;page-break-after:always;overflow:hidden}', // размер
         '.page:last-child{page-break-after:auto}',
         '.bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.28}',
-        '.corner-left-bottom{position:absolute;left:20px;bottom:25px;font-size:12px}',
-        '.corner-right-bottom{position:absolute;right:20px;bottom:25px;font-size:12px}',
+        `.corner-left-bottom{position:absolute;left:${cornerX};bottom:${cornerY};font-size:${cornerFont}}`,
+        `.corner-right-bottom{position:absolute;right:${cornerX};bottom:${cornerY};font-size:${cornerFont}}`,
         '.content{position:relative;z-index:1;width:100%;transform-origin:top center;display:inline-block}',
         '.ln{white-space:nowrap;margin-top:0.12em}',
         '.content .ln:first-child{margin-top:0}',

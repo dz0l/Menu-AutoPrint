@@ -750,9 +750,16 @@
   <div class="version" id="appVersion">v?</div>
 
   <script type="module">
+    const _v = new URL(location.href).searchParams.get('v');
     const _b = parseInt(localStorage.getItem('force_bust') || '0', 10);
-    const _fresh = _b && (Date.now() - _b) < 120000;
-    const _utilsUrl = `./utils.js${_fresh ? `?bust=${_b}` : ''}`;
+    const _fresh = _b && (Date.now() - _b) < 120000; // 120000 ?? = 2 ??????
+    const _ver = _v || (_fresh ? String(_b) : '');
+    const _utilsUrl = `./utils.js${_ver ? `?v=${_ver}` : ''}`;
+
+    function appendVersion(url) {
+      if (!_ver) return url;
+      return url.includes('?') ? `${url}&v=${_ver}` : `${url}?v=${_ver}`;
+    }
     const U = await import(_utilsUrl);
     U.initThemeControls(['#btnTheme']);
 
@@ -1162,7 +1169,7 @@
         U.showToast('CSV сохранён');
         if (chkBack.checked) {
           try { localStorage.setItem('menu_from_editor_ts', String(Date.now())); } catch { }
-          setTimeout(() => { location.href = 'index.html'; }, 350);
+          setTimeout(() => { location.href = appendVersion('index.html'); }, 350);
         }
       }
 
@@ -1170,7 +1177,7 @@
 
     btnCloseNoSave.addEventListener('click', () => {
       if (confirm('Закрыть редактор без сохранения? Изменения не будут записаны.')) {
-        location.href = 'index.html';
+        location.href = appendVersion('index.html');
       }
     });
 

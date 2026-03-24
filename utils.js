@@ -15,7 +15,7 @@
 /* ===========================
    Версия и фиче-флаги
    =========================== */
-export const APP_VERSION = "v1.1.11";
+export const APP_VERSION = "v1.1.14";
 
 const FF_KEY = "menu_feature_flags";
 const DEFAULT_FLAGS = Object.freeze({
