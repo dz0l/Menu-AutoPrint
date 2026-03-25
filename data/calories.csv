@@ -1646,7 +1646,7 @@ ru;en;kcal;catRu;catEn;gr
 Яйцо Пашот со Шпинатом;Poached Egg with Spinach;110;Завтрак;Breakfast;90
 Яйцо Фаршированное Печенью Трески;Deviled Egg with Cod Liver;260;Закуска;Starters;100
 Сыр Слайс;Cheese Slice;260;Завтрак;Breakfast;45
-Куриный Бульон с Яичной Лапшой и Курицей;Chicken Broth with Egg Noodles and Chicken;;Горячее;Main Courses;
+Куриный Бульон с Яичной Лапшой и Курицей;Chicken Broth with Egg Noodles and Chicken;;Горячее;Main Courses;200
 Лосось Гриль с Травами;Grilled Salmon with Herbs;;Горячее;Main Courses;
 Семечки из Ягненка с Луком;Lamb Seeds with Onions;210;Закуска;Starters;75
 Куриный Бульон с Отварной Ножкой;Chicken Broth with Boiled Leg;45;Супы;Soups;200
@@ -1691,3 +1691,6 @@ ru;en;kcal;catRu;catEn;gr
 Корейка Ягненка;Lamb Loin;240;Горячее;Main Courses;150
 Шашлык из Осетрины;Sturgeon Kebab;170;Шашлык;BBQ;120
 Омлет Торнадо;Tornado Omelette;160;Завтрак;Breakfast;120
+Для Теста; For Test;;Завтрак;Breakfast;100
+Для Теста2; For Test2;90;Завтрак;Breakfast;
+Для Теста3; For Test2;90;Завтрак;Breakfast;100

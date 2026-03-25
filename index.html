@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Формирование меню и печать</title>
   <style>
-    /* ========== БАЗОВЫЕ ПЕРЕМЕННЫЕ (Slate Ocean по умолчанию) ========== */
+    /* ========== БАЗОВЫЕ ПЕРЕМЕННЫЕ ========== */
     :root {
       --bg: #0b1220;
       --panel: #0e1629;
@@ -626,7 +626,7 @@
       color: var(--muted);
     }
 
-    /* Цветные варианты «пилюль» на светлой теме — с мягким фоном */
+    /* Цветные варианты «пилюль» на светлой теме */
     [data-theme="frosted-glass"] .review-banner .pill.ok {
       color: #166534;
       /* зелёный 700 */
@@ -656,7 +656,7 @@
       border-top: 1px solid var(--border);
     }
 
-    /* ✱ LIGHT-THEME TWEAK: синий фокус-контур вместо зелёного */
+    /* ✱ LIGHT-THEME TWEAK: синий фокус-контур */
     [data-theme="frosted-glass"] .btn:focus-visible,
     [data-theme="frosted-glass"] .icon-btn:focus-visible,
     [data-theme="frosted-glass"] .gear:focus-visible,
@@ -669,7 +669,7 @@
       border-color: color-mix(in oklab, var(--focus) 42%, var(--border));
     }
 
-    /* ✱ LIGHT-THEME TWEAK: активные/зажатые кнопки без «зеленой обводки» */
+    /* ✱ LIGHT-THEME TWEAK: активные/зажатые кнопки */
     :root[data-theme="frosted-glass"] .btn[aria-pressed="true"],
     :root[data-theme="frosted-glass"] .btn.active {
       outline: none;
@@ -703,7 +703,7 @@
       background: color-mix(in oklab, var(--panel) 8%, transparent)
     }
 
-    /* Мини-переключатель kcal (оставляем поведение; для светлой темы обводка будет мягче через общие правила) */
+    /* Мини-переключатель kcal */
     #btnKcal[aria-pressed="true"] {
       border-color: color-mix(in oklab, var(--accent) 45%, black);
       box-shadow: 0 6px 18px rgba(34, 197, 94, .18);
@@ -783,7 +783,7 @@
       margin-right: auto
     }
 
-    /* Светлая тема — те же цвета, просто фон чуть светлее */
+    /* Светлая тема — те же цвета, фон светлее */
     [data-theme="frosted-glass"] .modal {
       background: #fff;
       border-color: var(--border);
@@ -821,7 +821,7 @@
         граммовки</button>
     </div>
 
-    <!-- ▼ Новый блок управления печатью -->
+    <!-- Новый блок управления печатью -->
     <div class="row">
       <!-- ▸ мини‑кнопка kcal on/off -->
       <label class="muted">Дата:
@@ -909,10 +909,9 @@
     </div>
   </div>
   <script type="module">
-    // ?????? ??????? ?? URL (?v=) ??? ?? ????????? ????? (?? 2 ??????)
     const _v = new URL(location.href).searchParams.get('v');
     const _b = parseInt(localStorage.getItem('force_bust') || '0', 10);
-    const _fresh = _b && (Date.now() - _b) < 120000; // 120000 ?? = 2 ??????
+    const _fresh = _b && (Date.now() - _b) < 120000;
     const _ver = _v || (_fresh ? String(_b) : '');
     const _utilsUrl = `./utils.js${_ver ? `?v=${_ver}` : ''}`;
 
@@ -1161,7 +1160,7 @@
       } catch { }
 
       try {
-        // 2) Если есть CacheStorage — подчистим (это не HTTP-кэш, но помочь может)
+        // 2) Если есть CacheStorage — подчистим
         if (window.caches && typeof caches.keys === 'function') {
           const names = await caches.keys();
           await Promise.all(names.map(n => caches.delete(n)));
@@ -1647,15 +1646,15 @@
       }
       const key = U.cleanName(lineToCheck || '');
       const useRu = (lang === 'ru') || hasRuRef;
-      const kcal100 = (useRu
+      const kcalRaw = (useRu
         ? state.idx.nameToKcalRU.get(key)
-        : state.idx.nameToKcalEN.get(key)) ?? null;
+        : state.idx.nameToKcalEN.get(key));
+      const kcal100 = (kcalRaw == null || kcalRaw === '') ? null : kcalRaw;
 
       const grRaw = (useRu
         ? state.idx.nameToGrRU.get(key)
         : state.idx.nameToGrEN.get(key));
-
-      const gr = (grRaw !== undefined && grRaw !== '') ? Number(grRaw) : null;
+      const gr = (grRaw == null || grRaw === '') ? null : Number(grRaw);
 
       // Вычисляем по согласованной логике
       // 1) Нет kcal и нет gr => (?? г, ?? ккал)
@@ -1777,7 +1776,7 @@
       localStorage.setItem('menu_missing_ru', JSON.stringify(missing));
       // передаём ТЕКУЩУЮ ПОЛНУЮ БАЗУ (как есть) в editor
       localStorage.setItem('menu_base_rows_json', JSON.stringify(state.rows || []));
-      // эти два уже были — сохраняем ввод пользователя, чтобы восстановить после возврата
+      // сохраняем ввод пользователя, чтобы восстановить после возврата
       localStorage.setItem('menu_last_ru', taRU.value);
       localStorage.setItem('menu_last_en', taEN.value);
       U.showToast(`Передано в редактор: ${missing.length}`, 'info');
