@@ -1,3 +1,10 @@
+const STORAGE_KEYS = {
+  missing: "menu_missing_ru",
+  fix: "menu_fix_ru",
+  lastRu: "menu_last_ru",
+  lastEn: "menu_last_en",
+};
+
 const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("csrftoken="))?.split("=")[1] || "";
 const $ = (id) => document.getElementById(id);
 
@@ -13,11 +20,37 @@ function toast(message) {
   const box = $("toast");
   box.textContent = message;
   box.hidden = false;
-  setTimeout(() => { box.hidden = true; }, 2600);
+  setTimeout(() => {
+    box.hidden = true;
+  }, 2600);
+}
+
+function loadStorage(key, fallback = "") {
+  try {
+    return localStorage.getItem(key) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function saveStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch {}
+}
+
+function removeStorage(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch {}
 }
 
 function lines(value) {
-  return (value || "").replace(/\u00a0/g, " ").split(/\r?\n/).map((x) => x.trim()).filter(Boolean);
+  return (value || "")
+    .replace(/\u00a0/g, " ")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function renderPreview(target, items) {
@@ -33,10 +66,15 @@ function renderPreview(target, items) {
 async function postJson(url, payload) {
   const res = await fetch(url, {
     method: "POST",
-    headers: {"Content-Type": "application/json", "X-CSRFToken": csrfToken()},
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken(),
+    },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    throw new Error(await res.text());
+  }
   return res.json();
 }
 
@@ -51,7 +89,9 @@ async function preview() {
 }
 
 async function refreshActions() {
-  const data = await postJson("/api/dishes/check-missing-fixables", {ru_lines: lines($("ruText").value)});
+  const data = await postJson("/api/dishes/check-missing-fixables", {
+    ru_lines: lines($("ruText").value),
+  });
   lastMissing = data.missing || [];
   lastFixables = data.fixables || [];
   $("btnMissing").disabled = lastMissing.length === 0;
@@ -75,18 +115,30 @@ function currentLineInfo(textarea) {
   const pos = textarea.selectionStart || 0;
   const start = value.lastIndexOf("\n", pos - 1) + 1;
   const end = value.indexOf("\n", pos);
-  return {value, pos, start, end: end === -1 ? value.length : end, query: value.slice(start, pos).trim()};
+  const query = value.slice(start, pos).trim();
+  return {
+    value,
+    pos,
+    start,
+    end: end === -1 ? value.length : end,
+    query,
+  };
 }
 
 async function loadSuggestions() {
   const textarea = $("ruText");
   const {query} = currentLineInfo(textarea);
-  if (!query || query.length < 2) {
+  if (!query || query.endsWith(":") || query.length < 1) {
     hideSuggest();
     return;
   }
+
   const res = await fetch(`/api/dishes/suggest?q=${encodeURIComponent(query)}&lang=ru`);
-  if (!res.ok) return;
+  if (!res.ok) {
+    hideSuggest();
+    return;
+  }
+
   const data = await res.json();
   suggestItems = data.items || [];
   suggestActive = suggestItems.length ? 0 : -1;
@@ -100,6 +152,7 @@ function renderSuggest() {
     hideSuggest();
     return;
   }
+
   suggestItems.forEach((text, index) => {
     const button = document.createElement("button");
     button.type = "button";
@@ -115,15 +168,19 @@ function renderSuggest() {
 }
 
 function hideSuggest() {
-  $("suggestRu").hidden = true;
-  $("suggestRu").innerHTML = "";
+  const panel = $("suggestRu");
+  panel.hidden = true;
+  panel.innerHTML = "";
   suggestItems = [];
   suggestActive = -1;
 }
 
 function chooseSuggest(index) {
   const text = suggestItems[index];
-  if (!text) return;
+  if (!text) {
+    return;
+  }
+
   const textarea = $("ruText");
   const info = currentLineInfo(textarea);
   textarea.value = info.value.slice(0, info.start) + text + info.value.slice(info.end);
@@ -136,20 +193,30 @@ function chooseSuggest(index) {
 
 function scheduleSuggest() {
   clearTimeout(suggestTimer);
-  suggestTimer = setTimeout(() => loadSuggestions().catch(() => hideSuggest()), 160);
+  suggestTimer = setTimeout(() => loadSuggestions().catch(() => hideSuggest()), 120);
+}
+
+function saveMenuDraft() {
+  saveStorage(STORAGE_KEYS.lastRu, $("ruText").value);
+  saveStorage(STORAGE_KEYS.lastEn, $("enText").value);
 }
 
 $("btnPreview").addEventListener("click", () => {
   preview().catch((err) => toast(err.message));
   refreshActions().catch(() => {});
 });
+
 $("ruText").addEventListener("input", () => {
+  saveMenuDraft();
   schedulePreview();
   scheduleActions();
   scheduleSuggest();
 });
+
 $("ruText").addEventListener("keydown", (event) => {
-  if ($("suggestRu").hidden) return;
+  if ($("suggestRu").hidden || suggestItems.length === 0) {
+    return;
+  }
   if (event.key === "ArrowDown") {
     event.preventDefault();
     suggestActive = (suggestActive + 1) % suggestItems.length;
@@ -165,14 +232,23 @@ $("ruText").addEventListener("keydown", (event) => {
     hideSuggest();
   }
 });
-$("ruText").addEventListener("blur", () => setTimeout(hideSuggest, 120));
-$("showKcal").addEventListener("change", () => preview().catch(() => {}));
+
+$("ruText").addEventListener("blur", () => {
+  setTimeout(hideSuggest, 120);
+});
+
+$("showKcal").addEventListener("change", () => {
+  preview().catch(() => {});
+});
 
 $("btnPdf").addEventListener("click", async () => {
   try {
     const res = await fetch("/api/menu/pdf", {
       method: "POST",
-      headers: {"Content-Type": "application/json", "X-CSRFToken": csrfToken()},
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
       body: JSON.stringify({
         ru: $("ruText").value,
         en: $("enText").value,
@@ -180,9 +256,13 @@ $("btnPdf").addEventListener("click", async () => {
         print_date: $("printDate").value,
       }),
     });
-    if (!res.ok) throw new Error(await res.text());
+
+    if (!res.ok) {
+      throw new Error(await res.text());
+    }
+
     const blob = await res.blob();
-    window.open(URL.createObjectURL(blob), "_blank");
+    window.open(URL.createObjectURL(blob), "_blank", "noopener,noreferrer");
   } catch (err) {
     toast(err.message || "Ошибка генерации PDF");
   }
@@ -190,27 +270,31 @@ $("btnPdf").addEventListener("click", async () => {
 
 $("btnMissing").addEventListener("click", async () => {
   await refreshActions();
-  if (!lastMissing.length) return;
-  sessionStorage.setItem("menu_missing_ru", JSON.stringify(lastMissing));
-  sessionStorage.setItem("menu_last_ru", $("ruText").value);
-  sessionStorage.setItem("menu_last_en", $("enText").value);
+  if (!lastMissing.length) {
+    return;
+  }
+  saveStorage(STORAGE_KEYS.missing, JSON.stringify(lastMissing));
+  removeStorage(STORAGE_KEYS.fix);
+  saveMenuDraft();
   location.href = "/editor/";
 });
 
 $("btnFix").addEventListener("click", async () => {
   await refreshActions();
-  if (!lastFixables.length) return;
-  sessionStorage.setItem("menu_fix_ru", JSON.stringify(lastFixables));
-  sessionStorage.setItem("menu_last_ru", $("ruText").value);
-  sessionStorage.setItem("menu_last_en", $("enText").value);
+  if (!lastFixables.length) {
+    return;
+  }
+  saveStorage(STORAGE_KEYS.fix, JSON.stringify(lastFixables));
+  removeStorage(STORAGE_KEYS.missing);
+  saveMenuDraft();
   location.href = "/editor/";
 });
 
 window.addEventListener("load", () => {
-  $("ruText").value = sessionStorage.getItem("menu_last_ru") || "";
-  $("enText").value = sessionStorage.getItem("menu_last_en") || "";
-  sessionStorage.removeItem("menu_last_ru");
-  sessionStorage.removeItem("menu_last_en");
+  $("ruText").value = loadStorage(STORAGE_KEYS.lastRu, "");
+  $("enText").value = loadStorage(STORAGE_KEYS.lastEn, "");
+  removeStorage(STORAGE_KEYS.lastRu);
+  removeStorage(STORAGE_KEYS.lastEn);
   preview().catch(() => {});
   refreshActions().catch(() => {});
 });
