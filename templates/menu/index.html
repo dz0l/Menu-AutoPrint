@@ -25,6 +25,12 @@
   <a class="settings-link" href="{% url 'menu:editor' %}">Редактор</a>
   <a class="settings-link" href="{% url 'dishes:export_csv' %}">Скачать CSV</a>
   <label class="inline"><input id="showKcal" type="checkbox" checked> kcal/гр</label>
+  <label class="toolbar-field">Тема
+    <select id="themeMode">
+      <option value="light">Светлая</option>
+      <option value="dark">Тёмная</option>
+    </select>
+  </label>
   <span id="backgroundName" class="muted">Подложка: не выбрана</span>
 </section>
 {% endblock %}
@@ -34,7 +40,6 @@
     <h1>Меню RU</h1>
     <textarea id="ruText" placeholder="Одно блюдо на строку" autocomplete="off" spellcheck="false"></textarea>
     <div id="suggestRu" class="suggest-box" hidden></div>
-    <div id="reviewPanel" class="review-panel" hidden></div>
   </div>
   <div class="panel">
     <h1>Меню EN</h1>
@@ -49,6 +54,17 @@
     <div id="previewEn" class="preview"></div>
   </div>
 </section>
+
+<div id="reviewModal" class="modal" hidden>
+  <div class="modal-backdrop" data-close-modal="1"></div>
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="reviewTitle">
+    <div class="modal-header">
+      <h2 id="reviewTitle">Проверка совпадений</h2>
+      <button id="btnCloseReview" class="icon-button" type="button">×</button>
+    </div>
+    <div id="reviewBody" class="modal-body"></div>
+  </div>
+</div>
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'js/app.js' %}" defer></script>

@@ -8,6 +8,26 @@
   --accent-ink: #ffffff;
   --danger: #b42318;
   --shadow: 0 12px 32px rgba(24, 32, 42, 0.08);
+  --input-bg: #ffffff;
+  --preview-bg: #fbfcfd;
+  --readonly-bg: #eef2f6;
+  --modal-backdrop: rgba(24, 32, 42, 0.5);
+}
+
+body.theme-dark {
+  --bg: #11161c;
+  --panel: #1a2129;
+  --ink: #edf2f7;
+  --muted: #9aa8ba;
+  --border: #2d3744;
+  --accent: #4ba96d;
+  --accent-ink: #0c1117;
+  --danger: #ff7d7d;
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+  --input-bg: #161c23;
+  --preview-bg: #141a21;
+  --readonly-bg: #202833;
+  --modal-backdrop: rgba(0, 0, 0, 0.68);
 }
 
 * { box-sizing: border-box; }
@@ -31,7 +51,7 @@ a {
   justify-content: space-between;
   gap: 16px;
   padding: 10px 18px;
-  background: #ffffff;
+  background: var(--panel);
   border-bottom: 1px solid var(--border);
 }
 
@@ -54,7 +74,7 @@ a {
 .page-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -82,7 +102,7 @@ a {
 .toolbar-field {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .grid-two {
@@ -117,22 +137,25 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 6px;
   font: inherit;
+  background: var(--input-bg);
+  color: var(--ink);
 }
 
 textarea[readonly] {
-  background: #eef2f6;
+  background: var(--readonly-bg);
   color: var(--muted);
 }
 
 input,
 button,
 select {
-  min-height: 36px;
+  min-height: 32px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 4px 8px;
   font: inherit;
-  background: #fff;
+  background: var(--input-bg);
+  color: var(--ink);
 }
 
 button {
@@ -146,10 +169,11 @@ button {
 }
 
 .icon-button {
-  width: 38px;
-  min-width: 38px;
+  width: 32px;
+  min-width: 32px;
   padding: 0;
-  font-size: 18px;
+  font-size: 16px;
+  line-height: 1;
 }
 
 .inline {
@@ -165,10 +189,6 @@ button {
   flex-wrap: wrap;
   margin: 0 auto;
   padding: 12px 18px 0;
-}
-
-.settings-bar .shell {
-  padding: 0;
 }
 
 .settings-link {
@@ -189,7 +209,7 @@ button {
   padding: 16px;
   text-align: center;
   white-space: pre-wrap;
-  background: #fbfcfd;
+  background: var(--preview-bg);
 }
 
 .group {
@@ -202,18 +222,53 @@ button {
   display: block;
 }
 
-.review-panel {
-  margin-top: 12px;
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2600;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--modal-backdrop);
+}
+
+.modal-dialog {
+  position: relative;
+  width: min(900px, calc(100% - 32px));
+  max-height: calc(100vh - 48px);
+  margin: 24px auto;
+  background: var(--panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #fbfcfd;
-  padding: 12px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.modal-body {
+  max-height: calc(100vh - 150px);
+  overflow: auto;
+  padding: 14px;
 }
 
 .review-list {
   display: grid;
   gap: 10px;
-  margin-top: 10px;
 }
 
 .review-item {
@@ -222,7 +277,7 @@ button {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px;
-  background: #fff;
+  background: var(--input-bg);
 }
 
 .review-actions {
@@ -252,15 +307,19 @@ button {
   z-index: 3000;
 }
 
+body.theme-dark .toast {
+  background: #0f141a;
+}
+
 .suggest-box {
   position: fixed;
   z-index: 2500;
   max-height: 260px;
   overflow: auto;
-  background: #fff;
+  background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 6px;
-  box-shadow: 0 12px 30px rgba(24, 32, 42, 0.16);
+  box-shadow: var(--shadow);
 }
 
 .suggest-item {
@@ -271,12 +330,13 @@ button {
   border: 0;
   border-bottom: 1px solid var(--border);
   border-radius: 0;
-  background: #fff;
+  background: var(--panel);
+  color: var(--ink);
 }
 
 .suggest-item:hover,
 .suggest-item.active {
-  background: #eaf3ee;
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
 }
 
 .table-panel {
@@ -357,5 +417,10 @@ td.small {
 
   .settings-bar {
     padding: 10px 12px 0;
+  }
+
+  .modal-dialog {
+    width: calc(100% - 16px);
+    margin: 8px auto;
   }
 }

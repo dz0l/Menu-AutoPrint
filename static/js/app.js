@@ -5,6 +5,7 @@ const STORAGE_KEYS = {
   lastEn: "menu_last_en",
   pdfBackgroundName: "menu_pdf_background_name",
   pdfBackgroundData: "menu_pdf_background_data",
+  themeMode: "menu_theme_mode",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -58,6 +59,14 @@ function lines(value) {
 function saveMenuDraft() {
   saveStorage(STORAGE_KEYS.lastRu, $("ruText").value);
   saveStorage(STORAGE_KEYS.lastEn, $("enText").value);
+}
+
+function applyTheme(theme) {
+  document.body.classList.toggle("theme-dark", theme === "dark");
+  if ($("themeMode")) {
+    $("themeMode").value = theme;
+  }
+  saveStorage(STORAGE_KEYS.themeMode, theme);
 }
 
 async function postJson(url, payload) {
@@ -315,6 +324,10 @@ function setSettingsOpen(open) {
   $("btnSettings").setAttribute("aria-expanded", String(open));
 }
 
+function setReviewOpen(open) {
+  $("reviewModal").hidden = !open;
+}
+
 function restoreBackgroundState() {
   const name = loadStorage(STORAGE_KEYS.pdfBackgroundName, "");
   $("backgroundName").textContent = name ? `Подложка: ${name}` : "Подложка: не выбрана";
@@ -350,21 +363,17 @@ function replaceMenuLine(source, target) {
 }
 
 function renderReview(decisions) {
-  const panel = $("reviewPanel");
+  const body = $("reviewBody");
   const actionable = (decisions || []).filter((item) => (item.status === "review" || item.status === "auto") && item.best?.name);
 
   if (!actionable.length) {
-    panel.hidden = false;
-    panel.innerHTML = '<div class="muted">Совпадений для замены не найдено.</div>';
+    setReviewOpen(false);
+    toast("Совпадений для замены не найдено.");
     return;
   }
 
-  panel.hidden = false;
-  panel.innerHTML = `
-    <strong>Предлагаемые замены</strong>
-    <div class="review-list"></div>
-  `;
-  const list = panel.querySelector(".review-list");
+  body.innerHTML = '<div class="review-list"></div>';
+  const list = body.querySelector(".review-list");
 
   actionable.forEach((item) => {
     const wrapper = document.createElement("div");
@@ -383,13 +392,16 @@ function renderReview(decisions) {
       replaceMenuLine(item.raw, item.best.name);
       wrapper.remove();
       if (!list.children.length) {
-        panel.innerHTML = '<div class="muted">Все предложенные замены применены.</div>';
+        setReviewOpen(false);
+        toast("Все предложенные замены применены.");
       }
     });
 
     actions.appendChild(apply);
     list.appendChild(wrapper);
   });
+
+  setReviewOpen(true);
 }
 
 async function runAnalyze() {
@@ -437,6 +449,10 @@ $("showKcal").addEventListener("change", () => {
   preview().catch(() => {});
 });
 
+$("themeMode").addEventListener("change", (event) => {
+  applyTheme(event.target.value);
+});
+
 $("printDateMode").addEventListener("change", updateDateUi);
 
 $("btnBackground").addEventListener("click", () => {
@@ -449,6 +465,16 @@ $("backgroundFile").addEventListener("change", (event) => {
 
 $("btnAnalyze").addEventListener("click", () => {
   runAnalyze().catch((err) => toast(err.message));
+});
+
+$("btnCloseReview").addEventListener("click", () => {
+  setReviewOpen(false);
+});
+
+$("reviewModal").addEventListener("click", (event) => {
+  if (event.target.dataset.closeModal === "1") {
+    setReviewOpen(false);
+  }
 });
 
 $("btnSettings").addEventListener("click", (event) => {
@@ -527,7 +553,9 @@ window.addEventListener("load", () => {
   $("printDateCustom").value = todayDate();
   updateDateUi();
   restoreBackgroundState();
+  applyTheme(loadStorage(STORAGE_KEYS.themeMode, "light"));
   setSettingsOpen(false);
+  setReviewOpen(false);
 
   preview().catch(() => {});
   refreshActions().catch(() => {});

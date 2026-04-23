@@ -7,8 +7,28 @@
   <title>{% block title %}Формирование меню{% endblock %}</title>
   <link rel="icon" href="{% static 'favicon.ico' %}" sizes="any">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("menu_theme_mode") || "light";
+        if (theme === "dark") {
+          document.documentElement.classList.add("theme-dark-root");
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
+  <script>
+    (function () {
+      try {
+        var theme = localStorage.getItem("menu_theme_mode") || "light";
+        if (theme === "dark") {
+          document.body.classList.add("theme-dark");
+        }
+      } catch (e) {}
+    })();
+  </script>
   <header class="topbar">
     <div class="topbar-group">
       <a class="brand" href="{% url 'menu:index' %}">Формирование меню</a>
