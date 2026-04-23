@@ -4,16 +4,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Menu AutoPrint{% endblock %}</title>
+  <title>{% block title %}Формирование меню{% endblock %}</title>
   <link rel="icon" href="{% static 'favicon.ico' %}" sizes="any">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="{% url 'menu:index' %}">Menu AutoPrint</a>
+    <a class="brand" href="{% url 'menu:index' %}">Формирование меню</a>
     <nav class="nav">
-      <a href="{% url 'menu:editor' %}">Редактор</a>
-      <a href="{% url 'dishes:export_csv' %}">CSV</a>
       {% if request.user.is_authenticated %}
         <span>{{ request.user.username }}</span>
         <form action="{% url 'logout' %}" method="post">

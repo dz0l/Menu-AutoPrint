@@ -3,6 +3,8 @@ const STORAGE_KEYS = {
   fix: "menu_fix_ru",
   lastRu: "menu_last_ru",
   lastEn: "menu_last_en",
+  pdfBackgroundName: "menu_pdf_background_name",
+  pdfBackgroundData: "menu_pdf_background_data",
 };
 
 const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("csrftoken="))?.split("=")[1] || "";
@@ -125,10 +127,85 @@ function currentLineInfo(textarea) {
   };
 }
 
+function getCaretCoordinates(textarea, position) {
+  const div = document.createElement("div");
+  const span = document.createElement("span");
+  const style = window.getComputedStyle(textarea);
+  const properties = [
+    "boxSizing",
+    "width",
+    "height",
+    "overflowX",
+    "overflowY",
+    "borderTopWidth",
+    "borderRightWidth",
+    "borderBottomWidth",
+    "borderLeftWidth",
+    "paddingTop",
+    "paddingRight",
+    "paddingBottom",
+    "paddingLeft",
+    "fontStyle",
+    "fontVariant",
+    "fontWeight",
+    "fontStretch",
+    "fontSize",
+    "fontSizeAdjust",
+    "lineHeight",
+    "fontFamily",
+    "textAlign",
+    "textTransform",
+    "textIndent",
+    "textDecoration",
+    "letterSpacing",
+    "wordSpacing",
+  ];
+
+  div.style.position = "absolute";
+  div.style.visibility = "hidden";
+  div.style.whiteSpace = "pre-wrap";
+  div.style.wordWrap = "break-word";
+
+  for (const property of properties) {
+    div.style[property] = style[property];
+  }
+
+  div.textContent = textarea.value.slice(0, position);
+  span.textContent = textarea.value.slice(position) || ".";
+  div.appendChild(span);
+  document.body.appendChild(div);
+
+  const coordinates = {
+    left: span.offsetLeft - textarea.scrollLeft,
+    top: span.offsetTop - textarea.scrollTop,
+    lineHeight: Number.parseFloat(style.lineHeight) || Number.parseFloat(style.fontSize) * 1.4 || 20,
+  };
+
+  document.body.removeChild(div);
+  return coordinates;
+}
+
+function positionSuggest() {
+  if (!suggestItems.length) {
+    return;
+  }
+
+  const textarea = $("ruText");
+  const panel = $("suggestRu");
+  const rect = textarea.getBoundingClientRect();
+  const caret = getCaretCoordinates(textarea, textarea.selectionStart || 0);
+  const left = Math.min(rect.left + caret.left, window.innerWidth - 320);
+  const top = rect.top + caret.top + caret.lineHeight + 4;
+
+  panel.style.left = `${Math.max(16, left)}px`;
+  panel.style.top = `${Math.max(16, top)}px`;
+  panel.style.minWidth = "260px";
+}
+
 async function loadSuggestions() {
   const textarea = $("ruText");
   const {query} = currentLineInfo(textarea);
-  if (!query || query.endsWith(":") || query.length < 1) {
+  if (!query || query.endsWith(":")) {
     hideSuggest();
     return;
   }
@@ -164,6 +241,8 @@ function renderSuggest() {
     });
     panel.appendChild(button);
   });
+
+  positionSuggest();
   panel.hidden = false;
 }
 
@@ -186,6 +265,7 @@ function chooseSuggest(index) {
   textarea.value = info.value.slice(0, info.start) + text + info.value.slice(info.end);
   const nextPos = info.start + text.length;
   textarea.setSelectionRange(nextPos, nextPos);
+  saveMenuDraft();
   hideSuggest();
   schedulePreview();
   scheduleActions();
@@ -201,10 +281,62 @@ function saveMenuDraft() {
   saveStorage(STORAGE_KEYS.lastEn, $("enText").value);
 }
 
-$("btnPreview").addEventListener("click", () => {
-  preview().catch((err) => toast(err.message));
-  refreshActions().catch(() => {});
-});
+function isoDate(date) {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
+function todayDate() {
+  return isoDate(new Date());
+}
+
+function tomorrowDate() {
+  return isoDate(new Date(Date.now() + 24 * 60 * 60 * 1000));
+}
+
+function updateDateUi() {
+  const mode = $("printDateMode").value;
+  $("printDateCustom").hidden = mode !== "custom";
+}
+
+function resolvedPrintDate() {
+  const mode = $("printDateMode").value;
+  if (mode === "tomorrow") {
+    return tomorrowDate();
+  }
+  if (mode === "custom") {
+    return $("printDateCustom").value || todayDate();
+  }
+  return todayDate();
+}
+
+function toggleSettings(forceOpen = null) {
+  const panel = $("settingsBar");
+  const nextState = forceOpen === null ? panel.hidden : !forceOpen;
+  panel.hidden = nextState;
+  $("btnSettings").setAttribute("aria-expanded", String(!nextState));
+}
+
+function restoreBackgroundState() {
+  $("backgroundName").textContent = loadStorage(STORAGE_KEYS.pdfBackgroundName, "Не выбрана");
+}
+
+function storeBackground(file) {
+  if (!file) {
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    saveStorage(STORAGE_KEYS.pdfBackgroundName, file.name);
+    if (typeof reader.result === "string") {
+      saveStorage(STORAGE_KEYS.pdfBackgroundData, reader.result);
+    }
+    restoreBackgroundState();
+    toast(`Подложка выбрана: ${file.name}`);
+  };
+  reader.readAsDataURL(file);
+}
 
 $("ruText").addEventListener("input", () => {
   saveMenuDraft();
@@ -213,10 +345,23 @@ $("ruText").addEventListener("input", () => {
   scheduleSuggest();
 });
 
+$("ruText").addEventListener("click", () => {
+  scheduleSuggest();
+});
+
+$("ruText").addEventListener("keyup", () => {
+  positionSuggest();
+});
+
+$("ruText").addEventListener("scroll", () => {
+  positionSuggest();
+});
+
 $("ruText").addEventListener("keydown", (event) => {
   if ($("suggestRu").hidden || suggestItems.length === 0) {
     return;
   }
+
   if (event.key === "ArrowDown") {
     event.preventDefault();
     suggestActive = (suggestActive + 1) % suggestItems.length;
@@ -241,6 +386,30 @@ $("showKcal").addEventListener("change", () => {
   preview().catch(() => {});
 });
 
+$("printDateMode").addEventListener("change", updateDateUi);
+
+$("btnBackground").addEventListener("click", () => {
+  $("backgroundFile").click();
+});
+
+$("backgroundFile").addEventListener("change", (event) => {
+  storeBackground(event.target.files?.[0]);
+});
+
+$("btnSettings").addEventListener("click", () => {
+  toggleSettings();
+});
+
+document.addEventListener("click", (event) => {
+  const settingsBar = $("settingsBar");
+  const settingsButton = $("btnSettings");
+  if (!settingsBar.hidden && !settingsBar.contains(event.target) && !settingsButton.contains(event.target)) {
+    toggleSettings(false);
+  }
+});
+
+window.addEventListener("resize", positionSuggest);
+
 $("btnPdf").addEventListener("click", async () => {
   try {
     const res = await fetch("/api/menu/pdf", {
@@ -253,7 +422,9 @@ $("btnPdf").addEventListener("click", async () => {
         ru: $("ruText").value,
         en: $("enText").value,
         show_kcal: $("showKcal").checked,
-        print_date: $("printDate").value,
+        print_date: resolvedPrintDate(),
+        background_name: loadStorage(STORAGE_KEYS.pdfBackgroundName, ""),
+        background_data: loadStorage(STORAGE_KEYS.pdfBackgroundData, ""),
       }),
     });
 
@@ -295,6 +466,12 @@ window.addEventListener("load", () => {
   $("enText").value = loadStorage(STORAGE_KEYS.lastEn, "");
   removeStorage(STORAGE_KEYS.lastRu);
   removeStorage(STORAGE_KEYS.lastEn);
+
+  $("printDateMode").value = "today";
+  $("printDateCustom").value = todayDate();
+  updateDateUi();
+  restoreBackgroundState();
+
   preview().catch(() => {});
   refreshActions().catch(() => {});
 });

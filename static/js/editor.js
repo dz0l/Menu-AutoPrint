@@ -8,6 +8,7 @@ const $ = (id) => document.getElementById(id);
 
 let rows = [];
 let fullDatabaseLoaded = false;
+let focusedRuSet = null;
 
 function status(text) {
   $("status").textContent = text;
@@ -39,7 +40,38 @@ function removeStorage(key) {
   } catch {}
 }
 
+function normalizedKey(value) {
+  return (value || "").trim().toLowerCase();
+}
+
+function allTypedLines(includeDraft = false) {
+  const raw = $("newDishes").value.replace(/\r/g, "");
+  const source = raw.split("\n").map((line) => line.trim());
+  const hasTrailingBreak = raw.endsWith("\n");
+
+  return source.filter((line, index) => {
+    if (!line) {
+      return false;
+    }
+    if (includeDraft || hasTrailingBreak) {
+      return true;
+    }
+    return index < source.length - 1;
+  });
+}
+
 function visibleRows() {
+  let current = $("onlyNew").checked ? rows.filter((row) => row._isNew) : rows;
+  if (focusedRuSet && focusedRuSet.size) {
+    current = current.filter((row) => focusedRuSet.has(normalizedKey(row.ru)));
+  }
+  return current;
+}
+
+function editableRows() {
+  if (focusedRuSet && focusedRuSet.size) {
+    return rows.filter((row) => focusedRuSet.has(normalizedKey(row.ru)));
+  }
   return $("onlyNew").checked ? rows.filter((row) => row._isNew) : rows;
 }
 
@@ -50,15 +82,8 @@ function statusText(extra = "") {
 }
 
 function updateAddButtonState() {
-  $("btnAddLines").disabled = normalizedNewDishLines().length === 0;
-}
-
-function normalizedNewDishLines() {
-  return $("newDishes")
-    .value
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
+  const hasLines = $("newDishes").value.split(/\r?\n/).some((line) => line.trim());
+  $("btnAddLines").disabled = !hasLines;
 }
 
 function render() {
@@ -111,10 +136,10 @@ function render() {
 
 function mergeRows(fetchedRows) {
   const preservedNewRows = rows.filter((row) => row._isNew);
-  const existing = new Set(fetchedRows.map((row) => (row.ru || "").trim().toLowerCase()));
+  const existing = new Set(fetchedRows.map((row) => normalizedKey(row.ru)));
 
   for (const row of preservedNewRows) {
-    const key = (row.ru || "").trim().toLowerCase();
+    const key = normalizedKey(row.ru);
     if (!key || existing.has(key)) {
       continue;
     }
@@ -144,12 +169,12 @@ async function loadRows() {
 }
 
 function addLines(sourceLines) {
-  const existing = new Set(rows.map((row) => (row.ru || "").trim().toLowerCase()));
+  const existing = new Set(rows.map((row) => normalizedKey(row.ru)));
   let added = 0;
 
   for (const line of sourceLines) {
     const ru = (line || "").trim();
-    const key = ru.toLowerCase();
+    const key = normalizedKey(ru);
     if (!ru || existing.has(key)) {
       continue;
     }
@@ -163,8 +188,8 @@ function addLines(sourceLines) {
   return added;
 }
 
-function syncRowsFromTextarea() {
-  const added = addLines(normalizedNewDishLines());
+function syncRowsFromTextarea(includeDraft = false) {
+  const added = addLines(allTypedLines(includeDraft));
   if (added > 0) {
     statusText(`Добавлено новых строк: ${added}`);
   }
@@ -191,17 +216,21 @@ $("btnReload").addEventListener("click", async () => {
 });
 
 $("newDishes").addEventListener("input", () => {
-  syncRowsFromTextarea();
+  syncRowsFromTextarea(false);
   updateAddButtonState();
 });
 
+$("newDishes").addEventListener("blur", () => {
+  syncRowsFromTextarea(true);
+});
+
 $("btnAddLines").addEventListener("click", () => {
-  const added = addLines(normalizedNewDishLines());
+  const added = addLines(allTypedLines(true));
   statusText(`Добавлено новых строк: ${added}`);
 });
 
 $("btnSave").addEventListener("click", async () => {
-  const payloadRows = $("onlyNew").checked ? rows.filter((row) => row._isNew) : rows;
+  const payloadRows = editableRows();
   const res = await fetch("/api/dishes/bulk-upsert", {
     method: "POST",
     headers: {
@@ -251,6 +280,7 @@ window.addEventListener("load", async () => {
   const fixRaw = loadStorageJson(STORAGE_KEYS.fix);
   const missing = Array.isArray(missingRaw) ? missingRaw : [];
   const fix = Array.isArray(fixRaw) ? fixRaw : [];
+
   removeStorage(STORAGE_KEYS.missing);
   removeStorage(STORAGE_KEYS.fix);
 
@@ -258,19 +288,23 @@ window.addEventListener("load", async () => {
   updateAddButtonState();
 
   if (missing.length) {
+    focusedRuSet = null;
     $("newDishes").value = missing.join("\n");
-    syncRowsFromTextarea();
+    syncRowsFromTextarea(true);
     statusText(`Новых блюд: ${missing.length}`);
     return;
   }
 
   if (fix.length) {
+    focusedRuSet = new Set(fix.map((item) => normalizedKey(item)));
     $("onlyNew").checked = false;
+    $("newDishes").value = fix.join("\n");
     await loadRows();
     statusText(`Неполных блюд: ${fix.length}`);
     return;
   }
 
+  focusedRuSet = null;
   render();
   status("Быстрый режим: полная база скрыта. Снимите галочку, чтобы загрузить все блюда.");
 });
