@@ -1,16 +1,18 @@
 # Menu AutoPrint
 
-Django/PostgreSQL версия проекта для формирования и печати меню.
+Django/PostgreSQL version of Menu AutoPrint, a tool for creating bilingual menus, maintaining a dish database, and generating print-ready PDF output.
 
-## Локальный запуск через Docker
+Repository: `https://github.com/dz0l/Menu-AutoPrint`
 
-1. Копирование окружения:
+## Local Docker Run
+
+1. Create the environment file:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Запуск сервисов:
+2. Start the services:
 
 ```bash
 docker compose up -d --build
@@ -19,22 +21,28 @@ docker compose exec web python manage.py bootstrap_editor --username mAdmin --pa
 docker compose exec web python manage.py collectstatic --noinput
 ```
 
-3. `http://localhost/`.
+3. application:
 
-Стартовый редактор: `mAdmin` / `qwerty123`. После входа требуется сменить пароль.
-
-## Установка из GitHub
-
-```bash
-REPO_URL=https://github.com/<user>/<repo>.git bash scripts/install_ubuntu.sh
+```text
+http://localhost/
 ```
 
-## Импорт старой CSV-базы
+Default editor account: `mAdmin` / `qwerty123`.
+The password must be changed after the first login.
 
-После запуска контейнеров:
+## Ubuntu Installation From GitHub
+
+```bash
+REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash scripts/install_ubuntu.sh
+```
+
+The installer clones or updates the repository, creates `.env` if needed, builds Docker services, runs migrations, creates the bootstrap editor, and collects static files.
+
+## Import The Old CSV Database
+
+After the containers are running:
 
 ```bash
 docker compose exec web python manage.py import_dishes_csv /path/to/calories.csv --dry-run
 docker compose exec web python manage.py import_dishes_csv /path/to/calories.csv
 ```
-
