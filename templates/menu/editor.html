@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Редактор базы{% endblock %}
+{% block content %}
+<section class="toolbar">
+  <input id="csvFile" type="file" accept=".csv">
+  <button id="btnImport" type="button">Импорт CSV</button>
+  <button id="btnReload" type="button">Обновить</button>
+  <button id="btnSave" class="primary" type="button">Сохранить</button>
+  <span id="status" class="muted"></span>
+</section>
+
+<section class="grid-two editor-layout">
+  <div class="panel">
+    <h1>Новые блюда</h1>
+    <textarea id="newDishes" placeholder="Одно блюдо на строку"></textarea>
+    <button id="btnAddLines" type="button">Добавить строки</button>
+  </div>
+  <div class="panel table-panel">
+    <h1>База</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>RU</th>
+          <th>EN</th>
+          <th>ккал</th>
+          <th>г</th>
+          <th>Группа RU</th>
+          <th>Group EN</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{% static 'js/editor.js' %}" defer></script>
+{% endblock %}

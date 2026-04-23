@@ -1,2 +1,13 @@
 *.jpg
 CONTINUITY.md
+DJANGO_MIGRATION_PLAN.md
+.old
+.env
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+db.sqlite3
+media/
+staticfiles/
+.pytest_cache/

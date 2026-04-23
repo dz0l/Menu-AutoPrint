@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <style>
+    @page { size: A4; margin: 0; }
+    body { margin: 0; font-family: "Times New Roman", serif; }
+    .page {
+      width: 210mm;
+      height: 297mm;
+      box-sizing: border-box;
+      padding: 15mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      page-break-after: always;
+      position: relative;
+    }
+    .page:last-child { page-break-after: auto; }
+    .content { font-size: 28px; line-height: 1.4; }
+    .group { display: block; margin-top: 1em; font-weight: 700; }
+    .dish { display: block; }
+    .date { position: absolute; right: 20px; bottom: 25px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <section class="page">
+    <div class="content">
+      {% for line in preview.ru %}
+        <span class="{{ line.type }}">{% if line.type == "dish" %}• {% endif %}{{ line.text }}{{ line.suffix }}</span>
+      {% endfor %}
+    </div>
+    <div class="date">{{ print_date }}</div>
+  </section>
+  <section class="page">
+    <div class="content">
+      {% for line in preview.en %}
+        <span class="{{ line.type }}">{% if line.type == "dish" %}• {% endif %}{{ line.text }}{{ line.suffix }}</span>
+      {% endfor %}
+    </div>
+    <div class="date">{{ print_date }}</div>
+  </section>
+</body>
+</html>
