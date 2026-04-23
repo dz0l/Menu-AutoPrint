@@ -3,8 +3,21 @@ const STORAGE_KEYS = {
   fix: "menu_fix_ru",
 };
 
-const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("csrftoken="))?.split("=")[1] || "";
+const GROUP_OPTIONS = [
+  "",
+  "Салаты",
+  "Закуска",
+  "Горячая Закуска",
+  "Холодная Закуска",
+  "Супы",
+  "Горячее",
+  "Гарнир",
+  "Завтрак",
+  "Шашлык",
+];
+
 const $ = (id) => document.getElementById(id);
+const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("csrftoken="))?.split("=")[1] || "";
 
 let rows = [];
 let fullDatabaseLoaded = false;
@@ -86,6 +99,24 @@ function updateAddButtonState() {
   $("btnAddLines").disabled = !hasLines;
 }
 
+function buildGroupSelect(row) {
+  const select = document.createElement("select");
+  GROUP_OPTIONS.forEach((option) => {
+    const element = document.createElement("option");
+    element.value = option;
+    element.textContent = option || "Без группы";
+    if (option === (row.catRu || "")) {
+      element.selected = true;
+    }
+    select.appendChild(element);
+  });
+  select.addEventListener("change", () => {
+    row.catRu = select.value;
+    row.catEn = "";
+  });
+  return select;
+}
+
 function render() {
   const tbody = $("rows");
   tbody.innerHTML = "";
@@ -93,12 +124,12 @@ function render() {
   visibleRows().forEach((row) => {
     const index = rows.indexOf(row);
     const tr = document.createElement("tr");
-    for (const key of ["ru", "en", "kcal", "gr", "catRu", "catEn"]) {
+
+    ["ru", "en", "kcal", "gr"].forEach((key) => {
       const td = document.createElement("td");
       if (key === "kcal" || key === "gr") {
         td.className = "small";
       }
-
       const input = document.createElement("input");
       input.value = row[key] ?? "";
       input.type = key === "kcal" || key === "gr" ? "number" : "text";
@@ -107,7 +138,11 @@ function render() {
       });
       td.appendChild(input);
       tr.appendChild(td);
-    }
+    });
+
+    const groupTd = document.createElement("td");
+    groupTd.appendChild(buildGroupSelect(row));
+    tr.appendChild(groupTd);
 
     const action = document.createElement("td");
     const del = document.createElement("button");
@@ -125,9 +160,9 @@ function render() {
       render();
       statusText();
     });
-
     action.appendChild(del);
     tr.appendChild(action);
+
     tbody.appendChild(tr);
   });
 

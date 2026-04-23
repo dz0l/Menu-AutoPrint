@@ -7,8 +7,8 @@ const STORAGE_KEYS = {
   pdfBackgroundData: "menu_pdf_background_data",
 };
 
-const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("csrftoken="))?.split("=")[1] || "";
 const $ = (id) => document.getElementById(id);
+const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("csrftoken="))?.split("=")[1] || "";
 
 let lastMissing = [];
 let lastFixables = [];
@@ -55,14 +55,9 @@ function lines(value) {
     .filter(Boolean);
 }
 
-function renderPreview(target, items) {
-  target.innerHTML = "";
-  for (const item of items || []) {
-    const span = document.createElement("span");
-    span.className = item.type === "group" ? "group" : "dish";
-    span.textContent = `${item.type === "dish" ? "\u2022 " : ""}${item.text}${item.suffix || ""}`;
-    target.appendChild(span);
-  }
+function saveMenuDraft() {
+  saveStorage(STORAGE_KEYS.lastRu, $("ruText").value);
+  saveStorage(STORAGE_KEYS.lastEn, $("enText").value);
 }
 
 async function postJson(url, payload) {
@@ -78,6 +73,16 @@ async function postJson(url, payload) {
     throw new Error(await res.text());
   }
   return res.json();
+}
+
+function renderPreview(target, items) {
+  target.innerHTML = "";
+  for (const item of items || []) {
+    const span = document.createElement("span");
+    span.className = item.type === "group" ? "group" : "dish";
+    span.textContent = `${item.type === "dish" ? "\u2022 " : ""}${item.text}${item.suffix || ""}`;
+    target.appendChild(span);
+  }
 }
 
 async function preview() {
@@ -276,11 +281,6 @@ function scheduleSuggest() {
   suggestTimer = setTimeout(() => loadSuggestions().catch(() => hideSuggest()), 120);
 }
 
-function saveMenuDraft() {
-  saveStorage(STORAGE_KEYS.lastRu, $("ruText").value);
-  saveStorage(STORAGE_KEYS.lastEn, $("enText").value);
-}
-
 function isoDate(date) {
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10);
@@ -310,15 +310,14 @@ function resolvedPrintDate() {
   return todayDate();
 }
 
-function toggleSettings(forceOpen = null) {
-  const panel = $("settingsBar");
-  const nextState = forceOpen === null ? panel.hidden : !forceOpen;
-  panel.hidden = nextState;
-  $("btnSettings").setAttribute("aria-expanded", String(!nextState));
+function setSettingsOpen(open) {
+  $("settingsBar").hidden = !open;
+  $("btnSettings").setAttribute("aria-expanded", String(open));
 }
 
 function restoreBackgroundState() {
-  $("backgroundName").textContent = loadStorage(STORAGE_KEYS.pdfBackgroundName, "Не выбрана");
+  const name = loadStorage(STORAGE_KEYS.pdfBackgroundName, "");
+  $("backgroundName").textContent = name ? `Подложка: ${name}` : "Подложка: не выбрана";
 }
 
 function storeBackground(file) {
@@ -338,6 +337,66 @@ function storeBackground(file) {
   reader.readAsDataURL(file);
 }
 
+function replaceMenuLine(source, target) {
+  const updated = $("ruText")
+    .value
+    .split(/\r?\n/)
+    .map((line) => (line.trim() === source.trim() ? target : line))
+    .join("\n");
+  $("ruText").value = updated;
+  saveMenuDraft();
+  schedulePreview();
+  scheduleActions();
+}
+
+function renderReview(decisions) {
+  const panel = $("reviewPanel");
+  const actionable = (decisions || []).filter((item) => (item.status === "review" || item.status === "auto") && item.best?.name);
+
+  if (!actionable.length) {
+    panel.hidden = false;
+    panel.innerHTML = '<div class="muted">Совпадений для замены не найдено.</div>';
+    return;
+  }
+
+  panel.hidden = false;
+  panel.innerHTML = `
+    <strong>Предлагаемые замены</strong>
+    <div class="review-list"></div>
+  `;
+  const list = panel.querySelector(".review-list");
+
+  actionable.forEach((item) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "review-item";
+    wrapper.innerHTML = `
+      <div><strong>${item.raw}</strong> → ${item.best.name}</div>
+      <div class="review-score">Сходство: ${Math.round((item.best.score || 0) * 100)}%</div>
+      <div class="review-actions"></div>
+    `;
+    const actions = wrapper.querySelector(".review-actions");
+
+    const apply = document.createElement("button");
+    apply.type = "button";
+    apply.textContent = "Заменить";
+    apply.addEventListener("click", () => {
+      replaceMenuLine(item.raw, item.best.name);
+      wrapper.remove();
+      if (!list.children.length) {
+        panel.innerHTML = '<div class="muted">Все предложенные замены применены.</div>';
+      }
+    });
+
+    actions.appendChild(apply);
+    list.appendChild(wrapper);
+  });
+}
+
+async function runAnalyze() {
+  const decisions = await postJson("/api/menu/analyze", {text: $("ruText").value});
+  renderReview(decisions.decisions || []);
+}
+
 $("ruText").addEventListener("input", () => {
   saveMenuDraft();
   schedulePreview();
@@ -345,17 +404,9 @@ $("ruText").addEventListener("input", () => {
   scheduleSuggest();
 });
 
-$("ruText").addEventListener("click", () => {
-  scheduleSuggest();
-});
-
-$("ruText").addEventListener("keyup", () => {
-  positionSuggest();
-});
-
-$("ruText").addEventListener("scroll", () => {
-  positionSuggest();
-});
+$("ruText").addEventListener("click", scheduleSuggest);
+$("ruText").addEventListener("keyup", positionSuggest);
+$("ruText").addEventListener("scroll", positionSuggest);
 
 $("ruText").addEventListener("keydown", (event) => {
   if ($("suggestRu").hidden || suggestItems.length === 0) {
@@ -396,15 +447,20 @@ $("backgroundFile").addEventListener("change", (event) => {
   storeBackground(event.target.files?.[0]);
 });
 
-$("btnSettings").addEventListener("click", () => {
-  toggleSettings();
+$("btnAnalyze").addEventListener("click", () => {
+  runAnalyze().catch((err) => toast(err.message));
+});
+
+$("btnSettings").addEventListener("click", (event) => {
+  event.stopPropagation();
+  setSettingsOpen($("settingsBar").hidden);
 });
 
 document.addEventListener("click", (event) => {
-  const settingsBar = $("settingsBar");
-  const settingsButton = $("btnSettings");
-  if (!settingsBar.hidden && !settingsBar.contains(event.target) && !settingsButton.contains(event.target)) {
-    toggleSettings(false);
+  const panel = $("settingsBar");
+  const button = $("btnSettings");
+  if (!panel.hidden && !panel.contains(event.target) && !button.contains(event.target)) {
+    setSettingsOpen(false);
   }
 });
 
@@ -471,6 +527,7 @@ window.addEventListener("load", () => {
   $("printDateCustom").value = todayDate();
   updateDateUi();
   restoreBackgroundState();
+  setSettingsOpen(false);
 
   preview().catch(() => {});
   refreshActions().catch(() => {});

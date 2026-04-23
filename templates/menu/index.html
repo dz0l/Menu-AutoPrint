@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Формирование меню{% endblock %}
-{% block content %}
-<section class="toolbar top-toolbar">
+{% block topbar_actions %}
+<div class="page-actions">
   <label class="toolbar-field">Дата
     <select id="printDateMode">
       <option value="today">Сегодня</option>
@@ -13,24 +13,28 @@
   <input id="printDateCustom" type="date" hidden>
   <input id="backgroundFile" type="file" accept="image/*" hidden>
   <button id="btnBackground" type="button">Подложка</button>
-  <span id="backgroundName" class="muted toolbar-note">Не выбрана</span>
+  <button id="btnAnalyze" type="button">Проверить совпадения</button>
   <button id="btnPdf" type="button">PDF</button>
   <button id="btnMissing" type="button" disabled>Добавить в базу</button>
   <button id="btnFix" type="button" disabled>Исправить граммовки</button>
   <button id="btnSettings" class="icon-button" type="button" aria-expanded="false" aria-controls="settingsBar">⚙️</button>
-</section>
-
-<section id="settingsBar" class="settings-bar" hidden>
+</div>
+{% endblock %}
+{% block topbar_panel %}
+<section id="settingsBar" class="settings-bar shell" hidden>
   <a class="settings-link" href="{% url 'menu:editor' %}">Редактор</a>
   <a class="settings-link" href="{% url 'dishes:export_csv' %}">Скачать CSV</a>
-  <label class="inline"><input id="showKcal" type="checkbox" checked> kcal/gr</label>
+  <label class="inline"><input id="showKcal" type="checkbox" checked> kcal/гр</label>
+  <span id="backgroundName" class="muted">Подложка: не выбрана</span>
 </section>
-
+{% endblock %}
+{% block content %}
 <section class="grid-two">
   <div class="panel">
     <h1>Меню RU</h1>
     <textarea id="ruText" placeholder="Одно блюдо на строку" autocomplete="off" spellcheck="false"></textarea>
     <div id="suggestRu" class="suggest-box" hidden></div>
+    <div id="reviewPanel" class="review-panel" hidden></div>
   </div>
   <div class="panel">
     <h1>Меню EN</h1>

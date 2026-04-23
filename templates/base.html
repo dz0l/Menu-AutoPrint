@@ -10,7 +10,10 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="{% url 'menu:index' %}">Формирование меню</a>
+    <div class="topbar-group">
+      <a class="brand" href="{% url 'menu:index' %}">Формирование меню</a>
+      {% block topbar_actions %}{% endblock %}
+    </div>
     <nav class="nav">
       {% if request.user.is_authenticated %}
         <span>{{ request.user.username }}</span>
@@ -23,6 +26,7 @@
       {% endif %}
     </nav>
   </header>
+  {% block topbar_panel %}{% endblock %}
   <main class="shell">
     {% block content %}{% endblock %}
   </main>

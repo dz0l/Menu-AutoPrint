@@ -82,8 +82,8 @@ def _render_line(info: MenuLine, lang: str, show_kcal: bool) -> dict:
         return {"text": info.raw, "type": "group", "suffix": ""}
     if not show_kcal:
         return {"text": info.raw, "type": "dish", "suffix": ""}
-    grams_unit = "g"
-    kcal_unit = "kcal"
+    grams_unit = "гр"
+    kcal_unit = "ккал"
     return {
         "text": info.raw,
         "type": "dish",

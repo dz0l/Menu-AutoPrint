@@ -1,11 +1,12 @@
-from dataclasses import dataclass
 import re
+from dataclasses import dataclass
+from difflib import SequenceMatcher
 
 from django.db import IntegrityError, transaction
 from django.db.models import Max, Q
 from django.utils.dateparse import parse_datetime
 
-from apps.core.text import clean_name, normalize_ru, tokens_sorted_ru
+from apps.core.text import clean_name, normalize_ru, tokens_bag_ru, tokens_sorted_ru
 
 from .csv_io import HEADERS, parse_csv_semicolon, to_csv_semicolon
 from .models import Dish, DishChangeLog
@@ -165,7 +166,7 @@ def suggest(query: str, lang="ru", limit=12) -> list[str]:
         return []
     field = "name_en" if lang == "en" else "name_ru"
     names = list(Dish.objects.exclude(**{field: ""}).values_list(field, flat=True))
-    tokens = [t for t in query_norm.split(" ") if t]
+    tokens = [token for token in query_norm.split(" ") if token]
     scored = []
     for name in names:
         name_norm = clean_name(name)
@@ -198,26 +199,80 @@ def simple_score_tokens(left: str, right: str) -> float:
     return len(a & b) / max(len(a), len(b), 1)
 
 
+def _bag_similarity(left: str, right: str) -> float:
+    a = set(tokens_bag_ru(left))
+    b = set(tokens_bag_ru(right))
+    if not a and not b:
+        return 1.0
+    if not a or not b:
+        return 0.0
+    return len(a & b) / len(a | b)
+
+
+def _sequence_ratio(left: str, right: str) -> float:
+    if not left or not right:
+        return 0.0
+    return SequenceMatcher(None, left, right).ratio()
+
+
+def _candidate_score(query: str, candidate: str) -> float:
+    query_norm = normalize_ru(query)
+    candidate_norm = normalize_ru(candidate)
+    if query_norm == candidate_norm:
+        return 1.0
+
+    query_sorted = tokens_sorted_ru(query)
+    candidate_sorted = tokens_sorted_ru(candidate)
+    if query_sorted and query_sorted == candidate_sorted:
+        return 0.985
+
+    return max(
+        _sequence_ratio(clean_name(query), clean_name(candidate)),
+        _sequence_ratio(query_sorted, candidate_sorted),
+        _bag_similarity(query, candidate),
+        simple_score_tokens(query, candidate),
+    )
+
+
 def analyze_pasted(text: str) -> list[dict]:
     catalog = list(Dish.objects.values_list("name_ru", flat=True))
     result = []
     for index, raw in enumerate((text or "").splitlines()):
-        norm = clean_name(re.sub(r"^[•\-*\d.)\s]+", "", raw).strip())
-        if not norm:
+        stripped = re.sub(r"^[•\-*\d.)\s]+", "", raw).strip()
+        norm = clean_name(stripped)
+        if not norm or stripped.endswith(":"):
             result.append({"i": index, "raw": raw, "norm": norm, "status": "skip"})
             continue
+
         matches = []
         for name in catalog:
-            score = simple_score_tokens(norm, name)
-            if score >= 0.60:
+            score = _candidate_score(stripped, name)
+            if score >= 0.74:
                 matches.append({"name": name, "score": score})
-        matches.sort(key=lambda item: item["score"], reverse=True)
+        matches.sort(key=lambda item: (-item["score"], item["name"]))
+
         if not matches:
             result.append({"i": index, "raw": raw, "norm": norm, "status": "unknown"})
-        elif matches[0]["score"] >= 0.90:
-            result.append({"i": index, "raw": raw, "norm": norm, "status": "auto", "best": matches[0], "options": matches[:3]})
+            continue
+
+        best = matches[0]
+        if raw.strip() == best["name"]:
+            status = "exact"
+        elif best["score"] >= 0.97:
+            status = "auto"
         else:
-            result.append({"i": index, "raw": raw, "norm": norm, "status": "review", "best": matches[0], "options": matches[:3]})
+            status = "review"
+
+        result.append(
+            {
+                "i": index,
+                "raw": raw,
+                "norm": norm,
+                "status": status,
+                "best": best,
+                "options": matches[:3],
+            }
+        )
     return result
 
 
