@@ -28,7 +28,7 @@
   <section class="page">
     <div class="content">
       {% for line in preview.ru %}
-        <span class="{{ line.type }}">{% if line.type == "dish" %}• {% endif %}{{ line.text }}{{ line.suffix }}</span>
+        <span class="{{ line.type }}">{% if line.type == "dish" %}&#8226; {% endif %}{{ line.text }}{{ line.suffix }}</span>
       {% endfor %}
     </div>
     <div class="date">{{ print_date }}</div>
@@ -36,7 +36,7 @@
   <section class="page">
     <div class="content">
       {% for line in preview.en %}
-        <span class="{{ line.type }}">{% if line.type == "dish" %}• {% endif %}{{ line.text }}{{ line.suffix }}</span>
+        <span class="{{ line.type }}">{% if line.type == "dish" %}&#8226; {% endif %}{{ line.text }}{{ line.suffix }}</span>
       {% endfor %}
     </div>
     <div class="date">{{ print_date }}</div>

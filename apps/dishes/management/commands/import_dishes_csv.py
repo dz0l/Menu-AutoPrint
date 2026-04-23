@@ -17,9 +17,10 @@ class Command(BaseCommand):
         if not path.exists():
             raise CommandError(f"File not found: {path}")
         result = import_dishes_csv(path.read_text(encoding="utf-8-sig"), dry_run=options["dry_run"])
+        prefix = "DRY RUN (no changes committed): " if options["dry_run"] else ""
         self.stdout.write(
             self.style.SUCCESS(
-                f"created={result.created} updated={result.updated} skipped={result.skipped} errors={len(result.errors or [])}"
+                f"{prefix}created={result.created} updated={result.updated} skipped={result.skipped} errors={len(result.errors or [])}"
             )
         )
         for item in result.errors or []:

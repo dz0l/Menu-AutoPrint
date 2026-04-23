@@ -49,6 +49,7 @@ body {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 14px;
+  position: relative;
 }
 .panel h1 { margin: 0 0 10px; font-size: 18px; }
 textarea {
@@ -59,6 +60,10 @@ textarea {
   border: 1px solid var(--border);
   border-radius: 6px;
   font: inherit;
+}
+textarea[readonly] {
+  background: #eef2f6;
+  color: var(--muted);
 }
 input, button {
   min-height: 36px;
@@ -97,6 +102,28 @@ button { cursor: pointer; }
   border-radius: 6px;
   color: #fff;
   background: #202936;
+}
+.suggest-box {
+  margin-top: 6px;
+  max-height: 260px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 12px 30px rgba(24, 32, 42, .16);
+}
+.suggest-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: #fff;
+}
+.suggest-item:hover,
+.suggest-item.active {
+  background: #eaf3ee;
 }
 .table-panel { overflow: auto; }
 table { width: 100%; border-collapse: collapse; min-width: 860px; }

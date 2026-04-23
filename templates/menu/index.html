@@ -9,19 +9,20 @@
   <label class="inline"><input id="showKcal" type="checkbox" checked> kcal/gr</label>
   <button id="btnPreview" class="primary" type="button">Предпросмотр</button>
   <button id="btnPdf" type="button">PDF</button>
-  <button id="btnMissing" type="button">Добавить в базу</button>
-  <button id="btnFix" type="button">Исправить граммовки</button>
+  <button id="btnMissing" type="button" disabled>Добавить в базу</button>
+  <button id="btnFix" type="button" disabled>Исправить граммовки</button>
 </section>
 
 <section class="grid-two">
   <div class="panel">
     <h1>Меню RU</h1>
-    <textarea id="ruText" placeholder="Одно блюдо на строку"></textarea>
+    <textarea id="ruText" placeholder="Одно блюдо на строку" autocomplete="off" spellcheck="false"></textarea>
+    <div id="suggestRu" class="suggest-box" hidden></div>
     <div id="review" class="review" hidden></div>
   </div>
   <div class="panel">
     <h1>Меню EN</h1>
-    <textarea id="enText" placeholder="Заполняется из базы, можно править"></textarea>
+    <textarea id="enText" placeholder="Заполняется из базы" readonly></textarea>
   </div>
 </section>
 

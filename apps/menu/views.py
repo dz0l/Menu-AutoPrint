@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -9,6 +10,9 @@ from django.views.decorators.http import require_http_methods
 from apps.dishes.services import analyze_pasted
 
 from .services import build_preview, normalize_lines, translate_lines
+
+
+logger = logging.getLogger(__name__)
 
 
 def _json_body(request) -> dict:
@@ -56,9 +60,20 @@ def pdf_api(request):
     html = render_to_string("menu/print.html", context)
     try:
         from weasyprint import HTML
-    except Exception:
-        return HttpResponse(html, content_type="text/html; charset=utf-8")
-    pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+    except Exception as exc:
+        logger.exception("WeasyPrint import failed: %s", exc)
+        return _html_pdf_fallback(html)
+    try:
+        pdf = HTML(string=html, base_url=request.build_absolute_uri("/")).write_pdf()
+    except Exception as exc:
+        logger.exception("PDF generation failed: %s", exc)
+        return _html_pdf_fallback(html)
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = 'inline; filename="menu.pdf"'
+    return response
+
+
+def _html_pdf_fallback(html: str) -> HttpResponse:
+    response = HttpResponse(html, content_type="text/html; charset=utf-8")
+    response["X-PDF-Fallback"] = "html"
     return response
