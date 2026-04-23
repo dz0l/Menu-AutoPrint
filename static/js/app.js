@@ -18,6 +18,7 @@ let suggestActive = -1;
 let suggestTimer = null;
 let previewTimer = null;
 let actionTimer = null;
+let analyzeInFlight = false;
 
 function toast(message) {
   const box = $("toast");
@@ -362,13 +363,56 @@ function replaceMenuLine(source, target) {
   scheduleActions();
 }
 
+function replaceMenuLines(replacements) {
+  if (!replacements.length) {
+    return 0;
+  }
+
+  const pending = new Map();
+  replacements.forEach(({source, target}) => {
+    if (!pending.has(source.trim())) {
+      pending.set(source.trim(), target);
+    }
+  });
+
+  let replaced = 0;
+  const updated = $("ruText")
+    .value
+    .split(/\r?\n/)
+    .map((line) => {
+      const next = pending.get(line.trim());
+      if (next && next !== line) {
+        replaced += 1;
+        return next;
+      }
+      return line;
+    })
+    .join("\n");
+
+  if (replaced > 0) {
+    $("ruText").value = updated;
+    saveMenuDraft();
+    schedulePreview();
+    scheduleActions();
+  }
+  return replaced;
+}
+
 function renderReview(decisions) {
   const body = $("reviewBody");
-  const actionable = (decisions || []).filter((item) => (item.status === "review" || item.status === "auto") && item.best?.name);
+  const autoReplacements = (decisions || [])
+    .filter((item) => item.status === "auto" && item.best?.name)
+    .map((item) => ({source: item.raw, target: item.best.name}));
+  const autoCount = replaceMenuLines(autoReplacements);
+  const actionable = (decisions || []).filter((item) => item.status === "review" && item.best?.name);
 
   if (!actionable.length) {
     setReviewOpen(false);
-    toast("Совпадений для замены не найдено.");
+    if (autoCount > 0) {
+      toast(`Автоматически заменено: ${autoCount}`);
+    } else {
+      toast("Совпадений для замены не найдено.");
+    }
     return;
   }
 
@@ -401,12 +445,37 @@ function renderReview(decisions) {
     list.appendChild(wrapper);
   });
 
+  $("btnReplaceAll").onclick = () => {
+    const replacements = actionable.map((item) => ({source: item.raw, target: item.best.name}));
+    const replaced = replaceMenuLines(replacements);
+    setReviewOpen(false);
+    toast(`Заменено: ${replaced}${autoCount ? `, автоматически: ${autoCount}` : ""}`);
+  };
+
+  if (autoCount > 0) {
+    toast(`Автоматически заменено: ${autoCount}`);
+  }
   setReviewOpen(true);
 }
 
 async function runAnalyze() {
-  const decisions = await postJson("/api/menu/analyze", {text: $("ruText").value});
-  renderReview(decisions.decisions || []);
+  if (analyzeInFlight) {
+    return;
+  }
+
+  analyzeInFlight = true;
+  $("btnAnalyze").disabled = true;
+  const originalText = $("btnAnalyze").textContent;
+  $("btnAnalyze").textContent = "Поиск...";
+
+  try {
+    const decisions = await postJson("/api/menu/analyze", {text: $("ruText").value});
+    renderReview(decisions.decisions || []);
+  } finally {
+    analyzeInFlight = false;
+    $("btnAnalyze").disabled = false;
+    $("btnAnalyze").textContent = originalText;
+  }
 }
 
 $("ruText").addEventListener("input", () => {

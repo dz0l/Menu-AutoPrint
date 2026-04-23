@@ -235,7 +235,8 @@ def _candidate_score(query: str, candidate: str) -> float:
 
 
 def analyze_pasted(text: str) -> list[dict]:
-    catalog = list(Dish.objects.values_list("name_ru", flat=True))
+    catalog = _prepared_catalog()
+    exact_lookup = {entry["norm"]: entry for entry in catalog}
     result = []
     for index, raw in enumerate((text or "").splitlines()):
         stripped = re.sub(r"^[•\-*\d.)\s]+", "", raw).strip()
@@ -244,11 +245,45 @@ def analyze_pasted(text: str) -> list[dict]:
             result.append({"i": index, "raw": raw, "norm": norm, "status": "skip"})
             continue
 
+        exact = exact_lookup.get(norm)
+        if exact:
+            result.append(
+                {
+                    "i": index,
+                    "raw": raw,
+                    "norm": norm,
+                    "status": "exact" if raw.strip() == exact["name"] else "auto",
+                    "best": {"name": exact["name"], "score": 1.0},
+                    "options": [{"name": exact["name"], "score": 1.0}],
+                }
+            )
+            continue
+
+        query_sorted = tokens_sorted_ru(stripped)
+        query_bag = set(tokens_bag_ru(stripped))
+        first_char = norm[:1]
+
+        shortlist = []
+        for entry in catalog:
+            if entry["sorted"] == query_sorted:
+                shortlist.append(entry)
+                continue
+            if query_bag and entry["bag"] and query_bag & entry["bag"]:
+                shortlist.append(entry)
+                continue
+            if first_char and entry["norm"].startswith(first_char):
+                shortlist.append(entry)
+
         matches = []
-        for name in catalog:
-            score = _candidate_score(stripped, name)
+        for entry in shortlist or catalog:
+            score = max(
+                _sequence_ratio(norm, entry["norm"]),
+                _sequence_ratio(query_sorted, entry["sorted"]),
+                len(query_bag & entry["bag"]) / len(query_bag | entry["bag"]) if query_bag and entry["bag"] else 0.0,
+                simple_score_tokens(stripped, entry["name"]),
+            )
             if score >= 0.74:
-                matches.append({"name": name, "score": score})
+                matches.append({"name": entry["name"], "score": score})
         matches.sort(key=lambda item: (-item["score"], item["name"]))
 
         if not matches:
@@ -274,6 +309,21 @@ def analyze_pasted(text: str) -> list[dict]:
             }
         )
     return result
+
+
+def _prepared_catalog() -> list[dict]:
+    names = list(Dish.objects.values_list("name_ru", flat=True))
+    prepared = []
+    for name in names:
+        prepared.append(
+            {
+                "name": name,
+                "norm": clean_name(name),
+                "sorted": tokens_sorted_ru(name),
+                "bag": set(tokens_bag_ru(name)),
+            }
+        )
+    return prepared
 
 
 def check_missing_fixables(ru_lines: list[str]) -> dict:
