@@ -59,7 +59,33 @@ function emptyRow(ru = "") {
     catRu: "",
     catEn: "",
     _isNew: true,
+    _dirty: true,
+    _original: null,
   };
+}
+
+function rowSnapshot(row) {
+  return {
+    ru: row.ru || "",
+    en: row.en || "",
+    kcal: row.kcal ?? "",
+    gr: row.gr ?? "",
+    catRu: row.catRu || "",
+    catEn: row.catEn || "",
+  };
+}
+
+function isRowDirty(row) {
+  if (row._isNew) {
+    return true;
+  }
+  const original = row._original || {};
+  const current = rowSnapshot(row);
+  return Object.keys(current).some((key) => current[key] !== (original[key] ?? ""));
+}
+
+function syncRowDirty(row) {
+  row._dirty = isRowDirty(row);
 }
 
 function loadStorageJson(key, fallback = []) {
@@ -111,6 +137,10 @@ function editableRows() {
   return $("onlyNew").checked ? rows.filter((row) => row._isNew) : rows;
 }
 
+function changedRows() {
+  return editableRows().filter((row) => row._isNew || row._dirty);
+}
+
 function statusText(extra = "") {
   const shown = visibleRows().length;
   const total = rows.length;
@@ -131,6 +161,7 @@ function buildGroupSelect(row) {
   select.addEventListener("change", () => {
     row.catRu = select.value;
     row.catEn = "";
+    syncRowDirty(row);
   });
   return select;
 }
@@ -153,6 +184,7 @@ function render() {
       input.type = key === "kcal" || key === "gr" ? "number" : "text";
       input.addEventListener("input", () => {
         row[key] = input.value;
+        syncRowDirty(row);
       });
       td.appendChild(input);
       tr.appendChild(td);
@@ -215,6 +247,15 @@ async function loadRows() {
     catRu: dish.catRu || "",
     catEn: dish.catEn || "",
     _isNew: false,
+    _dirty: false,
+    _original: {
+      ru: dish.ru || "",
+      en: dish.en || "",
+      kcal: dish.kcal ?? "",
+      gr: dish.gr ?? "",
+      catRu: dish.catRu || "",
+      catEn: dish.catEn || "",
+    },
   }));
   mergeRows(fetchedRows);
   fullDatabaseLoaded = true;
@@ -275,11 +316,16 @@ $("btnSave").addEventListener("click", async () => {
     return;
   }
 
-  setSaveBusy(true);
-  status("Пожалуйста, подождите... идёт сохранение.");
-  toast("Пожалуйста, подождите... идёт сохранение.");
+  const payloadRows = changedRows();
+  if (!payloadRows.length) {
+    status("Нет изменений для сохранения.");
+    toast("Нет изменений для сохранения.");
+    return;
+  }
 
-  const payloadRows = editableRows();
+  setSaveBusy(true);
+  status(`Пожалуйста, подождите... идёт сохранение (${payloadRows.length}).`);
+  toast("Пожалуйста, подождите... идёт сохранение.");
   try {
     const res = await fetch("/api/dishes/bulk-upsert", {
       method: "POST",
@@ -297,8 +343,10 @@ $("btnSave").addEventListener("click", async () => {
     }
 
     status(`Создано: ${data.created}, обновлено: ${data.updated}, ошибок: ${data.errors.length}`);
-    rows.forEach((row) => {
+    payloadRows.forEach((row) => {
       row._isNew = false;
+      row._dirty = false;
+      row._original = rowSnapshot(row);
     });
 
     location.href = "/";
