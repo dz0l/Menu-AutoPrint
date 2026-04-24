@@ -429,7 +429,7 @@ async function loadSuggestions() {
   }
 
   const data = await res.json();
-  suggestItems = data.items || [];
+  suggestItems = (data.items || []).slice(0, 4);
   suggestActive = suggestItems.length ? 0 : -1;
   renderSuggest();
 }
@@ -742,10 +742,7 @@ function buildDocumentPayload() {
 
 async function openDocumentFlow() {
   const data = await postJson("/api/menu/render", buildDocumentPayload());
-  const popup = window.open(data.preview_url, "_blank", "noopener");
-  if (!popup) {
-    location.href = data.preview_url;
-  }
+  location.href = data.preview_url;
 }
 
 function normalizeSuggestValue(value) {
@@ -795,7 +792,7 @@ function localSuggest(query, catalog) {
   }
 
   scored.sort((left, right) => left.score - right.score || left.length - right.length || left.name.localeCompare(right.name));
-  return scored.slice(0, 12).map((item) => item.name);
+  return scored.slice(0, 4).map((item) => item.name);
 }
 
 async function preloadSuggestCatalog() {
