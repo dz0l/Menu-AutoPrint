@@ -138,6 +138,16 @@ class ImportResult:
     errors: list[dict] | None = None
 
 
+@dataclass
+class ImportReviewResult:
+    create_candidates: list[dict]
+    exact_matches: list[dict]
+    changed_matches: list[dict]
+    similar_matches: list[dict]
+    skipped: list[dict]
+    errors: list[dict]
+
+
 def import_dishes_csv(text: str, actor=None, dry_run=False) -> ImportResult:
     result = ImportResult(errors=[])
     rows = parse_csv_semicolon(text)
@@ -158,6 +168,122 @@ def import_dishes_csv(text: str, actor=None, dry_run=False) -> ImportResult:
         if dry_run:
             transaction.set_rollback(True)
     return result
+
+
+def review_dishes_csv_import(text: str) -> ImportReviewResult:
+    rows = parse_csv_semicolon(text)
+    dishes = list(Dish.objects.all())
+    by_norm = {dish.name_ru_norm: dish for dish in dishes}
+
+    result = ImportReviewResult(
+        create_candidates=[],
+        exact_matches=[],
+        changed_matches=[],
+        similar_matches=[],
+        skipped=[],
+        errors=[],
+    )
+
+    for index, row in enumerate(rows, start=1):
+        try:
+            incoming = _csv_row_to_payload(row)
+        except Exception as exc:
+            result.errors.append({"row": index, "error": str(exc)})
+            continue
+
+        if not incoming["ru"]:
+            result.skipped.append({"row": index, "reason": "empty name"})
+            continue
+
+        norm = normalize_ru(incoming["ru"])
+        existing = by_norm.get(norm)
+        if existing:
+            changed = _dish_field_changes(existing, incoming)
+            payload = {
+                "row": index,
+                "incoming": incoming,
+                "existing": dish_to_dict(existing),
+            }
+            if changed:
+                payload["changed_fields"] = changed
+                result.changed_matches.append(payload)
+            else:
+                result.exact_matches.append(payload)
+            continue
+
+        suggestions = find_similar_dishes(incoming["ru"], limit=3, threshold=0.82)
+        payload = {"row": index, "incoming": incoming, "suggestions": suggestions}
+        if suggestions:
+            result.similar_matches.append(payload)
+        else:
+            result.create_candidates.append(payload)
+
+    return result
+
+
+def import_dishes_csv_safely(text: str, actor=None, dry_run=False, apply_updates=False) -> dict:
+    review = review_dishes_csv_import(text)
+    outcome = {
+        "created": 0,
+        "updated": 0,
+        "skipped": len(review.skipped) + len(review.exact_matches),
+        "changed_matches": review.changed_matches,
+        "similar_matches": review.similar_matches,
+        "errors": list(review.errors),
+    }
+
+    with transaction.atomic():
+        for item in review.create_candidates:
+            try:
+                upsert_dish(item["incoming"], actor)
+                outcome["created"] += 1
+            except Exception as exc:
+                outcome["errors"].append({"row": item["row"], "error": str(exc)})
+
+        if apply_updates:
+            for item in review.changed_matches:
+                try:
+                    upsert_dish(item["incoming"], actor)
+                    outcome["updated"] += 1
+                except Exception as exc:
+                    outcome["errors"].append({"row": item["row"], "error": str(exc)})
+
+        if dry_run:
+            transaction.set_rollback(True)
+
+    return outcome
+
+
+def _csv_row_to_payload(row: list[str]) -> dict:
+    padded = list(row) + [""] * (6 - len(row))
+    ru, en, kcal, cat_ru, cat_en, gr = padded[:6]
+    payload = {
+        "ru": (ru or "").strip(),
+        "en": (en or "").strip(),
+        "kcal": parse_int_or_none(kcal),
+        "catRu": (cat_ru or "").strip(),
+        "catEn": (cat_en or "").strip(),
+        "gr": parse_int_or_none(gr),
+    }
+    if payload["catRu"] and not payload["catEn"]:
+        payload["catEn"] = CAT_RU2EN.get(payload["catRu"], "")
+    return payload
+
+
+def _dish_field_changes(dish: Dish, incoming: dict) -> dict:
+    changes = {}
+    current = {
+        "en": dish.name_en or "",
+        "kcal": dish.kcal_per_100,
+        "gr": dish.grams_default,
+        "catRu": dish.category_ru or "",
+        "catEn": dish.category_en or "",
+    }
+    for key, current_value in current.items():
+        incoming_value = incoming.get(key)
+        if current_value != incoming_value:
+            changes[key] = {"current": current_value, "incoming": incoming_value}
+    return changes
 
 
 def suggest(query: str, lang="ru", limit=12) -> list[str]:
@@ -232,6 +358,20 @@ def _candidate_score(query: str, candidate: str) -> float:
         _bag_similarity(query, candidate),
         simple_score_tokens(query, candidate),
     )
+
+
+def find_similar_dishes(query: str, limit=3, threshold=0.82) -> list[dict]:
+    query_norm = clean_name(query)
+    if not query_norm:
+        return []
+
+    matches = []
+    for entry in _prepared_catalog():
+        score = _candidate_score(query, entry["name"])
+        if score >= threshold:
+            matches.append({"name": entry["name"], "score": round(score, 4)})
+    matches.sort(key=lambda item: (-item["score"], item["name"]))
+    return matches[:limit]
 
 
 def analyze_pasted(text: str) -> list[dict]:

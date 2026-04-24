@@ -300,7 +300,7 @@ def _wrap_dish_lines(text: str, suffix: str, *, max_width: float, font_name: str
         return _wrap_text(full, max_width=max_width, font_name=font_name, font_size=font_size)
 
     words = raw.split()
-    for split_index in range(1, len(words)):
+    for split_index in range(len(words) - 1, 0, -1):
         head = " ".join(words[:split_index]).strip()
         tail = " ".join(words[split_index:]).strip()
         first_line = f"{bullet}{head}".rstrip()
