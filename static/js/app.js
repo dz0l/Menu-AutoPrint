@@ -23,6 +23,11 @@ let analyzeInFlight = false;
 let usersLoading = false;
 let lastPreviewData = null;
 let pdfInFlight = false;
+let previewController = null;
+let actionsController = null;
+let previewSeq = 0;
+let actionsSeq = 0;
+let heavyUpdateTimer = null;
 
 function toast(message) {
   const box = $("toast");
@@ -86,7 +91,7 @@ function toggleTheme() {
   applyTheme(next);
 }
 
-async function postJson(url, payload) {
+async function postJson(url, payload, options = {}) {
   const res = await fetch(url, {
     method: "POST",
     headers: {
@@ -94,6 +99,7 @@ async function postJson(url, payload) {
       "X-CSRFToken": csrfToken(),
     },
     body: JSON.stringify(payload),
+    signal: options.signal,
   });
   if (!res.ok) {
     throw new Error(await res.text());
@@ -125,10 +131,30 @@ function renderPreview(target, items) {
 }
 
 async function preview() {
-  const data = await postJson("/api/menu/preview", {
-    ru: $("ruText").value,
-    show_kcal: $("showKcal").checked,
-  });
+  const seq = ++previewSeq;
+  previewController?.abort();
+  previewController = new AbortController();
+
+  let data;
+  try {
+    data = await postJson(
+      "/api/menu/preview",
+      {
+        ru: $("ruText").value,
+        show_kcal: $("showKcal").checked,
+      },
+      {signal: previewController.signal},
+    );
+  } catch (error) {
+    if (error.name === "AbortError") {
+      return;
+    }
+    throw error;
+  }
+
+  if (seq !== previewSeq) {
+    return;
+  }
   lastPreviewData = data;
   renderPreview($("previewRu"), data.ru);
   renderPreview($("previewEn"), data.en);
@@ -136,9 +162,29 @@ async function preview() {
 }
 
 async function refreshActions() {
-  const data = await postJson("/api/dishes/check-missing-fixables", {
-    ru_lines: lines($("ruText").value),
-  });
+  const seq = ++actionsSeq;
+  actionsController?.abort();
+  actionsController = new AbortController();
+
+  let data;
+  try {
+    data = await postJson(
+      "/api/dishes/check-missing-fixables",
+      {
+        ru_lines: lines($("ruText").value),
+      },
+      {signal: actionsController.signal},
+    );
+  } catch (error) {
+    if (error.name === "AbortError") {
+      return;
+    }
+    throw error;
+  }
+
+  if (seq !== actionsSeq) {
+    return;
+  }
   lastMissing = data.missing || [];
   lastFixables = data.fixables || [];
   $("btnMissing").disabled = lastMissing.length === 0;
@@ -149,12 +195,28 @@ async function refreshActions() {
 
 function schedulePreview() {
   clearTimeout(previewTimer);
-  previewTimer = setTimeout(() => preview().catch((err) => toast(err.message)), 180);
+  previewTimer = setTimeout(() => preview().catch((err) => toast(err.message)), 260);
 }
 
 function scheduleActions() {
   clearTimeout(actionTimer);
-  actionTimer = setTimeout(() => refreshActions().catch(() => {}), 220);
+  actionTimer = setTimeout(() => refreshActions().catch(() => {}), 320);
+}
+
+function scheduleHeavyUpdate(delay = 650) {
+  clearTimeout(heavyUpdateTimer);
+  heavyUpdateTimer = setTimeout(() => {
+    preview().catch((err) => toast(err.message));
+    refreshActions().catch(() => {});
+  }, delay);
+}
+
+function flushHeavyUpdate() {
+  clearTimeout(heavyUpdateTimer);
+  clearTimeout(previewTimer);
+  clearTimeout(actionTimer);
+  preview().catch((err) => toast(err.message));
+  refreshActions().catch(() => {});
 }
 
 function currentLineInfo(textarea) {
@@ -319,8 +381,7 @@ function chooseSuggest(index) {
   textarea.setSelectionRange(nextPos, nextPos);
   saveMenuDraft();
   hideSuggest();
-  schedulePreview();
-  scheduleActions();
+  flushHeavyUpdate();
 }
 
 function scheduleSuggest() {
@@ -404,8 +465,7 @@ function replaceMenuLine(source, target) {
     .join("\n");
   $("ruText").value = updated;
   saveMenuDraft();
-  schedulePreview();
-  scheduleActions();
+  flushHeavyUpdate();
 }
 
 function replaceMenuLines(replacements) {
@@ -437,8 +497,7 @@ function replaceMenuLines(replacements) {
   if (replaced > 0) {
     $("ruText").value = updated;
     saveMenuDraft();
-    schedulePreview();
-    scheduleActions();
+    flushHeavyUpdate();
   }
   return replaced;
 }
@@ -815,14 +874,23 @@ async function createUser() {
 
 $("ruText").addEventListener("input", () => {
   saveMenuDraft();
-  schedulePreview();
-  scheduleActions();
   scheduleSuggest();
+  scheduleHeavyUpdate(650);
 });
 
 $("ruText").addEventListener("click", scheduleSuggest);
 $("ruText").addEventListener("keyup", positionSuggest);
 $("ruText").addEventListener("scroll", positionSuggest);
+
+$("ruText").addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && ($("suggestRu").hidden || suggestItems.length === 0)) {
+    setTimeout(() => flushHeavyUpdate(), 0);
+  }
+});
+
+$("ruText").addEventListener("paste", () => {
+  setTimeout(() => flushHeavyUpdate(), 0);
+});
 
 $("ruText").addEventListener("keydown", (event) => {
   if ($("suggestRu").hidden || suggestItems.length === 0) {
@@ -847,6 +915,7 @@ $("ruText").addEventListener("keydown", (event) => {
 
 $("ruText").addEventListener("blur", () => {
   setTimeout(hideSuggest, 120);
+  flushHeavyUpdate();
 });
 
 $("showKcal").addEventListener("change", () => {
