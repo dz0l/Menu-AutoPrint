@@ -5,7 +5,20 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-insecure-change-me")
-DEBUG = os.environ.get("DJANGO_DEBUG", "0").lower() in {"1", "true", "yes", "on"}
+
+
+def env_bool(name: str, default: str = "0") -> bool:
+    return os.environ.get(name, default).lower() in {"1", "true", "yes", "on"}
+
+
+def env_int(name: str, default: int) -> int:
+    try:
+        return int(os.environ.get(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+
+
+DEBUG = env_bool("DJANGO_DEBUG", "0")
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -43,6 +56,26 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = os.environ.get("DJANGO_REFERRER_POLICY", "same-origin")
+SECURE_CROSS_ORIGIN_OPENER_POLICY = os.environ.get("DJANGO_CROSS_ORIGIN_OPENER_POLICY", "same-origin")
+X_FRAME_OPTIONS = os.environ.get("DJANGO_X_FRAME_OPTIONS", "DENY")
+
+DJANGO_ENABLE_HTTPS = env_bool("DJANGO_ENABLE_HTTPS", "0")
+SECURE_SSL_REDIRECT = DJANGO_ENABLE_HTTPS
+SESSION_COOKIE_SECURE = DJANGO_ENABLE_HTTPS
+CSRF_COOKIE_SECURE = DJANGO_ENABLE_HTTPS
+if DJANGO_ENABLE_HTTPS:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SECURE_HSTS_SECONDS = env_int("DJANGO_SECURE_HSTS_SECONDS", 0 if not DJANGO_ENABLE_HTTPS else 2_592_000)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", "0")
+SECURE_HSTS_PRELOAD = env_bool("DJANGO_SECURE_HSTS_PRELOAD", "0")
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = env_int("DJANGO_DATA_UPLOAD_MAX_MEMORY_SIZE", 20 * 1024 * 1024)
+FILE_UPLOAD_MAX_MEMORY_SIZE = env_int("DJANGO_FILE_UPLOAD_MAX_MEMORY_SIZE", 20 * 1024 * 1024)
+LOGIN_RATE_LIMIT_COUNT = env_int("LOGIN_RATE_LIMIT_COUNT", 10)
+LOGIN_RATE_LIMIT_WINDOW = env_int("LOGIN_RATE_LIMIT_WINDOW", 300)
 
 ROOT_URLCONF = "config.urls"
 
@@ -110,6 +143,13 @@ MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": os.environ.get("DJANGO_CACHE_LOCATION", "/tmp/django-cache"),
+    }
+}
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "menu:index"

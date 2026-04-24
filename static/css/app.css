@@ -509,6 +509,22 @@ body.theme-dark .toast {
   overflow: auto;
 }
 
+.editor-table-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.editor-table-head h1 {
+  margin-bottom: 0;
+}
+
+.editor-search {
+  width: min(320px, 100%);
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -520,6 +536,19 @@ td {
   border-bottom: 1px solid var(--border);
   padding: 6px;
   text-align: left;
+}
+
+.table-sort {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-weight: 700;
+}
+
+.table-sort.active {
+  color: var(--accent);
 }
 
 td input,
@@ -610,6 +639,11 @@ td.small {
 
   .review-actions-column {
     min-width: 0;
+  }
+
+  .editor-table-head {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .document-surface {

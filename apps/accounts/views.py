@@ -1,8 +1,11 @@
 ﻿import json
 
+from django.conf import settings
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.views import LoginView
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.http import JsonResponse
@@ -14,6 +17,28 @@ from .models import UserPreference
 
 
 User = get_user_model()
+
+
+class RateLimitedLoginView(LoginView):
+    template_name = "registration/login.html"
+
+    def post(self, request, *args, **kwargs):
+        username_field = getattr(User, "USERNAME_FIELD", "username")
+        username = (request.POST.get(username_field) or "").strip().lower()
+        ident = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", "unknown")).split(",")[0]
+        key = f"login-rate:{ident}:{username}"
+        count = cache.get(key, 0)
+        if count >= settings.LOGIN_RATE_LIMIT_COUNT:
+            form = self.get_form()
+            form.add_error(None, "Слишком много попыток входа. Попробуйте позже.")
+            return self.form_invalid(form)
+
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 302:
+            cache.delete(key)
+        else:
+            cache.set(key, count + 1, settings.LOGIN_RATE_LIMIT_WINDOW)
+        return response
 
 
 def _json_body(request) -> dict:

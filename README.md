@@ -16,6 +16,9 @@ Default editor account: `mAdmin` / `qwerty123`
 
 The password must be changed after the first login.
 
+Default deployment runs through `Caddy` in LAN/HTTP mode with `CADDY_SITE_ADDRESS=:80`.
+For public HTTPS later, update `.env`: set `CADDY_SITE_ADDRESS` to your domain, enable `DJANGO_ENABLE_HTTPS=1`, and set matching `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`.
+
 ## CSV Import From Server Path
 
 If `calories.csv` was uploaded to the server after the container was started, copy it into the running `web` container first:

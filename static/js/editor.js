@@ -23,6 +23,7 @@ let rows = [];
 let fullDatabaseLoaded = false;
 let focusedRuSet = null;
 let saveInFlight = false;
+let sortState = {key: "", direction: "asc"};
 
 function status(text) {
   $("status").textContent = text;
@@ -106,6 +107,16 @@ function normalizedKey(value) {
   return (value || "").trim().toLowerCase();
 }
 
+function groupRank(value) {
+  const index = GROUP_OPTIONS.indexOf(value || "");
+  return index === -1 ? GROUP_OPTIONS.length : index;
+}
+
+function searchQuery() {
+  const input = $("searchRu");
+  return input && !$("onlyNew").checked ? normalizedKey(input.value) : "";
+}
+
 function allTypedLines(includeDraft = false) {
   const raw = $("newDishes").value.replace(/\r/g, "");
   const source = raw.split("\n").map((line) => line.trim());
@@ -127,6 +138,11 @@ function visibleRows() {
   if (focusedRuSet && focusedRuSet.size) {
     current = current.filter((row) => focusedRuSet.has(normalizedKey(row.ru)));
   }
+  const query = searchQuery();
+  if (query) {
+    current = current.filter((row) => normalizedKey(row.ru).includes(query));
+  }
+  current = sortRowsForDisplay(current);
   return current;
 }
 
@@ -145,6 +161,57 @@ function statusText(extra = "") {
   const shown = visibleRows().length;
   const total = rows.length;
   status(`${extra}${extra ? " | " : ""}Показано: ${shown}, загружено: ${total}`);
+}
+
+function sortRowsForDisplay(sourceRows) {
+  if (!sortState.key) {
+    return sourceRows;
+  }
+
+  const factor = sortState.direction === "desc" ? -1 : 1;
+  return [...sourceRows].sort((left, right) => {
+    let result = 0;
+    if (sortState.key === "catRu") {
+      result = groupRank(left.catRu) - groupRank(right.catRu);
+      if (result === 0) {
+        result = String(left.ru || "").localeCompare(String(right.ru || ""), "ru");
+      }
+    } else {
+      const locale = sortState.key === "en" ? "en" : "ru";
+      result = String(left[sortState.key] || "").localeCompare(String(right[sortState.key] || ""), locale);
+    }
+    return result * factor;
+  });
+}
+
+function toggleSort(key) {
+  if (sortState.key === key) {
+    sortState.direction = sortState.direction === "asc" ? "desc" : "asc";
+  } else {
+    sortState = {key, direction: "asc"};
+  }
+  updateSortButtons();
+  render();
+}
+
+function updateSortButtons() {
+  document.querySelectorAll(".table-sort").forEach((button) => {
+    const active = button.dataset.sort === sortState.key;
+    button.classList.toggle("active", active);
+    const base = button.dataset.sort === "catRu" ? "Группа RU" : button.dataset.sort.toUpperCase();
+    button.textContent = active ? `${base} ${sortState.direction === "asc" ? "↑" : "↓"}` : base;
+  });
+}
+
+function updateSearchVisibility() {
+  const input = $("searchRu");
+  if (!input) {
+    return;
+  }
+  input.hidden = $("onlyNew").checked;
+  if (input.hidden) {
+    input.value = "";
+  }
 }
 
 function buildGroupSelect(row) {
@@ -300,7 +367,14 @@ $("onlyNew").addEventListener("change", async () => {
   if (!$("onlyNew").checked) {
     await ensureFullDatabaseLoaded();
   }
+  updateSearchVisibility();
   render();
+});
+
+$("searchRu").addEventListener("input", render);
+
+document.querySelectorAll(".table-sort").forEach((button) => {
+  button.addEventListener("click", () => toggleSort(button.dataset.sort));
 });
 
 $("newDishes").addEventListener("input", () => {
@@ -369,6 +443,8 @@ window.addEventListener("load", async () => {
   removeStorage(STORAGE_KEYS.fix);
 
   $("onlyNew").checked = true;
+  updateSearchVisibility();
+  updateSortButtons();
 
   if (missing.length) {
     focusedRuSet = null;
@@ -381,6 +457,7 @@ window.addEventListener("load", async () => {
   if (fix.length) {
     focusedRuSet = new Set(fix.map((item) => normalizedKey(item)));
     $("onlyNew").checked = false;
+    updateSearchVisibility();
     $("newDishes").value = fix.join("\n");
     await loadRows();
     statusText(`Неполных блюд: ${fix.length}`);

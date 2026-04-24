@@ -64,6 +64,10 @@ if [[ ! -f .env ]]; then
   sed -i "s/DJANGO_SECRET_KEY=change-me/DJANGO_SECRET_KEY=$SECRET/" .env
 fi
 
+if [[ -z "$(grep '^CADDY_SITE_ADDRESS=' .env | cut -d= -f2- || true)" ]]; then
+  set_env_value "CADDY_SITE_ADDRESS" ":80"
+fi
+
 if [[ -n "${HOST_IP:-}" ]]; then
   append_csv_env_value "DJANGO_ALLOWED_HOSTS" "$HOST_IP"
   append_csv_env_value "DJANGO_CSRF_TRUSTED_ORIGINS" "http://$HOST_IP"

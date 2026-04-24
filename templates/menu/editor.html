@@ -16,15 +16,18 @@
     <textarea id="newDishes" placeholder="Одно блюдо на строку"></textarea>
   </div>
   <div class="panel table-panel">
-    <h1>База</h1>
+    <div class="editor-table-head">
+      <h1>База</h1>
+      <input id="searchRu" class="editor-search" type="search" placeholder="Поиск RU" autocomplete="off" hidden>
+    </div>
     <table>
       <thead>
         <tr>
-          <th>RU</th>
-          <th>EN</th>
+          <th><button class="table-sort" type="button" data-sort="ru">RU</button></th>
+          <th><button class="table-sort" type="button" data-sort="en">EN</button></th>
           <th>kcal</th>
           <th>гр</th>
-          <th>Группа RU</th>
+          <th><button class="table-sort" type="button" data-sort="catRu">Группа RU</button></th>
           <th></th>
         </tr>
       </thead>
