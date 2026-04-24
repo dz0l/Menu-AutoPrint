@@ -8,6 +8,7 @@ app_name = "dishes"
 urlpatterns = [
     path("", views.dishes, name="dishes"),
     path("<int:dish_id>", views.dish_detail, name="dish_detail"),
+    path("names", views.names_view, name="names"),
     path("suggest", views.suggest_view, name="suggest"),
     path("export.csv", views.export_csv, name="export_csv"),
     path("import.csv", views.import_csv, name="import_csv"),

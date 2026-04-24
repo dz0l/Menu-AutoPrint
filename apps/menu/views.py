@@ -48,9 +48,7 @@ def editor(request):
 def preview_api(request):
     data = _request_payload(request)
     ru_lines = normalize_lines(data.get("ru") or data.get("ru_lines"))
-    en_lines = normalize_lines(data.get("en") or data.get("en_lines"))
-    if not en_lines:
-        en_lines = translate_lines(ru_lines)
+    en_lines = translate_lines(ru_lines)
     return JsonResponse(build_preview(ru_lines, en_lines, show_kcal=_to_bool(data.get("show_kcal", True))))
 
 
@@ -64,7 +62,7 @@ def analyze_api(request):
 def pdf_api(request):
     data = _request_payload(request)
     ru_lines = normalize_lines(data.get("ru") or data.get("ru_lines"))
-    en_lines = normalize_lines(data.get("en") or data.get("en_lines")) or translate_lines(ru_lines)
+    en_lines = translate_lines(ru_lines)
     show_kcal = _to_bool(data.get("show_kcal", True))
     preview = build_preview(ru_lines, en_lines, show_kcal=show_kcal)
     print_date = data.get("print_date") or ""

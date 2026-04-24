@@ -15,6 +15,7 @@ let lastMissing = [];
 let lastFixables = [];
 let suggestItems = [];
 let suggestActive = -1;
+let suggestCatalog = [];
 let suggestTimer = null;
 let previewTimer = null;
 let actionTimer = null;
@@ -126,7 +127,6 @@ function renderPreview(target, items) {
 async function preview() {
   const data = await postJson("/api/menu/preview", {
     ru: $("ruText").value,
-    en: $("enText").value,
     show_kcal: $("showKcal").checked,
   });
   lastPreviewData = data;
@@ -255,6 +255,13 @@ async function loadSuggestions() {
     return;
   }
 
+  if (suggestCatalog.length) {
+    suggestItems = localSuggest(query, suggestCatalog);
+    suggestActive = suggestItems.length ? 0 : -1;
+    renderSuggest();
+    return;
+  }
+
   const res = await fetch(`/api/dishes/suggest?q=${encodeURIComponent(query)}&lang=ru`);
   if (!res.ok) {
     hideSuggest();
@@ -318,7 +325,7 @@ function chooseSuggest(index) {
 
 function scheduleSuggest() {
   clearTimeout(suggestTimer);
-  suggestTimer = setTimeout(() => loadSuggestions().catch(() => hideSuggest()), 120);
+  suggestTimer = setTimeout(() => loadSuggestions().catch(() => hideSuggest()), 40);
 }
 
 function isoDate(date) {
@@ -541,7 +548,6 @@ function randomPassword() {
 async function collectPdfValidation() {
   const data = await postJson("/api/menu/preview", {
     ru: $("ruText").value,
-    en: $("enText").value,
     show_kcal: $("showKcal").checked,
   });
   lastPreviewData = data;
@@ -598,6 +604,65 @@ function openPdfInBrowser() {
   document.body.appendChild(form);
   form.submit();
   form.remove();
+}
+
+function normalizeSuggestValue(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[•"'`]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function localSuggest(query, catalog) {
+  const norm = normalizeSuggestValue(query);
+  if (!norm) {
+    return [];
+  }
+
+  const tokens = norm.split(" ").filter(Boolean);
+  const scored = [];
+  for (const name of catalog) {
+    const normalizedName = normalizeSuggestValue(name);
+    if (!normalizedName) {
+      continue;
+    }
+
+    let score = 100;
+    for (const token of tokens) {
+      const parts = normalizedName.split(" ");
+      const starts = parts.some((part) => part.startsWith(token));
+      const contains = normalizedName.includes(token);
+      if (starts) {
+        score = Math.min(score, 10);
+      } else if (contains) {
+        score = Math.min(score, 30);
+      } else {
+        score = null;
+        break;
+      }
+    }
+
+    if (score === null) {
+      continue;
+    }
+    if (normalizedName.startsWith(tokens[0])) {
+      score = Math.min(score, 5);
+    }
+    scored.push({name, score, length: normalizedName.length});
+  }
+
+  scored.sort((left, right) => left.score - right.score || left.length - right.length || left.name.localeCompare(right.name));
+  return scored.slice(0, 12).map((item) => item.name);
+}
+
+async function preloadSuggestCatalog() {
+  try {
+    const data = await requestJson("/api/dishes/names?lang=ru");
+    suggestCatalog = data.items || [];
+  } catch {
+    suggestCatalog = [];
+  }
 }
 
 function setPdfBusy(busy) {
@@ -923,4 +988,5 @@ window.addEventListener("load", () => {
 
   preview().catch(() => {});
   refreshActions().catch(() => {});
+  preloadSuggestCatalog().catch(() => {});
 });

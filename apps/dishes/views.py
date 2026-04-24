@@ -65,6 +65,18 @@ def suggest_view(request):
     return JsonResponse({"items": suggest(request.GET.get("q", ""), request.GET.get("lang", "ru"))})
 
 
+@require_http_methods(["GET"])
+def names_view(request):
+    lang = request.GET.get("lang", "ru")
+    field = "name_en" if lang == "en" else "name_ru"
+    items = list(
+        Dish.objects.exclude(**{field: ""})
+        .order_by(field)
+        .values_list(field, flat=True)[:5000]
+    )
+    return JsonResponse({"items": items})
+
+
 def _rate_limited(request) -> bool:
     ident = request.user.id if request.user.is_authenticated else request.META.get("REMOTE_ADDR", "unknown")
     key = f"export-csv:{ident}"

@@ -1,7 +1,20 @@
-from dataclasses import dataclass
+﻿from dataclasses import dataclass
 
 from apps.core.text import clean_name
 from apps.dishes.models import Dish
+
+
+GROUP_RU2EN = {
+    "салаты": "Salads:",
+    "закуска": "Starters:",
+    "горячая закуска": "Hot Starters:",
+    "холодная закуска": "Cold Starters:",
+    "супы": "Soups:",
+    "горячее": "Main Courses:",
+    "гарнир": "Side Dishes:",
+    "завтрак": "Breakfast:",
+    "шашлык": "BBQ:",
+}
 
 
 @dataclass
@@ -29,14 +42,17 @@ def dish_maps() -> dict[str, Dish]:
     return {clean_name(dish.name_ru): dish for dish in Dish.objects.all()}
 
 
+def translate_group_line(line: str) -> str:
+    label = (line or "").strip().rstrip(":").strip().lower()
+    return GROUP_RU2EN.get(label, f"{(line or '').strip().rstrip(':')}:" if line else "")
+
+
 def translate_lines(ru_lines: list[str], current_en: list[str] | None = None) -> list[str]:
-    current_en = current_en or []
     dishes = dish_maps()
     translated = []
-    for index, ru in enumerate(ru_lines):
-        existing = current_en[index] if index < len(current_en) else ""
-        if existing and existing != "???":
-            translated.append(existing)
+    for ru in ru_lines:
+        if is_group_line(ru):
+            translated.append(translate_group_line(ru))
             continue
         dish = dishes.get(clean_name(ru))
         translated.append(dish.name_en if dish and dish.name_en else "???")
@@ -69,11 +85,12 @@ def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True) -> d
         if info.missing:
             missing.append(line)
         ru.append(_render_line(info, "ru", show_kcal))
-        if index < len(en_lines) and en_lines[index]:
-            en_info = line_info(en_lines[index], ru_ref=line)
-            if en_info.missing:
-                missing.append(line)
-            en.append(_render_line(en_info, "en", show_kcal))
+
+        en_line = en_lines[index] if index < len(en_lines) else "???"
+        en_info = line_info(en_line, ru_ref=line)
+        if en_info.missing:
+            missing.append(line)
+        en.append(_render_line(en_info, "en", show_kcal))
     return {"ru": ru, "en": en, "missing": sorted(set(missing))}
 
 
