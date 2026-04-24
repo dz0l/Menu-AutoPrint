@@ -28,6 +28,11 @@ let actionsController = null;
 let previewSeq = 0;
 let actionsSeq = 0;
 let heavyUpdateTimer = null;
+let ruHistory = [];
+let ruHistoryIndex = -1;
+let ruHistoryLastCommit = 0;
+let suppressRuHistory = false;
+const RU_HISTORY_LIMIT = 120;
 
 function toast(message) {
   const box = $("toast");
@@ -69,6 +74,99 @@ function lines(value) {
 function saveMenuDraft() {
   saveStorage(STORAGE_KEYS.lastRu, $("ruText").value);
   saveStorage(STORAGE_KEYS.lastEn, $("enText").value);
+}
+
+function resetRuHistory(value) {
+  ruHistory = [String(value || "")];
+  ruHistoryIndex = 0;
+  ruHistoryLastCommit = Date.now();
+}
+
+function pushRuHistory(value, options = {}) {
+  if (suppressRuHistory) {
+    return;
+  }
+
+  const next = String(value || "");
+  const force = Boolean(options.force);
+  if (ruHistoryIndex < 0) {
+    resetRuHistory(next);
+    return;
+  }
+
+  const current = ruHistory[ruHistoryIndex];
+  if (next === current) {
+    return;
+  }
+
+  const now = Date.now();
+  const canMerge =
+    !force &&
+    ruHistory.length > 1 &&
+    ruHistoryIndex === ruHistory.length - 1 &&
+    now - ruHistoryLastCommit < 700;
+
+  if (canMerge) {
+    ruHistory[ruHistoryIndex] = next;
+    ruHistoryLastCommit = now;
+    return;
+  }
+
+  if (ruHistoryIndex < ruHistory.length - 1) {
+    ruHistory = ruHistory.slice(0, ruHistoryIndex + 1);
+  }
+
+  ruHistory.push(next);
+  if (ruHistory.length > RU_HISTORY_LIMIT) {
+    const overflow = ruHistory.length - RU_HISTORY_LIMIT;
+    ruHistory.splice(0, overflow);
+    ruHistoryIndex = Math.max(0, ruHistoryIndex - overflow);
+  }
+
+  ruHistoryIndex = ruHistory.length - 1;
+  ruHistoryLastCommit = now;
+}
+
+function applyRuHistoryState(value) {
+  const textarea = $("ruText");
+  suppressRuHistory = true;
+  textarea.value = value;
+  suppressRuHistory = false;
+  hideSuggest();
+  saveMenuDraft();
+  flushHeavyUpdate();
+  textarea.focus();
+  textarea.setSelectionRange(value.length, value.length);
+}
+
+function undoRuChange() {
+  if (ruHistoryIndex <= 0) {
+    return false;
+  }
+  ruHistoryIndex -= 1;
+  applyRuHistoryState(ruHistory[ruHistoryIndex]);
+  return true;
+}
+
+function redoRuChange() {
+  if (ruHistoryIndex >= ruHistory.length - 1) {
+    return false;
+  }
+  ruHistoryIndex += 1;
+  applyRuHistoryState(ruHistory[ruHistoryIndex]);
+  return true;
+}
+
+function setRuTextValue(value, options = {}) {
+  const textarea = $("ruText");
+  const next = String(value || "");
+  if (textarea.value === next) {
+    return;
+  }
+
+  textarea.value = next;
+  pushRuHistory(next, {force: options.forceHistory !== false});
+  saveMenuDraft();
 }
 
 function themeButtonText(theme) {
@@ -376,10 +474,9 @@ function chooseSuggest(index) {
 
   const textarea = $("ruText");
   const info = currentLineInfo(textarea);
-  textarea.value = info.value.slice(0, info.start) + text + info.value.slice(info.end);
+  setRuTextValue(info.value.slice(0, info.start) + text + info.value.slice(info.end));
   const nextPos = info.start + text.length;
   textarea.setSelectionRange(nextPos, nextPos);
-  saveMenuDraft();
   hideSuggest();
   flushHeavyUpdate();
 }
@@ -463,8 +560,7 @@ function replaceMenuLine(source, target) {
     .split(/\r?\n/)
     .map((line) => (line.trim() === source.trim() ? target : line))
     .join("\n");
-  $("ruText").value = updated;
-  saveMenuDraft();
+  setRuTextValue(updated);
   flushHeavyUpdate();
 }
 
@@ -495,8 +591,7 @@ function replaceMenuLines(replacements) {
     .join("\n");
 
   if (replaced > 0) {
-    $("ruText").value = updated;
-    saveMenuDraft();
+    setRuTextValue(updated);
     flushHeavyUpdate();
   }
   return replaced;
@@ -873,6 +968,7 @@ async function createUser() {
 }
 
 $("ruText").addEventListener("input", () => {
+  pushRuHistory($("ruText").value);
   saveMenuDraft();
   scheduleSuggest();
   scheduleHeavyUpdate(650);
@@ -883,6 +979,18 @@ $("ruText").addEventListener("keyup", positionSuggest);
 $("ruText").addEventListener("scroll", positionSuggest);
 
 $("ruText").addEventListener("keydown", (event) => {
+  const key = String(event.key || "").toLowerCase();
+  const withModifier = event.ctrlKey || event.metaKey;
+  if (withModifier && !event.altKey && !event.shiftKey && key === "z") {
+    event.preventDefault();
+    undoRuChange();
+    return;
+  }
+  if (withModifier && !event.altKey && ((event.shiftKey && key === "z") || (!event.shiftKey && key === "y"))) {
+    event.preventDefault();
+    redoRuChange();
+    return;
+  }
   if (event.key === "Enter" && ($("suggestRu").hidden || suggestItems.length === 0)) {
     setTimeout(() => flushHeavyUpdate(), 0);
   }
@@ -1054,6 +1162,7 @@ window.addEventListener("load", () => {
   setSettingsOpen(false);
   setReviewOpen(false);
   setUsersOpen(false);
+  resetRuHistory($("ruText").value);
 
   preview().catch(() => {});
   refreshActions().catch(() => {});

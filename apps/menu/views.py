@@ -1,5 +1,7 @@
 ﻿import json
 import logging
+import re
+import unicodedata
 from urllib.parse import quote
 
 from django.http import HttpResponse, JsonResponse
@@ -32,6 +34,12 @@ def _to_bool(value) -> bool:
     if isinstance(value, bool):
         return value
     return str(value).strip().lower() not in {"", "0", "false", "no", "off", "none"}
+
+
+def _ascii_filename(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
+    sanitized = re.sub(r'[^A-Za-z0-9._ -]+', "", normalized).strip()
+    return sanitized or "menu.pdf"
 
 
 @ensure_csrf_cookie
@@ -68,6 +76,7 @@ def pdf_api(request):
     print_date = data.get("print_date") or ""
     background_name = data.get("background_name") or ""
     background_data = data.get("background_data") or ""
+    filename = build_download_filename(print_date, background_name)
 
     try:
         pdf = build_menu_pdf(
@@ -76,12 +85,12 @@ def pdf_api(request):
             show_kcal=show_kcal,
             background_name=background_name,
             background_data=background_data,
+            document_title=filename,
         )
     except Exception as exc:
         logger.exception("PDF generation failed hard: %s", exc)
         return JsonResponse({"error": "pdf_generation_failed"}, status=500)
 
-    filename = build_download_filename(print_date, background_name)
     response = HttpResponse(pdf, content_type="application/pdf")
-    response["Content-Disposition"] = f"inline; filename=menu.pdf; filename*=UTF-8''{quote(filename)}"
+    response["Content-Disposition"] = f"inline; filename=\"{_ascii_filename(filename)}\"; filename*=UTF-8''{quote(filename)}"
     return response

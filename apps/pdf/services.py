@@ -88,6 +88,7 @@ def build_menu_pdf(
     show_kcal: bool,
     background_name: str = "",
     background_data: str = "",
+    document_title: str = "menu.pdf",
 ) -> bytes:
     regular_font, bold_font = _ensure_fonts_registered()
     display_date = format_print_date(print_date)
@@ -95,6 +96,10 @@ def build_menu_pdf(
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4, pageCompression=1)
+    pdf.setTitle(document_title)
+    pdf.setAuthor("Menu AutoPrint")
+    pdf.setCreator("Menu AutoPrint")
+    pdf.setSubject("Generated menu")
 
     for index, page_name in enumerate(("ru", "en")):
         _draw_preview_page(
