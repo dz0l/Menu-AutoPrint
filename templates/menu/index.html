@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 {% block title %}Формирование меню{% endblock %}
 {% block topbar_actions %}
@@ -17,20 +17,20 @@
   <button id="btnPdf" type="button">PDF</button>
   <button id="btnMissing" type="button" disabled>Добавить в базу</button>
   <button id="btnFix" type="button" disabled>Исправить граммовки</button>
-  <button id="btnSettings" class="icon-button" type="button" aria-expanded="false" aria-controls="settingsBar">⚙️</button>
 </div>
+{% endblock %}
+{% block header_controls %}
+<button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему">🌙</button>
+<button id="btnSettings" class="icon-button" type="button" aria-expanded="false" aria-controls="settingsBar" aria-label="Настройки" title="Настройки">⚙️</button>
 {% endblock %}
 {% block topbar_panel %}
 <section id="settingsBar" class="settings-bar shell" hidden>
   <a class="settings-link" href="{% url 'menu:editor' %}">Редактор</a>
   <a class="settings-link" href="{% url 'dishes:export_csv' %}">Скачать CSV</a>
+  {% if request.user.is_authenticated and request.user.username == "mAdmin" %}
+    <button id="btnUsers" type="button">Пользователи</button>
+  {% endif %}
   <label class="inline"><input id="showKcal" type="checkbox" checked> kcal/гр</label>
-  <label class="toolbar-field">Тема
-    <select id="themeMode">
-      <option value="light">Светлая</option>
-      <option value="dark">Тёмная</option>
-    </select>
-  </label>
   <span id="backgroundName" class="muted">Подложка: не выбрана</span>
 </section>
 {% endblock %}
@@ -68,6 +68,46 @@
     <div id="reviewBody" class="modal-body"></div>
   </div>
 </div>
+
+{% if request.user.is_authenticated and request.user.username == "mAdmin" %}
+<div id="usersModal" class="modal" hidden>
+  <div class="modal-backdrop" data-close-users="1"></div>
+  <div class="modal-dialog users-dialog" role="dialog" aria-modal="true" aria-labelledby="usersTitle">
+    <div class="modal-header">
+      <h2 id="usersTitle">Управление пользователями</h2>
+      <div class="review-actions">
+        <button id="btnRefreshUsers" type="button">Обновить</button>
+        <button id="btnCloseUsers" class="icon-button" type="button">×</button>
+      </div>
+    </div>
+    <div class="modal-body users-body">
+      <section class="users-create">
+        <h3>Создать пользователя</h3>
+        <div class="users-form-row">
+          <label class="stack form-field compact-field">
+            <span>Имя пользователя</span>
+            <input id="userCreateName" type="text" autocomplete="off">
+          </label>
+          <label class="stack form-field compact-field">
+            <span>Сгенерированный пароль</span>
+            <input id="userCreatePassword" type="text" readonly>
+          </label>
+        </div>
+        <div class="review-actions">
+          <button id="btnGenerateUserPassword" type="button">Сгенерировать пароль</button>
+          <button id="btnCreateUser" class="primary" type="button">Создать пользователя</button>
+        </div>
+        <p class="muted">Пароль показывается только в момент создания или сброса.</p>
+        <div id="usersResult" class="users-result" hidden></div>
+      </section>
+      <section class="users-list-wrap">
+        <h3>Список пользователей</h3>
+        <div id="usersList" class="users-list"></div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'js/app.js' %}" defer></script>

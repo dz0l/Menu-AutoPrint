@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --bg: #f4f6f8;
   --panel: #ffffff;
   --ink: #18202a;
@@ -81,8 +81,9 @@ a {
 .nav {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .nav a {
@@ -112,7 +113,7 @@ a {
 }
 
 .editor-layout {
-  grid-template-columns: minmax(250px, 0.62fr) minmax(620px, 1.38fr);
+  grid-template-columns: minmax(210px, 0.42fr) minmax(740px, 1.58fr);
 }
 
 .panel {
@@ -149,7 +150,7 @@ textarea[readonly] {
 input,
 button,
 select {
-  min-height: 32px;
+  min-height: 30px;
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 4px 8px;
@@ -176,9 +177,13 @@ button:disabled {
 .icon-button {
   width: 32px;
   min-width: 32px;
+  min-height: 32px;
   padding: 0;
   font-size: 16px;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .inline {
@@ -251,6 +256,10 @@ button:disabled {
   overflow: hidden;
 }
 
+.users-dialog {
+  width: min(980px, calc(100% - 32px));
+}
+
 .modal-header {
   display: flex;
   align-items: center;
@@ -260,9 +269,10 @@ button:disabled {
   border-bottom: 1px solid var(--border);
 }
 
-.modal-header h2 {
+.modal-header h2,
+.users-create h3,
+.users-list-wrap h3 {
   margin: 0;
-  font-size: 18px;
 }
 
 .modal-body {
@@ -271,12 +281,15 @@ button:disabled {
   padding: 14px;
 }
 
-.review-list {
+.review-list,
+.users-list {
   display: grid;
   gap: 10px;
 }
 
-.review-item {
+.review-item,
+.users-item,
+.users-result {
   display: grid;
   gap: 6px;
   border: 1px solid var(--border);
@@ -285,7 +298,8 @@ button:disabled {
   background: var(--input-bg);
 }
 
-.review-actions {
+.review-actions,
+.users-form-row {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
@@ -294,6 +308,27 @@ button:disabled {
 .review-score {
   color: var(--muted);
   font-size: 13px;
+}
+
+.users-body,
+.users-create,
+.users-list-wrap,
+.users-meta {
+  display: grid;
+  gap: 12px;
+}
+
+.users-meta strong {
+  font-size: 16px;
+}
+
+.form-field span {
+  font-weight: 600;
+}
+
+.compact-field {
+  min-width: 260px;
+  flex: 1 1 280px;
 }
 
 .muted {
@@ -370,13 +405,22 @@ td.small {
   width: 90px;
 }
 
-.danger {
+.danger,
+.danger-button {
   color: var(--danger);
 }
 
 .auth-panel {
-  max-width: 420px;
-  margin: 40px auto;
+  max-width: 460px;
+  margin: 48px auto;
+}
+
+.auth-form {
+  justify-items: center;
+}
+
+.auth-field {
+  width: min(320px, 100%);
 }
 
 .stack {
@@ -420,11 +464,16 @@ td.small {
     width: 100%;
   }
 
+  .nav {
+    justify-content: space-between;
+  }
+
   .settings-bar {
     padding: 10px 12px 0;
   }
 
-  .modal-dialog {
+  .modal-dialog,
+  .users-dialog {
     width: calc(100% - 16px);
     margin: 8px auto;
   }

@@ -1,4 +1,4 @@
-const STORAGE_KEYS = {
+﻿const STORAGE_KEYS = {
   missing: "menu_missing_ru",
   fix: "menu_fix_ru",
   lastRu: "menu_last_ru",
@@ -19,6 +19,7 @@ let suggestTimer = null;
 let previewTimer = null;
 let actionTimer = null;
 let analyzeInFlight = false;
+let usersLoading = false;
 
 function toast(message) {
   const box = $("toast");
@@ -62,12 +63,24 @@ function saveMenuDraft() {
   saveStorage(STORAGE_KEYS.lastEn, $("enText").value);
 }
 
+function themeButtonText(theme) {
+  return theme === "dark" ? "☀️" : "🌙";
+}
+
 function applyTheme(theme) {
   document.body.classList.toggle("theme-dark", theme === "dark");
-  if ($("themeMode")) {
-    $("themeMode").value = theme;
+  const button = $("btnTheme");
+  if (button) {
+    button.textContent = themeButtonText(theme);
+    button.title = theme === "dark" ? "Светлая тема" : "Тёмная тема";
+    button.setAttribute("aria-label", button.title);
   }
   saveStorage(STORAGE_KEYS.themeMode, theme);
+}
+
+function toggleTheme() {
+  const next = document.body.classList.contains("theme-dark") ? "light" : "dark";
+  applyTheme(next);
 }
 
 async function postJson(url, payload) {
@@ -83,6 +96,19 @@ async function postJson(url, payload) {
     throw new Error(await res.text());
   }
   return res.json();
+}
+
+async function requestJson(url, options = {}) {
+  const res = await fetch(url, options);
+  const isJson = (res.headers.get("content-type") || "").includes("application/json");
+  const data = isJson ? await res.json() : await res.text();
+  if (!res.ok) {
+    if (typeof data === "object" && data) {
+      throw new Error(data.error || (data.errors || []).join("\n") || "Request failed");
+    }
+    throw new Error(String(data || "Request failed"));
+  }
+  return data;
 }
 
 function renderPreview(target, items) {
@@ -329,6 +355,14 @@ function setReviewOpen(open) {
   $("reviewModal").hidden = !open;
 }
 
+function setUsersOpen(open) {
+  const modal = $("usersModal");
+  if (!modal) {
+    return;
+  }
+  modal.hidden = !open;
+}
+
 function restoreBackgroundState() {
   const name = loadStorage(STORAGE_KEYS.pdfBackgroundName, "");
   $("backgroundName").textContent = name ? `Подложка: ${name}` : "Подложка: не выбрана";
@@ -478,6 +512,151 @@ async function runAnalyze() {
   }
 }
 
+function randomPassword() {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*";
+  const bytes = new Uint32Array(14);
+  window.crypto.getRandomValues(bytes);
+  return Array.from(bytes, (value) => alphabet[value % alphabet.length]).join("");
+}
+
+function showUserResult(message) {
+  const box = $("usersResult");
+  if (!box) {
+    return;
+  }
+  box.textContent = message;
+  box.hidden = false;
+}
+
+function renderUsers(users) {
+  const list = $("usersList");
+  if (!list) {
+    return;
+  }
+
+  list.innerHTML = "";
+  users.forEach((user) => {
+    const item = document.createElement("div");
+    item.className = "users-item";
+
+    const meta = document.createElement("div");
+    meta.className = "users-meta";
+    meta.innerHTML = `
+      <strong>${user.username}</strong>
+      <span class="muted">${user.must_change_password ? "Требуется смена пароля" : "Пароль обновлён"}</span>
+    `;
+    item.appendChild(meta);
+
+    const actions = document.createElement("div");
+    actions.className = "review-actions";
+
+    if (!user.is_madmin) {
+      const resetBtn = document.createElement("button");
+      resetBtn.type = "button";
+      resetBtn.textContent = "Сбросить пароль";
+      resetBtn.addEventListener("click", async () => {
+        resetBtn.disabled = true;
+        try {
+          const data = await requestJson(`/api/accounts/users/${user.id}/reset-password`, {
+            method: "POST",
+            headers: {"X-CSRFToken": csrfToken()},
+          });
+          showUserResult(`Новый пароль для ${user.username}: ${data.generated_password}`);
+          toast(`Пароль пользователя ${user.username} сброшен.`);
+          await loadUsers();
+        } catch (error) {
+          toast(error.message);
+        } finally {
+          resetBtn.disabled = false;
+        }
+      });
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.type = "button";
+      deleteBtn.className = "danger-button";
+      deleteBtn.textContent = "Удалить";
+      deleteBtn.addEventListener("click", async () => {
+        if (!window.confirm(`Удалить пользователя ${user.username}?`)) {
+          return;
+        }
+        deleteBtn.disabled = true;
+        try {
+          await requestJson(`/api/accounts/users/${user.id}`, {
+            method: "DELETE",
+            headers: {"X-CSRFToken": csrfToken()},
+          });
+          toast(`Пользователь ${user.username} удалён.`);
+          await loadUsers();
+        } catch (error) {
+          toast(error.message);
+        } finally {
+          deleteBtn.disabled = false;
+        }
+      });
+
+      actions.appendChild(resetBtn);
+      actions.appendChild(deleteBtn);
+    } else {
+      const label = document.createElement("span");
+      label.className = "muted";
+      label.textContent = "mAdmin защищён от удаления и сброса";
+      actions.appendChild(label);
+    }
+
+    item.appendChild(actions);
+    list.appendChild(item);
+  });
+}
+
+async function loadUsers() {
+  const list = $("usersList");
+  if (!list || usersLoading) {
+    return;
+  }
+
+  usersLoading = true;
+  list.innerHTML = '<div class="muted">Загрузка...</div>';
+  try {
+    const data = await requestJson("/api/accounts/users");
+    renderUsers(data.users || []);
+  } catch (error) {
+    list.innerHTML = `<div class="danger">${error.message}</div>`;
+  } finally {
+    usersLoading = false;
+  }
+}
+
+async function createUser() {
+  const username = $("userCreateName")?.value.trim();
+  const password = $("userCreatePassword")?.value.trim();
+  if (!username) {
+    toast("Укажите имя пользователя.");
+    return;
+  }
+
+  const btn = $("btnCreateUser");
+  btn.disabled = true;
+  try {
+    const data = await requestJson("/api/accounts/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: JSON.stringify({username, password}),
+    });
+    $("userCreateName").value = "";
+    $("userCreatePassword").value = "";
+    showUserResult(`Пользователь ${data.user.username} создан. Пароль: ${data.generated_password}`);
+    toast(`Пользователь ${data.user.username} создан.`);
+    await loadUsers();
+  } catch (error) {
+    toast(error.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 $("ruText").addEventListener("input", () => {
   saveMenuDraft();
   schedulePreview();
@@ -518,8 +697,8 @@ $("showKcal").addEventListener("change", () => {
   preview().catch(() => {});
 });
 
-$("themeMode").addEventListener("change", (event) => {
-  applyTheme(event.target.value);
+$("btnTheme").addEventListener("click", () => {
+  toggleTheme();
 });
 
 $("printDateMode").addEventListener("change", updateDateUi);
@@ -550,6 +729,38 @@ $("btnSettings").addEventListener("click", (event) => {
   event.stopPropagation();
   setSettingsOpen($("settingsBar").hidden);
 });
+
+if ($("btnUsers")) {
+  $("btnUsers").addEventListener("click", async () => {
+    showUserResult("");
+    $("usersResult").hidden = true;
+    setUsersOpen(true);
+    await loadUsers();
+  });
+
+  $("btnCloseUsers").addEventListener("click", () => {
+    setUsersOpen(false);
+  });
+
+  $("usersModal").addEventListener("click", (event) => {
+    if (event.target.dataset.closeUsers === "1") {
+      setUsersOpen(false);
+    }
+  });
+
+  $("btnRefreshUsers").addEventListener("click", () => {
+    loadUsers().catch(() => {});
+  });
+
+  $("btnGenerateUserPassword").addEventListener("click", () => {
+    $("userCreatePassword").value = randomPassword();
+    showUserResult("Пароль сгенерирован. Он будет показан повторно только после создания или сброса.");
+  });
+
+  $("btnCreateUser").addEventListener("click", () => {
+    createUser().catch((error) => toast(error.message));
+  });
+}
 
 document.addEventListener("click", (event) => {
   const panel = $("settingsBar");
@@ -625,6 +836,7 @@ window.addEventListener("load", () => {
   applyTheme(loadStorage(STORAGE_KEYS.themeMode, "light"));
   setSettingsOpen(false);
   setReviewOpen(false);
+  setUsersOpen(false);
 
   preview().catch(() => {});
   refreshActions().catch(() => {});

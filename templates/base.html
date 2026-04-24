@@ -1,4 +1,4 @@
-{% load static %}
+﻿{% load static %}
 <!doctype html>
 <html lang="ru">
 <head>
@@ -35,6 +35,7 @@
       {% block topbar_actions %}{% endblock %}
     </div>
     <nav class="nav">
+      {% block header_controls %}{% endblock %}
       {% if request.user.is_authenticated %}
         <span>{{ request.user.username }}</span>
         <form action="{% url 'logout' %}" method="post">

@@ -1,4 +1,4 @@
-const STORAGE_KEYS = {
+﻿const STORAGE_KEYS = {
   missing: "menu_missing_ru",
   fix: "menu_fix_ru",
 };
@@ -92,11 +92,6 @@ function statusText(extra = "") {
   const shown = visibleRows().length;
   const total = rows.length;
   status(`${extra}${extra ? " | " : ""}Показано: ${shown}, загружено: ${total}`);
-}
-
-function updateAddButtonState() {
-  const hasLines = $("newDishes").value.split(/\r?\n/).some((line) => line.trim());
-  $("btnAddLines").disabled = !hasLines;
 }
 
 function buildGroupSelect(row) {
@@ -219,7 +214,6 @@ function addLines(sourceLines) {
   }
 
   render();
-  updateAddButtonState();
   return added;
 }
 
@@ -245,23 +239,12 @@ $("onlyNew").addEventListener("change", async () => {
   render();
 });
 
-$("btnReload").addEventListener("click", async () => {
-  await ensureFullDatabaseLoaded();
-  statusText("База обновлена");
-});
-
 $("newDishes").addEventListener("input", () => {
   syncRowsFromTextarea(false);
-  updateAddButtonState();
 });
 
 $("newDishes").addEventListener("blur", () => {
   syncRowsFromTextarea(true);
-});
-
-$("btnAddLines").addEventListener("click", () => {
-  const added = addLines(allTypedLines(true));
-  statusText(`Добавлено новых строк: ${added}`);
 });
 
 $("btnSave").addEventListener("click", async () => {
@@ -292,24 +275,6 @@ $("btnSave").addEventListener("click", async () => {
   }
 });
 
-$("btnImport").addEventListener("click", async () => {
-  const file = $("csvFile").files[0];
-  if (!file) {
-    return;
-  }
-
-  const form = new FormData();
-  form.append("file", file);
-  const res = await fetch("/api/dishes/import.csv", {
-    method: "POST",
-    headers: {"X-CSRFToken": csrfToken()},
-    body: form,
-  });
-  const data = await res.json();
-  status(`Импорт: создано ${data.created}, обновлено ${data.updated}, ошибок ${data.errors.length}`);
-  await loadRows();
-});
-
 window.addEventListener("load", async () => {
   const missingRaw = loadStorageJson(STORAGE_KEYS.missing);
   const fixRaw = loadStorageJson(STORAGE_KEYS.fix);
@@ -320,7 +285,6 @@ window.addEventListener("load", async () => {
   removeStorage(STORAGE_KEYS.fix);
 
   $("onlyNew").checked = true;
-  updateAddButtonState();
 
   if (missing.length) {
     focusedRuSet = null;

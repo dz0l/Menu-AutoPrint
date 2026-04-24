@@ -1,12 +1,8 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 {% block title %}Редактор базы{% endblock %}
 {% block topbar_actions %}
 <div class="page-actions">
-  <input id="csvFile" type="file" accept=".csv">
-  <button id="btnImport" type="button">Импорт CSV</button>
-  <button id="btnReload" type="button">Загрузить базу</button>
-  <button id="btnAddLines" type="button">Добавить строки</button>
   <button id="btnSave" class="primary" type="button">Сохранить</button>
   <label class="inline"><input id="onlyNew" type="checkbox" checked> Только новые блюда</label>
   <span id="status" class="muted"></span>
