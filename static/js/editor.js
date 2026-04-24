@@ -22,9 +22,32 @@ const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("cs
 let rows = [];
 let fullDatabaseLoaded = false;
 let focusedRuSet = null;
+let saveInFlight = false;
 
 function status(text) {
   $("status").textContent = text;
+}
+
+function toast(message) {
+  const box = $("toast");
+  if (!box) {
+    return;
+  }
+  box.textContent = message;
+  box.hidden = false;
+  setTimeout(() => {
+    box.hidden = true;
+  }, 2600);
+}
+
+function setSaveBusy(busy) {
+  saveInFlight = busy;
+  const button = $("btnSave");
+  if (!button) {
+    return;
+  }
+  button.disabled = busy;
+  button.textContent = busy ? "Сохранение..." : "Сохранить";
 }
 
 function emptyRow(ru = "") {
@@ -248,27 +271,44 @@ $("newDishes").addEventListener("blur", () => {
 });
 
 $("btnSave").addEventListener("click", async () => {
-  const payloadRows = editableRows();
-  const res = await fetch("/api/dishes/bulk-upsert", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": csrfToken(),
-    },
-    body: JSON.stringify({rows: payloadRows}),
-  });
-  const data = await res.json();
-  if (!res.ok) {
-    status(data.error || "Ошибка сохранения");
+  if (saveInFlight) {
     return;
   }
 
-  status(`Создано: ${data.created}, обновлено: ${data.updated}, ошибок: ${data.errors.length}`);
-  rows.forEach((row) => {
-    row._isNew = false;
-  });
+  setSaveBusy(true);
+  status("Пожалуйста, подождите... идёт сохранение.");
+  toast("Пожалуйста, подождите... идёт сохранение.");
 
-  location.href = "/";
+  const payloadRows = editableRows();
+  try {
+    const res = await fetch("/api/dishes/bulk-upsert", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: JSON.stringify({rows: payloadRows}),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      status(data.error || "Ошибка сохранения");
+      toast(data.error || "Ошибка сохранения");
+      return;
+    }
+
+    status(`Создано: ${data.created}, обновлено: ${data.updated}, ошибок: ${data.errors.length}`);
+    rows.forEach((row) => {
+      row._isNew = false;
+    });
+
+    location.href = "/";
+  } catch (error) {
+    const message = error?.message || "Ошибка сохранения";
+    status(message);
+    toast(message);
+  } finally {
+    setSaveBusy(false);
+  }
 });
 
 window.addEventListener("load", async () => {
