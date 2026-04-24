@@ -15,3 +15,19 @@ The installer clones or updates the repository, creates `.env` if needed, config
 Default editor account: `mAdmin` / `qwerty123`
 
 The password must be changed after the first login.
+
+## CSV Import From Server Path
+
+If `calories.csv` was uploaded to the server after the container was started, copy it into the running `web` container first:
+
+```bash
+cd /opt/menu-autoprint
+WEB_ID="$(docker compose ps -q web)"
+docker cp /opt/menu-autoprint/path/calories.csv "${WEB_ID}:/tmp/calories.csv"
+docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --dry-run
+docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv
+```
+
+```bash
+docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --apply-updates
+```
