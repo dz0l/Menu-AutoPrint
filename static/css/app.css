@@ -159,6 +159,19 @@ select {
   color: var(--ink);
 }
 
+.button-link {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  background: var(--input-bg);
+  color: var(--ink);
+  text-decoration: none;
+}
+
 button {
   cursor: pointer;
 }
@@ -220,6 +233,103 @@ button:disabled {
   text-align: center;
   white-space: pre-wrap;
   background: var(--preview-bg);
+}
+
+.document-stack {
+  display: grid;
+  gap: 20px;
+  justify-items: center;
+}
+
+.document-page {
+  width: min(210mm, 100%);
+}
+
+.document-surface {
+  position: relative;
+  min-height: 297mm;
+  padding: 18mm 14mm 18mm;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: #101418;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.document-bg,
+.document-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.document-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.document-overlay {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.document-page-label,
+.document-content,
+.document-footer {
+  position: relative;
+  z-index: 1;
+}
+
+.document-page-label {
+  margin-bottom: 10mm;
+  color: #586273;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.document-content {
+  min-height: calc(297mm - 54mm);
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  font-family: "Times New Roman", "Liberation Serif", serif;
+  font-size: 20pt;
+  line-height: 1.4;
+}
+
+.document-group {
+  margin-top: 20pt;
+  font-weight: 700;
+}
+
+.document-group:first-child {
+  margin-top: 0;
+}
+
+.document-dish {
+  margin-top: 2pt;
+}
+
+.document-group + .document-dish {
+  margin-top: 6pt;
+}
+
+.document-footer {
+  margin-top: 10mm;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: "Times New Roman", "Liberation Serif", serif;
+  font-size: 11pt;
+}
+
+.document-footer-left {
+  min-width: 0;
+}
+
+.document-footer-right {
+  white-space: nowrap;
 }
 
 .group {
@@ -508,5 +618,65 @@ td.small {
 
   .review-actions-column {
     min-width: 0;
+  }
+
+  .document-surface {
+    min-height: auto;
+    padding: 16px 14px 18px;
+  }
+
+  .document-content {
+    min-height: 0;
+    font-size: 17pt;
+  }
+
+  .document-page-label {
+    margin-bottom: 18px;
+  }
+
+  .document-footer {
+    margin-top: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media print {
+  .topbar,
+  .settings-bar,
+  .toast {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .shell {
+    width: auto;
+    margin: 0;
+    padding: 0;
+  }
+
+  .document-stack {
+    gap: 0;
+  }
+
+  .document-page {
+    width: auto;
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .document-page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  .document-surface {
+    min-height: 297mm;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 }

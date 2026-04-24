@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ filename }}{% endblock %}
+{% block topbar_actions %}
+<div class="page-actions document-toolbar">
+  <button id="btnPrintDocument" class="primary" type="button">Печать</button>
+  <a class="button-link" href="{{ pdf_url }}" target="_blank" rel="noopener">Открыть PDF</a>
+  <a class="button-link" href="{{ pdf_download_url }}">Скачать PDF</a>
+  <a class="button-link" href="{% url 'menu:index' %}">Назад</a>
+</div>
+{% endblock %}
+{% block content %}
+<section class="document-stack">
+  {% for page in pages %}
+  <article class="document-page">
+    <div class="document-surface">
+      {% if background_data %}
+      <img class="document-bg" src="{{ background_data }}" alt="">
+      <div class="document-overlay"></div>
+      {% endif %}
+      <div class="document-page-label">{{ page.label }}</div>
+      <div class="document-content">
+        {% for item in page.items %}
+          {% if item.type == "group" %}
+          <div class="document-group">{{ item.text }}{{ item.suffix|default:"" }}</div>
+          {% else %}
+          <div class="document-dish">&bull; {{ item.text }}{{ item.suffix|default:"" }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      <div class="document-footer">
+        <div class="document-footer-left">{% if show_kcal %}{{ footer_note }}{% endif %}</div>
+        <div class="document-footer-right">{{ display_date }}</div>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.getElementById("btnPrintDocument")?.addEventListener("click", function () {
+    window.print();
+  });
+</script>
+{% endblock %}

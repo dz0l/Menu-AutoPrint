@@ -730,34 +730,35 @@ async function collectPdfValidation() {
   return issues;
 }
 
-function openPdfInBrowser() {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = "/api/menu/pdf";
-  form.target = "_blank";
-  form.hidden = true;
-
-  const payload = {
-    csrfmiddlewaretoken: csrfToken(),
+function buildDocumentPayload() {
+  return {
     ru: $("ruText").value,
-    en: $("enText").value,
-    show_kcal: $("showKcal").checked ? "1" : "0",
+    show_kcal: $("showKcal").checked,
     print_date: resolvedPrintDate(),
     background_name: loadStorage(STORAGE_KEYS.pdfBackgroundName, ""),
     background_data: loadStorage(STORAGE_KEYS.pdfBackgroundData, ""),
   };
+}
 
-  Object.entries(payload).forEach(([name, value]) => {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = name;
-    input.value = value;
-    form.appendChild(input);
-  });
+function shouldUseMobileDocumentFlow() {
+  const ua = navigator.userAgent || "";
+  const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+  const coarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches;
+  const narrowViewport = window.innerWidth <= 900;
+  return Boolean(mobileUa || (coarsePointer && narrowViewport));
+}
 
-  document.body.appendChild(form);
-  form.submit();
-  form.remove();
+async function openDocumentFlow() {
+  const data = await postJson("/api/menu/render", buildDocumentPayload());
+  if (shouldUseMobileDocumentFlow()) {
+    location.href = data.preview_url;
+    return;
+  }
+
+  const popup = window.open(data.pdf_url, "_blank", "noopener");
+  if (!popup) {
+    location.href = data.preview_url;
+  }
 }
 
 function normalizeSuggestValue(value) {
@@ -1118,7 +1119,7 @@ $("btnPdf").addEventListener("click", async () => {
       setPdfBusy(false);
       return;
     }
-    openPdfInBrowser();
+    await openDocumentFlow();
     setTimeout(() => setPdfBusy(false), 1800);
   } catch (err) {
     setPdfBusy(false);
