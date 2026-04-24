@@ -740,22 +740,9 @@ function buildDocumentPayload() {
   };
 }
 
-function shouldUseMobileDocumentFlow() {
-  const ua = navigator.userAgent || "";
-  const mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
-  const coarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches;
-  const narrowViewport = window.innerWidth <= 900;
-  return Boolean(mobileUa || (coarsePointer && narrowViewport));
-}
-
 async function openDocumentFlow() {
   const data = await postJson("/api/menu/render", buildDocumentPayload());
-  if (shouldUseMobileDocumentFlow()) {
-    location.href = data.preview_url;
-    return;
-  }
-
-  const popup = window.open(data.pdf_url, "_blank", "noopener");
+  const popup = window.open(data.preview_url, "_blank", "noopener");
   if (!popup) {
     location.href = data.preview_url;
   }

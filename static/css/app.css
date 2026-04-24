@@ -273,18 +273,10 @@ button:disabled {
   background: rgba(255, 255, 255, 0.72);
 }
 
-.document-page-label,
 .document-content,
 .document-footer {
   position: relative;
   z-index: 1;
-}
-
-.document-page-label {
-  margin-bottom: 10mm;
-  color: #586273;
-  font-weight: 700;
-  letter-spacing: 0.08em;
 }
 
 .document-content {
@@ -630,14 +622,16 @@ td.small {
     font-size: 17pt;
   }
 
-  .document-page-label {
-    margin-bottom: 18px;
-  }
-
   .document-footer {
     margin-top: 20px;
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (pointer: coarse) and (max-width: 900px) {
+  .document-open-desktop {
+    display: none;
   }
 }
 

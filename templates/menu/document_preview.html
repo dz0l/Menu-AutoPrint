@@ -2,8 +2,7 @@
 {% block title %}{{ filename }}{% endblock %}
 {% block topbar_actions %}
 <div class="page-actions document-toolbar">
-  <button id="btnPrintDocument" class="primary" type="button">Печать</button>
-  <a class="button-link" href="{{ pdf_url }}" target="_blank" rel="noopener">Открыть PDF</a>
+  <a class="button-link document-open-desktop" href="{{ pdf_url }}" target="_blank" rel="noopener">Открыть PDF</a>
   <a class="button-link" href="{{ pdf_download_url }}">Скачать PDF</a>
   <a class="button-link" href="{% url 'menu:index' %}">Назад</a>
 </div>
@@ -17,7 +16,6 @@
       <img class="document-bg" src="{{ background_data }}" alt="">
       <div class="document-overlay"></div>
       {% endif %}
-      <div class="document-page-label">{{ page.label }}</div>
       <div class="document-content">
         {% for item in page.items %}
           {% if item.type == "group" %}
@@ -35,11 +33,4 @@
   </article>
   {% endfor %}
 </section>
-{% endblock %}
-{% block scripts %}
-<script>
-  document.getElementById("btnPrintDocument")?.addEventListener("click", function () {
-    window.print();
-  });
-</script>
 {% endblock %}
