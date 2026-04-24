@@ -795,7 +795,20 @@ $("btnPdf").addEventListener("click", async () => {
     }
 
     const blob = await res.blob();
-    window.open(URL.createObjectURL(blob), "_blank", "noopener,noreferrer");
+    const disposition = res.headers.get("Content-Disposition") || "";
+    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+    const plainMatch = disposition.match(/filename=\"?([^\";]+)\"?/i);
+    const filename = utf8Match
+      ? decodeURIComponent(utf8Match[1])
+      : (plainMatch?.[1] || "menu.pdf");
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   } catch (err) {
     toast(err.message || "Ошибка генерации PDF");
   }
