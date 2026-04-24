@@ -74,6 +74,12 @@ docker compose exec -T web python manage.py migrate
 docker compose exec -T web python manage.py bootstrap_editor --username mAdmin --password qwerty123
 docker compose exec -T web python manage.py collectstatic --noinput
 
+if [[ -f fonts/Times\ New\ Roman.ttf && -f fonts/Times\ New\ Roman\ Bold.ttf ]]; then
+  echo "Bundled Times New Roman fonts detected in the repository. The web image uses them automatically."
+else
+  echo "Bundled Times New Roman fonts were not found in the repository. PDF will use the nearest available serif fallback."
+fi
+
 if [[ -n "${HOST_IP:-}" ]]; then
   echo "Menu AutoPrint is running. Open http://$HOST_IP/"
 else

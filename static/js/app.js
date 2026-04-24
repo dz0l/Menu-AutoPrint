@@ -21,6 +21,7 @@ let actionTimer = null;
 let analyzeInFlight = false;
 let usersLoading = false;
 let lastPreviewData = null;
+let pdfInFlight = false;
 
 function toast(message) {
   const box = $("toast");
@@ -599,6 +600,16 @@ function openPdfInBrowser() {
   form.remove();
 }
 
+function setPdfBusy(busy) {
+  pdfInFlight = busy;
+  const button = $("btnPdf");
+  if (!button) {
+    return;
+  }
+  button.disabled = busy;
+  button.textContent = busy ? "PDF..." : "PDF";
+}
+
 function showUserResult(message) {
   const box = $("usersResult");
   if (!box) {
@@ -853,14 +864,22 @@ document.addEventListener("click", (event) => {
 window.addEventListener("resize", positionSuggest);
 
 $("btnPdf").addEventListener("click", async () => {
+  if (pdfInFlight) {
+    return;
+  }
+
+  setPdfBusy(true);
   try {
     const issues = await collectPdfValidation();
     if (issues.length) {
       toast(issues[0]);
+      setPdfBusy(false);
       return;
     }
     openPdfInBrowser();
+    setTimeout(() => setPdfBusy(false), 1800);
   } catch (err) {
+    setPdfBusy(false);
     toast(err.message || "Ошибка генерации PDF");
   }
 });

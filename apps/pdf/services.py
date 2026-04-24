@@ -19,11 +19,19 @@ logger = logging.getLogger(__name__)
 FONT_REGULAR = "MenuAutoPrintRegular"
 FONT_BOLD = "MenuAutoPrintBold"
 MENU_FONT_SIZE = 20
-MENU_LEADING = 24
+MENU_LEADING = 28
 GROUP_FONT_SIZE = 20
-GROUP_LEADING = 24
+GROUP_LEADING = 28
 FOOTER_FONT_SIZE = 11
 FONT_CANDIDATES = [
+    (
+        Path("/app/fonts/times.ttf"),
+        Path("/app/fonts/timesbd.ttf"),
+    ),
+    (
+        Path("/app/fonts/Times New Roman.ttf"),
+        Path("/app/fonts/Times New Roman Bold.ttf"),
+    ),
     (
         Path("/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf"),
         Path("/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman_Bold.ttf"),
@@ -234,9 +242,19 @@ def _draw_background(pdf: canvas.Canvas, background, page_width: float, page_hei
 
 def _build_blocks(items: list[dict], *, max_width: float, regular_font: str, bold_font: str) -> list[TextBlock]:
     blocks: list[TextBlock] = []
-    for item in items:
+    previous_type = None
+    for index, item in enumerate(items):
         is_group = item.get("type") == "group"
         text = f"{item.get('text', '')}{item.get('suffix', '')}".strip()
+        if index == 0:
+            space_before = 0
+        elif is_group:
+            space_before = 20
+        elif previous_type == "group":
+            space_before = 6
+        else:
+            space_before = 2
+
         if is_group:
             lines = _wrap_text(text, max_width=max_width, font_name=bold_font, font_size=GROUP_FONT_SIZE)
             blocks.append(
@@ -245,9 +263,10 @@ def _build_blocks(items: list[dict], *, max_width: float, regular_font: str, bol
                     font_name=bold_font,
                     font_size=GROUP_FONT_SIZE,
                     leading=GROUP_LEADING,
-                    space_before=16,
+                    space_before=space_before,
                 )
             )
+            previous_type = "group"
             continue
 
         lines = _wrap_dish_lines(
@@ -263,9 +282,10 @@ def _build_blocks(items: list[dict], *, max_width: float, regular_font: str, bol
                 font_name=regular_font,
                 font_size=MENU_FONT_SIZE,
                 leading=MENU_LEADING,
-                space_before=0,
+                space_before=space_before,
             )
         )
+        previous_type = "dish"
     return blocks
 
 
@@ -276,12 +296,22 @@ def _wrap_dish_lines(text: str, suffix: str, *, max_width: float, font_name: str
     if _text_width(full, font_name, font_size) <= max_width:
         return [full]
 
-    prefix, last = _split_last_word(raw)
-    tail = f"{last}{suffix}" if last else f"{raw}{suffix}"
-    first_line = f"{bullet}{prefix}".rstrip()
+    if not suffix:
+        return _wrap_text(full, max_width=max_width, font_name=font_name, font_size=font_size)
 
-    if prefix and _text_width(first_line, font_name, font_size) <= max_width and _text_width(tail, font_name, font_size) <= max_width:
-        return [first_line, tail]
+    words = raw.split()
+    for split_index in range(1, len(words)):
+        head = " ".join(words[:split_index]).strip()
+        tail = " ".join(words[split_index:]).strip()
+        first_line = f"{bullet}{head}".rstrip()
+        second_line = f"{tail}{suffix}".strip()
+        if (
+            head
+            and tail
+            and _text_width(first_line, font_name, font_size) <= max_width
+            and _text_width(second_line, font_name, font_size) <= max_width
+        ):
+            return [first_line, second_line]
 
     return _wrap_head_and_tail(raw, suffix, max_width=max_width, font_name=font_name, font_size=font_size)
 
