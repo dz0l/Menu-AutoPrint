@@ -15,6 +15,7 @@ RUN apt-get update \
       libpangoft2-1.0-0 \
       shared-mime-info \
       fonts-dejavu \
+      fonts-liberation2 \
       fonts-noto \
     && rm -rf /var/lib/apt/lists/*
 

@@ -20,6 +20,7 @@ let previewTimer = null;
 let actionTimer = null;
 let analyzeInFlight = false;
 let usersLoading = false;
+let lastPreviewData = null;
 
 function toast(message) {
   const box = $("toast");
@@ -124,8 +125,10 @@ function renderPreview(target, items) {
 async function preview() {
   const data = await postJson("/api/menu/preview", {
     ru: $("ruText").value,
+    en: $("enText").value,
     show_kcal: $("showKcal").checked,
   });
+  lastPreviewData = data;
   renderPreview($("previewRu"), data.ru);
   renderPreview($("previewEn"), data.en);
   $("enText").value = (data.en || []).map((item) => item.text).join("\n");
@@ -457,9 +460,12 @@ function renderReview(decisions) {
     const wrapper = document.createElement("div");
     wrapper.className = "review-item";
     wrapper.innerHTML = `
-      <div><strong>${item.raw}</strong> → ${item.best.name}</div>
-      <div class="review-score">Сходство: ${Math.round((item.best.score || 0) * 100)}%</div>
-      <div class="review-actions"></div>
+      <div class="review-compare">
+        <div class="review-source"><strong>${item.raw}</strong></div>
+        <div class="review-target">${item.best.name}</div>
+        <div class="review-score">Сходство: ${Math.round((item.best.score || 0) * 100)}%</div>
+      </div>
+      <div class="review-actions review-actions-column"></div>
     `;
     const actions = wrapper.querySelector(".review-actions");
 
@@ -475,7 +481,19 @@ function renderReview(decisions) {
       }
     });
 
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.textContent = "Отменить";
+    cancel.addEventListener("click", () => {
+      wrapper.remove();
+      if (!list.children.length) {
+        setReviewOpen(false);
+        toast("Список совпадений обработан.");
+      }
+    });
+
     actions.appendChild(apply);
+    actions.appendChild(cancel);
     list.appendChild(wrapper);
   });
 
@@ -517,6 +535,68 @@ function randomPassword() {
   const bytes = new Uint32Array(14);
   window.crypto.getRandomValues(bytes);
   return Array.from(bytes, (value) => alphabet[value % alphabet.length]).join("");
+}
+
+async function collectPdfValidation() {
+  const data = await postJson("/api/menu/preview", {
+    ru: $("ruText").value,
+    en: $("enText").value,
+    show_kcal: $("showKcal").checked,
+  });
+  lastPreviewData = data;
+  renderPreview($("previewRu"), data.ru);
+  renderPreview($("previewEn"), data.en);
+  $("enText").value = (data.en || []).map((item) => item.text).join("\n");
+
+  const ruPreview = data.ru || [];
+  const enPreview = data.en || [];
+  const enLines = lines($("enText").value);
+  const issues = [];
+
+  if ($("showKcal").checked) {
+    const hasUnknownSuffix = [...ruPreview, ...enPreview].some((item) => (item.suffix || "").includes("??"));
+    const hasUnknownTranslation = enLines.some((line) => line.includes("???"));
+    if (hasUnknownSuffix || hasUnknownTranslation) {
+      issues.push("Есть неизвестные блюда, переводы, граммовки или калории.");
+    }
+  } else {
+    const hasUnknownTranslation = enLines.some((line) => line.includes("???"));
+    if (hasUnknownTranslation) {
+      issues.push("Есть блюда без перевода.");
+    }
+  }
+
+  return issues;
+}
+
+function openPdfInBrowser() {
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = "/api/menu/pdf";
+  form.target = "_blank";
+  form.hidden = true;
+
+  const payload = {
+    csrfmiddlewaretoken: csrfToken(),
+    ru: $("ruText").value,
+    en: $("enText").value,
+    show_kcal: $("showKcal").checked ? "1" : "0",
+    print_date: resolvedPrintDate(),
+    background_name: loadStorage(STORAGE_KEYS.pdfBackgroundName, ""),
+    background_data: loadStorage(STORAGE_KEYS.pdfBackgroundData, ""),
+  };
+
+  Object.entries(payload).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.type = "hidden";
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
+  });
+
+  document.body.appendChild(form);
+  form.submit();
+  form.remove();
 }
 
 function showUserResult(message) {
@@ -774,41 +854,12 @@ window.addEventListener("resize", positionSuggest);
 
 $("btnPdf").addEventListener("click", async () => {
   try {
-    const res = await fetch("/api/menu/pdf", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrfToken(),
-      },
-      body: JSON.stringify({
-        ru: $("ruText").value,
-        en: $("enText").value,
-        show_kcal: $("showKcal").checked,
-        print_date: resolvedPrintDate(),
-        background_name: loadStorage(STORAGE_KEYS.pdfBackgroundName, ""),
-        background_data: loadStorage(STORAGE_KEYS.pdfBackgroundData, ""),
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(await res.text());
+    const issues = await collectPdfValidation();
+    if (issues.length) {
+      toast(issues[0]);
+      return;
     }
-
-    const blob = await res.blob();
-    const disposition = res.headers.get("Content-Disposition") || "";
-    const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
-    const plainMatch = disposition.match(/filename=\"?([^\";]+)\"?/i);
-    const filename = utf8Match
-      ? decodeURIComponent(utf8Match[1])
-      : (plainMatch?.[1] || "menu.pdf");
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    openPdfInBrowser();
   } catch (err) {
     toast(err.message || "Ошибка генерации PDF");
   }

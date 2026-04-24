@@ -305,6 +305,30 @@ button:disabled {
   flex-wrap: wrap;
 }
 
+.review-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.review-compare {
+  display: grid;
+  gap: 6px;
+}
+
+.review-source,
+.review-target {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.review-actions-column {
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 110px;
+}
+
 .review-score {
   color: var(--muted);
   font-size: 13px;
@@ -476,5 +500,13 @@ td.small {
   .users-dialog {
     width: calc(100% - 16px);
     margin: 8px auto;
+  }
+
+  .review-item {
+    grid-template-columns: 1fr;
+  }
+
+  .review-actions-column {
+    min-width: 0;
   }
 }

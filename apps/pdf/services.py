@@ -8,7 +8,7 @@ from io import BytesIO
 from pathlib import Path
 
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.utils import ImageReader, simpleSplit
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 
 FONT_REGULAR = "MenuAutoPrintRegular"
 FONT_BOLD = "MenuAutoPrintBold"
+MENU_FONT_SIZE = 20
+MENU_LEADING = 24
+GROUP_FONT_SIZE = 20
+GROUP_LEADING = 24
+FOOTER_FONT_SIZE = 11
 FONT_CANDIDATES = [
     (
         Path("/usr/share/fonts/truetype/msttcorefonts/Times_New_Roman.ttf"),
@@ -30,6 +35,10 @@ FONT_CANDIDATES = [
     (
         Path("/usr/share/fonts/truetype/liberation2/LiberationSerif-Regular.ttf"),
         Path("/usr/share/fonts/truetype/liberation2/LiberationSerif-Bold.ttf"),
+    ),
+    (
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"),
     ),
     (
         Path("C:/Windows/Fonts/times.ttf"),
@@ -64,7 +73,14 @@ class TextBlock:
     space_before: int
 
 
-def build_menu_pdf(*, preview: dict, print_date: str, background_name: str = "", background_data: str = "") -> bytes:
+def build_menu_pdf(
+    *,
+    preview: dict,
+    print_date: str,
+    show_kcal: bool,
+    background_name: str = "",
+    background_data: str = "",
+) -> bytes:
     regular_font, bold_font = _ensure_fonts_registered()
     display_date = format_print_date(print_date)
     background = _decode_background(background_data)
@@ -77,6 +93,7 @@ def build_menu_pdf(*, preview: dict, print_date: str, background_name: str = "",
             pdf,
             items=preview.get(page_name) or [],
             display_date=display_date,
+            show_kcal=show_kcal,
             regular_font=regular_font,
             bold_font=bold_font,
             background=background,
@@ -136,8 +153,8 @@ def _ensure_fonts_registered() -> tuple[str, str]:
             pdfmetrics.registerFont(TTFont(FONT_BOLD, str(bold_path)))
             return FONT_REGULAR, FONT_BOLD
 
-    logger.warning("Times-compatible fonts not found, falling back to built-in Times fonts")
-    return "Times-Roman", "Times-Bold"
+    logger.warning("No Cyrillic-capable serif font found, falling back to Helvetica")
+    return "Helvetica", "Helvetica-Bold"
 
 
 def _decode_background(background_data: str | None):
@@ -159,6 +176,7 @@ def _draw_preview_page(
     *,
     items: list[dict],
     display_date: str,
+    show_kcal: bool,
     regular_font: str,
     bold_font: str,
     background,
@@ -166,10 +184,9 @@ def _draw_preview_page(
     width, height = A4
     left = 42
     right = width - 42
-    bottom = 58
-    top = height - 48
     footer_y = 28
-    content_bottom = bottom + 20
+    content_bottom = 78
+    top = height - 48
     max_width = right - left
 
     if background is not None:
@@ -189,8 +206,9 @@ def _draw_preview_page(
             pdf.drawCentredString(width / 2, y, line)
             y -= block.leading
 
-    pdf.setFont(regular_font, 11)
-    pdf.drawString(left, footer_y, FOOTER_NOTE)
+    pdf.setFont(regular_font, FOOTER_FONT_SIZE)
+    if show_kcal:
+        pdf.drawString(left, footer_y, FOOTER_NOTE)
     pdf.drawRightString(right, footer_y, display_date)
 
 
@@ -218,16 +236,36 @@ def _build_blocks(items: list[dict], *, max_width: float, regular_font: str, bol
     blocks: list[TextBlock] = []
     for item in items:
         is_group = item.get("type") == "group"
-        text = f"{item.get('text', '')}{item.get('suffix', '')}"
+        text = f"{item.get('text', '')}{item.get('suffix', '')}".strip()
         if is_group:
-            lines = simpleSplit(text, bold_font, 18, max_width) or [text]
-            blocks.append(TextBlock(lines=lines, font_name=bold_font, font_size=18, leading=22, space_before=14))
+            lines = _wrap_text(text, max_width=max_width, font_name=bold_font, font_size=GROUP_FONT_SIZE)
+            blocks.append(
+                TextBlock(
+                    lines=lines,
+                    font_name=bold_font,
+                    font_size=GROUP_FONT_SIZE,
+                    leading=GROUP_LEADING,
+                    space_before=16,
+                )
+            )
             continue
 
-        dish_text = item.get("text", "")
-        suffix = item.get("suffix", "")
-        lines = _wrap_dish_lines(dish_text, suffix, max_width=max_width, font_name=regular_font, font_size=18)
-        blocks.append(TextBlock(lines=lines, font_name=regular_font, font_size=18, leading=22, space_before=0))
+        lines = _wrap_dish_lines(
+            item.get("text", ""),
+            item.get("suffix", ""),
+            max_width=max_width,
+            font_name=regular_font,
+            font_size=MENU_FONT_SIZE,
+        )
+        blocks.append(
+            TextBlock(
+                lines=lines,
+                font_name=regular_font,
+                font_size=MENU_FONT_SIZE,
+                leading=MENU_LEADING,
+                space_before=0,
+            )
+        )
     return blocks
 
 
@@ -241,6 +279,7 @@ def _wrap_dish_lines(text: str, suffix: str, *, max_width: float, font_name: str
     prefix, last = _split_last_word(raw)
     tail = f"{last}{suffix}" if last else f"{raw}{suffix}"
     first_line = f"{bullet}{prefix}".rstrip()
+
     if prefix and _text_width(first_line, font_name, font_size) <= max_width and _text_width(tail, font_name, font_size) <= max_width:
         return [first_line, tail]
 
@@ -253,7 +292,7 @@ def _wrap_head_and_tail(text: str, suffix: str, *, max_width: float, font_name: 
     if not words:
         return [f"{bullet}{suffix}".strip()]
     if len(words) == 1:
-        return simpleSplit(f"{bullet}{words[0]}{suffix}", font_name, font_size, max_width) or [f"{bullet}{words[0]}{suffix}"]
+        return _wrap_text(f"{bullet}{words[0]}{suffix}", max_width=max_width, font_name=font_name, font_size=font_size)
 
     head_words = words[:-1]
     tail = f"{words[-1]}{suffix}"
@@ -271,6 +310,24 @@ def _wrap_head_and_tail(text: str, suffix: str, *, max_width: float, font_name: 
     if current:
         lines.append(current)
     lines.append(tail)
+    return lines
+
+
+def _wrap_text(text: str, *, max_width: float, font_name: str, font_size: int) -> list[str]:
+    words = (text or "").split()
+    if not words:
+        return [""]
+
+    lines: list[str] = []
+    current = words[0]
+    for word in words[1:]:
+        candidate = f"{current} {word}".strip()
+        if _text_width(candidate, font_name, font_size) <= max_width:
+            current = candidate
+        else:
+            lines.append(current)
+            current = word
+    lines.append(current)
     return lines
 
 

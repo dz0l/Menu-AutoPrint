@@ -22,6 +22,18 @@ def _json_body(request) -> dict:
     return json.loads(request.body.decode("utf-8"))
 
 
+def _request_payload(request) -> dict:
+    if request.content_type and "application/json" in request.content_type:
+        return _json_body(request)
+    return request.POST.dict()
+
+
+def _to_bool(value) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() not in {"", "0", "false", "no", "off", "none"}
+
+
 @ensure_csrf_cookie
 def index(request):
     return render(request, "menu/index.html")
@@ -34,26 +46,27 @@ def editor(request):
 
 @require_http_methods(["POST"])
 def preview_api(request):
-    data = _json_body(request)
+    data = _request_payload(request)
     ru_lines = normalize_lines(data.get("ru") or data.get("ru_lines"))
     en_lines = normalize_lines(data.get("en") or data.get("en_lines"))
     if not en_lines:
         en_lines = translate_lines(ru_lines)
-    return JsonResponse(build_preview(ru_lines, en_lines, show_kcal=data.get("show_kcal", True)))
+    return JsonResponse(build_preview(ru_lines, en_lines, show_kcal=_to_bool(data.get("show_kcal", True))))
 
 
 @require_http_methods(["POST"])
 def analyze_api(request):
-    data = _json_body(request)
+    data = _request_payload(request)
     return JsonResponse({"decisions": analyze_pasted(data.get("text") or "")})
 
 
 @require_http_methods(["POST"])
 def pdf_api(request):
-    data = _json_body(request)
+    data = _request_payload(request)
     ru_lines = normalize_lines(data.get("ru") or data.get("ru_lines"))
     en_lines = normalize_lines(data.get("en") or data.get("en_lines")) or translate_lines(ru_lines)
-    preview = build_preview(ru_lines, en_lines, show_kcal=data.get("show_kcal", True))
+    show_kcal = _to_bool(data.get("show_kcal", True))
+    preview = build_preview(ru_lines, en_lines, show_kcal=show_kcal)
     print_date = data.get("print_date") or ""
     background_name = data.get("background_name") or ""
     background_data = data.get("background_data") or ""
@@ -62,6 +75,7 @@ def pdf_api(request):
         pdf = build_menu_pdf(
             preview=preview,
             print_date=print_date,
+            show_kcal=show_kcal,
             background_name=background_name,
             background_data=background_data,
         )

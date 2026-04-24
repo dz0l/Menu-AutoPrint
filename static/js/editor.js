@@ -268,11 +268,7 @@ $("btnSave").addEventListener("click", async () => {
     row._isNew = false;
   });
 
-  if (fullDatabaseLoaded) {
-    await loadRows();
-  } else {
-    render();
-  }
+  location.href = "/";
 });
 
 window.addEventListener("load", async () => {
