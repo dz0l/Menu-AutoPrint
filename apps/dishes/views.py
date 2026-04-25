@@ -14,6 +14,7 @@ from .services import (
     dish_to_dict,
     duplicate_groups,
     export_dishes_csv,
+    find_dish_by_ru_name,
     import_dishes_csv,
     list_dishes,
     suggest,
@@ -113,8 +114,21 @@ def import_csv(request):
 def bulk_upsert(request):
     if not _editor_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
-    rows = _json_body(request).get("rows", [])
-    result = {"created": 0, "updated": 0, "errors": []}
+    payload = _json_body(request)
+    rows = payload.get("rows", [])
+    delete_ids = payload.get("delete_ids", [])
+    result = {"created": 0, "updated": 0, "deleted": 0, "errors": []}
+
+    for index, dish_id in enumerate(delete_ids):
+        try:
+            dish = Dish.objects.get(id=dish_id)
+            delete_dish(dish, request.user)
+            result["deleted"] += 1
+        except Dish.DoesNotExist:
+            result["errors"].append({"delete_index": index, "error": "dish not found"})
+        except Exception as exc:
+            result["errors"].append({"delete_index": index, "error": str(exc)})
+
     for index, row in enumerate(rows):
         try:
             if row.get("id"):
@@ -122,6 +136,8 @@ def bulk_upsert(request):
                 update_dish(dish, row, request.user)
                 result["updated"] += 1
             else:
+                if find_dish_by_ru_name(row.get("ru") or row.get("name_ru") or ""):
+                    raise ValueError("duplicate ru name")
                 _, created = upsert_dish(row, request.user)
                 result["created" if created else "updated"] += 1
         except Exception as exc:

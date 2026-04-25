@@ -20,6 +20,7 @@ const $ = (id) => document.getElementById(id);
 const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("csrftoken="))?.split("=")[1] || "";
 
 let rows = [];
+let deletedRowIds = [];
 let fullDatabaseLoaded = false;
 let focusedRuSet = null;
 let saveInFlight = false;
@@ -108,7 +109,7 @@ function removeStorage(key) {
 }
 
 function normalizedKey(value) {
-  return (value || "").trim().toLowerCase();
+  return (value || "").trim().toLowerCase().replace(/ё/g, "е");
 }
 
 function groupRank(value) {
@@ -159,6 +160,10 @@ function editableRows() {
 
 function changedRows() {
   return editableRows().filter((row) => row._isNew || row._dirty);
+}
+
+function changedDeleteIds() {
+  return [...new Set(deletedRowIds)];
 }
 
 function statusText(extra = "") {
@@ -270,16 +275,13 @@ function render() {
     del.type = "button";
     del.className = "danger";
     del.textContent = "Удалить";
-    del.addEventListener("click", async () => {
+    del.addEventListener("click", () => {
       if (row.id) {
-        await fetch(`/api/dishes/${row.id}`, {
-          method: "DELETE",
-          headers: {"X-CSRFToken": csrfToken()},
-        });
+        deletedRowIds.push(row.id);
       }
       rows.splice(index, 1);
       render();
-      statusText();
+      statusText("Удаление будет применено после сохранения.");
     });
     action.appendChild(del);
     tr.appendChild(action);
@@ -395,14 +397,15 @@ $("btnSave").addEventListener("click", async () => {
   }
 
   const payloadRows = changedRows();
-  if (!payloadRows.length) {
+  const deleteIds = changedDeleteIds();
+  if (!payloadRows.length && !deleteIds.length) {
     status("Нет изменений для сохранения.");
     toast("Нет изменений для сохранения.");
     return;
   }
 
   setSaveBusy(true);
-  status(`Пожалуйста, подождите... идёт сохранение (${payloadRows.length}).`);
+  status(`Пожалуйста, подождите... идёт сохранение (${payloadRows.length}), удаление (${deleteIds.length}).`);
   toast("Пожалуйста, подождите... идёт сохранение.");
   try {
     const res = await fetch("/api/dishes/bulk-upsert", {
@@ -411,7 +414,7 @@ $("btnSave").addEventListener("click", async () => {
         "Content-Type": "application/json",
         "X-CSRFToken": csrfToken(),
       },
-      body: JSON.stringify({rows: payloadRows}),
+      body: JSON.stringify({rows: payloadRows, delete_ids: deleteIds}),
     });
     const data = await res.json();
     if (!res.ok) {
@@ -424,13 +427,18 @@ $("btnSave").addEventListener("click", async () => {
       return;
     }
 
-    status(`Создано: ${data.created}, обновлено: ${data.updated}, ошибок: ${data.errors.length}`);
+    const errorsCount = data.errors?.length || 0;
+    status(`Создано: ${data.created}, обновлено: ${data.updated}, удалено: ${data.deleted || 0}, ошибок: ${errorsCount}`);
+    deletedRowIds = [];
+    if (errorsCount > 0) {
+      toast("Сохранение завершилось с ошибками. Проверьте строки и повторите.");
+      return;
+    }
     payloadRows.forEach((row) => {
       row._isNew = false;
       row._dirty = false;
       row._original = rowSnapshot(row);
     });
-
     location.href = "/";
   } catch (error) {
     const message = error?.message || "Ошибка сохранения";

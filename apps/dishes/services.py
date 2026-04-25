@@ -78,15 +78,33 @@ def _dish_update_payload(data: dict) -> dict:
     return payload
 
 
+def find_dish_by_ru_name(name_ru: str, *, exclude_id: int | None = None) -> Dish | None:
+    norm = normalize_ru(name_ru)
+    if not norm:
+        return None
+
+    qs = Dish.objects.all()
+    if exclude_id is not None:
+        qs = qs.exclude(id=exclude_id)
+
+    dish = qs.filter(name_ru_norm=norm).first()
+    if dish:
+        return dish
+
+    for candidate in qs.only("id", "name_ru", "name_ru_norm"):
+        if normalize_ru(candidate.name_ru) == norm:
+            return candidate
+    return None
+
+
 def upsert_dish(data: dict, actor=None) -> tuple[Dish, bool]:
     name_ru = (data.get("ru") or data.get("name_ru") or "").strip()
     if not name_ru:
         raise ValueError("name_ru required")
     payload = _dish_update_payload(data)
 
-    norm = normalize_ru(name_ru)
     with transaction.atomic():
-        dish = Dish.objects.filter(name_ru_norm=norm).first()
+        dish = find_dish_by_ru_name(name_ru)
         created = dish is None
         if created:
             dish = Dish(name_ru=name_ru, created_by=actor if getattr(actor, "is_authenticated", False) else None)
@@ -115,6 +133,10 @@ def update_dish(dish: Dish, data: dict, actor=None) -> Dish:
     payload = _dish_update_payload(data)
 
     with transaction.atomic():
+        duplicate = find_dish_by_ru_name(name_ru, exclude_id=dish.id)
+        if duplicate:
+            raise ValueError("duplicate ru name")
+
         dish.name_ru = name_ru
         for key, value in payload.items():
             setattr(dish, key, value)
@@ -204,7 +226,7 @@ def import_dishes_csv(text: str, actor=None, dry_run=False) -> ImportResult:
 def review_dishes_csv_import(text: str) -> ImportReviewResult:
     rows = parse_csv_semicolon(text)
     dishes = list(Dish.objects.all())
-    by_norm = {dish.name_ru_norm: dish for dish in dishes}
+    by_norm = {normalize_ru(dish.name_ru): dish for dish in dishes}
 
     result = ImportReviewResult(
         create_candidates=[],
@@ -582,7 +604,7 @@ def check_missing_fixables(ru_lines: list[str]) -> dict:
     missing = []
     fixables = []
     seen = set()
-    dishes = {dish.name_ru_norm: dish for dish in Dish.objects.all()}
+    dishes = {normalize_ru(dish.name_ru): dish for dish in Dish.objects.all()}
     for raw in ru_lines:
         text = (raw or "").strip()
         if not text or text.endswith(":"):

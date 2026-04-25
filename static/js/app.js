@@ -748,6 +748,7 @@ async function openDocumentFlow() {
 function normalizeSuggestValue(value) {
   return String(value || "")
     .toLowerCase()
+    .replace(/ё/g, "е")
     .replace(/[•"'`]/g, "")
     .replace(/\s+/g, " ")
     .trim();

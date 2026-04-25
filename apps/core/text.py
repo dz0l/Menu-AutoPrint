@@ -7,6 +7,7 @@ STOP_WORDS_RU = {"с", "со", "и", "из", "на", "в", "во", "от", "по
 def clean_name(value: str | None) -> str:
     text = str(value or "")
     text = text.replace("\u00a0", " ")
+    text = text.replace("ё", "е").replace("Ё", "е")
     text = re.sub(r"[•\-—–]", " ", text)
     text = re.sub(r"[“”„«»\"'’`]", "", text)
     text = re.sub(r"\s+", " ", text)
@@ -15,6 +16,7 @@ def clean_name(value: str | None) -> str:
 
 def normalize_ru(value: str | None) -> str:
     text = str(value or "").lower().strip()
+    text = text.replace("ё", "е")
     text = re.sub(r"[«»„”\"’'`]", "", text)
     text = re.sub(r"[.]+", "", text)
     text = re.sub(r"[–—−]+", "-", text)
