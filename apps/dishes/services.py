@@ -254,6 +254,87 @@ def import_dishes_csv_safely(text: str, actor=None, dry_run=False, apply_updates
     return outcome
 
 
+def replace_dishes_csv(text: str, actor=None, dry_run=False) -> dict:
+    rows = parse_csv_semicolon(text)
+    parsed_rows = []
+    errors = []
+    skipped = 0
+    seen_norms: dict[str, int] = {}
+
+    for index, row in enumerate(rows, start=1):
+        try:
+            incoming = _csv_row_to_payload(row)
+        except Exception as exc:
+            errors.append({"row": index, "error": str(exc)})
+            continue
+
+        if not incoming["ru"]:
+            skipped += 1
+            continue
+
+        norm = normalize_ru(incoming["ru"])
+        duplicate_row = seen_norms.get(norm)
+        if duplicate_row is not None:
+            errors.append(
+                {
+                    "row": index,
+                    "error": f"duplicate ru name in CSV; already seen on row {duplicate_row}: {incoming['ru']}",
+                }
+            )
+            continue
+
+        seen_norms[norm] = index
+        parsed_rows.append({"row": index, "incoming": incoming})
+
+    if not parsed_rows:
+        errors.append({"row": 0, "error": "CSV does not contain any non-empty dish rows"})
+
+    if errors:
+        return {
+            "deleted": 0,
+            "created": 0,
+            "skipped": skipped,
+            "errors": errors,
+        }
+
+    deleted = Dish.objects.count()
+    actor_ref = actor if getattr(actor, "is_authenticated", False) else None
+
+    with transaction.atomic():
+        existing = list(Dish.objects.only("id", "name_ru"))
+        if existing:
+            DishChangeLog.objects.bulk_create(
+                [
+                    DishChangeLog(
+                        dish=dish,
+                        dish_id_snapshot=dish.id,
+                        name_ru_snapshot=dish.name_ru,
+                        actor=actor_ref,
+                        action=DishChangeLog.ACTION_DELETE,
+                        changed_fields={"mode": "replace_all"},
+                    )
+                    for dish in existing
+                ],
+                batch_size=500,
+            )
+            Dish.objects.all().delete()
+
+        created = 0
+        for item in parsed_rows:
+            upsert_dish(item["incoming"], actor)
+            created += 1
+
+        if dry_run:
+            transaction.set_rollback(True)
+
+    return {
+        "deleted": deleted,
+        "created": created,
+        "skipped": skipped,
+        "errors": [],
+    }
+
+
 def _csv_row_to_payload(row: list[str]) -> dict:
     padded = list(row) + [""] * (6 - len(row))
     ru, en, kcal, cat_ru, cat_en, gr = padded[:6]

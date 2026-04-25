@@ -2,7 +2,7 @@
 
 from django.core.management.base import BaseCommand, CommandError
 
-from apps.dishes.services import import_dishes_csv_safely, review_dishes_csv_import
+from apps.dishes.services import import_dishes_csv_safely, replace_dishes_csv, review_dishes_csv_import
 
 
 class Command(BaseCommand):
@@ -12,6 +12,11 @@ class Command(BaseCommand):
         parser.add_argument("path")
         parser.add_argument("--dry-run", action="store_true")
         parser.add_argument("--apply-updates", action="store_true")
+        parser.add_argument(
+            "--replace-all",
+            action="store_true",
+            help="Delete all current dishes and recreate the dishes table contents from CSV in one transaction.",
+        )
         parser.add_argument("--show", type=int, default=20, help="How many review rows to print per section")
 
     def handle(self, *args, **options):
@@ -20,6 +25,30 @@ class Command(BaseCommand):
             raise CommandError(f"File not found: {path}")
 
         text = path.read_text(encoding="utf-8-sig")
+        if options["replace_all"]:
+            show_limit = max(int(options["show"]), 1)
+            outcome = replace_dishes_csv(
+                text,
+                dry_run=options["dry_run"],
+            )
+            self._print_errors(outcome["errors"][:show_limit])
+            if outcome["errors"]:
+                raise CommandError("Replace aborted: fix CSV errors before using --replace-all.")
+
+            prefix = "DRY RUN (no changes committed): " if options["dry_run"] else ""
+            self.stdout.write(
+                self.style.WARNING(
+                    "replace-all mode: the current dishes table will be fully replaced by the CSV contents."
+                )
+            )
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"{prefix}replace-all: deleted={outcome['deleted']} created={outcome['created']} "
+                    f"skipped={outcome['skipped']} errors={len(outcome['errors'])}"
+                )
+            )
+            return
+
         review = review_dishes_csv_import(text)
         show_limit = max(int(options["show"]), 1)
 
