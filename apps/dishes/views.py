@@ -17,6 +17,7 @@ from .services import (
     import_dishes_csv,
     list_dishes,
     suggest,
+    update_dish,
     upsert_dish,
 )
 
@@ -55,8 +56,10 @@ def dish_detail(request, dish_id):
         delete_dish(dish, request.user)
         return JsonResponse({"deleted": True})
     data = _json_body(request)
-    data["ru"] = data.get("ru") or dish.name_ru
-    updated, _ = upsert_dish(data, request.user)
+    try:
+        updated = update_dish(dish, data, request.user)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
     return JsonResponse(dish_to_dict(updated))
 
 
@@ -114,8 +117,13 @@ def bulk_upsert(request):
     result = {"created": 0, "updated": 0, "errors": []}
     for index, row in enumerate(rows):
         try:
-            _, created = upsert_dish(row, request.user)
-            result["created" if created else "updated"] += 1
+            if row.get("id"):
+                dish = Dish.objects.get(id=row["id"])
+                update_dish(dish, row, request.user)
+                result["updated"] += 1
+            else:
+                _, created = upsert_dish(row, request.user)
+                result["created" if created else "updated"] += 1
         except Exception as exc:
             result["errors"].append({"index": index, "error": str(exc)})
     result["duplicates"] = duplicate_groups(rows)

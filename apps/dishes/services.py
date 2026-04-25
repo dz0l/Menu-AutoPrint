@@ -65,10 +65,7 @@ def parse_int_or_none(value):
     return int(value)
 
 
-def upsert_dish(data: dict, actor=None) -> tuple[Dish, bool]:
-    name_ru = (data.get("ru") or data.get("name_ru") or "").strip()
-    if not name_ru:
-        raise ValueError("name_ru required")
+def _dish_update_payload(data: dict) -> dict:
     payload = {
         "name_en": (data.get("en") or data.get("name_en") or "").strip(),
         "kcal_per_100": parse_int_or_none(data.get("kcal", data.get("kcal_per_100"))),
@@ -78,6 +75,14 @@ def upsert_dish(data: dict, actor=None) -> tuple[Dish, bool]:
     }
     if payload["category_ru"] and not payload["category_en"]:
         payload["category_en"] = CAT_RU2EN.get(payload["category_ru"], "")
+    return payload
+
+
+def upsert_dish(data: dict, actor=None) -> tuple[Dish, bool]:
+    name_ru = (data.get("ru") or data.get("name_ru") or "").strip()
+    if not name_ru:
+        raise ValueError("name_ru required")
+    payload = _dish_update_payload(data)
 
     norm = normalize_ru(name_ru)
     with transaction.atomic():
@@ -101,6 +106,32 @@ def upsert_dish(data: dict, actor=None) -> tuple[Dish, bool]:
             changed_fields=payload,
         )
     return dish, created
+
+
+def update_dish(dish: Dish, data: dict, actor=None) -> Dish:
+    name_ru = (data.get("ru") or data.get("name_ru") or dish.name_ru or "").strip()
+    if not name_ru:
+        raise ValueError("name_ru required")
+    payload = _dish_update_payload(data)
+
+    with transaction.atomic():
+        dish.name_ru = name_ru
+        for key, value in payload.items():
+            setattr(dish, key, value)
+        dish.updated_by = actor if getattr(actor, "is_authenticated", False) else None
+        try:
+            dish.save()
+        except IntegrityError as exc:
+            raise ValueError("блюдо уже существует") from exc
+        DishChangeLog.objects.create(
+            dish=dish,
+            dish_id_snapshot=dish.id,
+            name_ru_snapshot=dish.name_ru,
+            actor=actor if getattr(actor, "is_authenticated", False) else None,
+            action=DishChangeLog.ACTION_UPDATE,
+            changed_fields=payload | {"name_ru": name_ru},
+        )
+    return dish
 
 
 def delete_dish(dish: Dish, actor=None) -> None:
