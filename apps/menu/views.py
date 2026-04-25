@@ -55,7 +55,7 @@ def _build_document_payload(data: dict) -> dict:
     background_name = data.get("background_name") or ""
     background_data = data.get("background_data") or ""
     preview = build_preview(ru_lines, en_lines, show_kcal=show_kcal)
-    filename = build_download_filename(print_date, background_name)
+    filename = build_download_filename(print_date, background_name, ru_lines=ru_lines)
     return {
         "preview": preview,
         "show_kcal": show_kcal,

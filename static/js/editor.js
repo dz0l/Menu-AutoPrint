@@ -51,6 +51,10 @@ function setSaveBusy(busy) {
   button.textContent = busy ? "Сохранение..." : "Сохранить";
 }
 
+function authRequiredMessage() {
+  return "Сохранение базы доступно только после входа в систему. Авторизуйтесь и повторите попытку.";
+}
+
 function emptyRow(ru = "") {
   return {
     ru,
@@ -411,8 +415,12 @@ $("btnSave").addEventListener("click", async () => {
     });
     const data = await res.json();
     if (!res.ok) {
-      status(data.error || "Ошибка сохранения");
-      toast(data.error || "Ошибка сохранения");
+      const message =
+        res.status === 403
+          ? authRequiredMessage()
+          : data.error || "Ошибка сохранения";
+      status(message);
+      toast(message);
       return;
     }
 

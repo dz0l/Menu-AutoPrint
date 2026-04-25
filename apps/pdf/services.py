@@ -118,8 +118,9 @@ def build_menu_pdf(
     return buffer.getvalue()
 
 
-def build_download_filename(print_date: str, background_name: str = "") -> str:
-    return f"{format_print_stamp(print_date)} - {resolve_cover_location(background_name)}.pdf"
+def build_download_filename(print_date: str, background_name: str = "", ru_lines: list[str] | None = None) -> str:
+    breakfast_suffix = " (завтрак)" if _has_breakfast_first_group(ru_lines) else ""
+    return f"{format_print_stamp(print_date)} - {resolve_cover_location(background_name)}{breakfast_suffix}.pdf"
 
 
 def resolve_cover_location(background_name: str | None) -> str:
@@ -137,6 +138,13 @@ def format_print_date(value: str | None) -> str:
 def format_print_stamp(value: str | None) -> str:
     parsed = _parse_date(value)
     return parsed.strftime("%d%m%Y")
+
+
+def _has_breakfast_first_group(lines: list[str] | None) -> bool:
+    if not lines:
+        return False
+    first = (lines[0] or "").strip().lower()
+    return first == "завтрак:"
 
 
 def _parse_date(value: str | None) -> date:
