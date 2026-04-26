@@ -1,6 +1,5 @@
 ﻿const STORAGE_KEYS = {
-  missing: "menu_missing_ru",
-  fix: "menu_fix_ru",
+  editorRows: "menu_editor_rows",
   lastRu: "menu_last_ru",
   lastEn: "menu_last_en",
   pdfBackgroundName: "menu_pdf_background_name",
@@ -285,10 +284,11 @@ async function refreshActions() {
   }
   lastMissing = data.missing || [];
   lastFixables = data.fixables || [];
-  $("btnMissing").disabled = lastMissing.length === 0;
-  $("btnFix").disabled = lastFixables.length === 0;
-  $("btnMissing").title = lastMissing.length ? `Новых блюд: ${lastMissing.length}` : "Новых блюд нет";
-  $("btnFix").title = lastFixables.length ? `Неполных блюд: ${lastFixables.length}` : "Неполных блюд нет";
+  const total = lastMissing.length + lastFixables.length;
+  $("btnMissing").disabled = total === 0;
+  $("btnMissing").title = total
+    ? `Новых блюд: ${lastMissing.length}, неполных блюд: ${lastFixables.length}`
+    : "Новых и неполных блюд нет";
 }
 
 function schedulePreview() {
@@ -754,6 +754,35 @@ function normalizeSuggestValue(value) {
     .trim();
 }
 
+function buildEditorRowsFromActions() {
+  const missingByKey = new Map(lastMissing.map((item) => [normalizeSuggestValue(item), item]));
+  const fixableByKey = new Map(lastFixables.map((item) => [normalizeSuggestValue(item), item]));
+  const seen = new Set();
+  const result = [];
+
+  function addItem(ru, mode) {
+    const key = normalizeSuggestValue(ru);
+    if (!key || seen.has(key)) {
+      return;
+    }
+    seen.add(key);
+    result.push({ru, mode});
+  }
+
+  lines($("ruText").value).forEach((line) => {
+    const key = normalizeSuggestValue(line);
+    if (missingByKey.has(key)) {
+      addItem(line, "missing");
+    } else if (fixableByKey.has(key)) {
+      addItem(line, "fix");
+    }
+  });
+
+  lastMissing.forEach((item) => addItem(item, "missing"));
+  lastFixables.forEach((item) => addItem(item, "fix"));
+  return result;
+}
+
 function localSuggest(query, catalog) {
   const norm = normalizeSuggestValue(query);
   if (!norm) {
@@ -1114,22 +1143,11 @@ $("btnPdf").addEventListener("click", async () => {
 
 $("btnMissing").addEventListener("click", async () => {
   await refreshActions();
-  if (!lastMissing.length) {
+  const editorRows = buildEditorRowsFromActions();
+  if (!editorRows.length) {
     return;
   }
-  saveStorage(STORAGE_KEYS.missing, JSON.stringify(lastMissing));
-  removeStorage(STORAGE_KEYS.fix);
-  saveMenuDraft();
-  location.href = "/editor/";
-});
-
-$("btnFix").addEventListener("click", async () => {
-  await refreshActions();
-  if (!lastFixables.length) {
-    return;
-  }
-  saveStorage(STORAGE_KEYS.fix, JSON.stringify(lastFixables));
-  removeStorage(STORAGE_KEYS.missing);
+  saveStorage(STORAGE_KEYS.editorRows, JSON.stringify(editorRows));
   saveMenuDraft();
   location.href = "/editor/";
 });

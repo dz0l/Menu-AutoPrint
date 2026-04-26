@@ -1,6 +1,5 @@
-﻿const STORAGE_KEYS = {
-  missing: "menu_missing_ru",
-  fix: "menu_fix_ru",
+const STORAGE_KEYS = {
+  editorRows: "menu_editor_rows",
 };
 
 const GROUP_OPTIONS = [
@@ -23,6 +22,7 @@ let rows = [];
 let deletedRowIds = [];
 let fullDatabaseLoaded = false;
 let focusedRuSet = null;
+let focusedOrder = new Map();
 let saveInFlight = false;
 let sortState = {key: "", direction: "asc"};
 
@@ -81,6 +81,11 @@ function rowSnapshot(row) {
   };
 }
 
+function isBlankNewRow(row) {
+  const snapshot = rowSnapshot(row);
+  return row._isNew && Object.values(snapshot).every((value) => String(value || "").trim() === "");
+}
+
 function isRowDirty(row) {
   if (row._isNew) {
     return true;
@@ -112,6 +117,13 @@ function normalizedKey(value) {
   return (value || "").trim().toLowerCase().replace(/ё/g, "е");
 }
 
+function rowInFocusedSet(row) {
+  if (!focusedRuSet || !focusedRuSet.size) {
+    return false;
+  }
+  return row._isNew || focusedRuSet.has(normalizedKey(row.ru));
+}
+
 function groupRank(value) {
   const index = GROUP_OPTIONS.indexOf(value || "");
   return index === -1 ? GROUP_OPTIONS.length : index;
@@ -122,44 +134,30 @@ function searchQuery() {
   return input && !$("onlyNew").checked ? normalizedKey(input.value) : "";
 }
 
-function allTypedLines(includeDraft = false) {
-  const raw = $("newDishes").value.replace(/\r/g, "");
-  const source = raw.split("\n").map((line) => line.trim());
-  const hasTrailingBreak = raw.endsWith("\n");
-
-  return source.filter((line, index) => {
-    if (!line) {
-      return false;
-    }
-    if (includeDraft || hasTrailingBreak) {
-      return true;
-    }
-    return index < source.length - 1;
-  });
-}
-
 function visibleRows() {
-  let current = $("onlyNew").checked ? rows.filter((row) => row._isNew) : rows;
+  let current = rows;
   if (focusedRuSet && focusedRuSet.size) {
-    current = current.filter((row) => focusedRuSet.has(normalizedKey(row.ru)));
+    current = current.filter((row) => rowInFocusedSet(row));
+  } else if ($("onlyNew").checked) {
+    current = current.filter((row) => row._isNew);
   }
+
   const query = searchQuery();
   if (query) {
     current = current.filter((row) => normalizedKey(row.ru).includes(query));
   }
-  current = sortRowsForDisplay(current);
-  return current;
+  return sortRowsForDisplay(current);
 }
 
 function editableRows() {
   if (focusedRuSet && focusedRuSet.size) {
-    return rows.filter((row) => focusedRuSet.has(normalizedKey(row.ru)));
+    return rows.filter((row) => rowInFocusedSet(row));
   }
   return $("onlyNew").checked ? rows.filter((row) => row._isNew) : rows;
 }
 
 function changedRows() {
-  return editableRows().filter((row) => row._isNew || row._dirty);
+  return editableRows().filter((row) => !isBlankNewRow(row) && (row._isNew || row._dirty));
 }
 
 function changedDeleteIds() {
@@ -172,8 +170,16 @@ function statusText(extra = "") {
   status(`${extra}${extra ? " | " : ""}Показано: ${shown}, загружено: ${total}`);
 }
 
+function focusedRank(row) {
+  const key = normalizedKey(row.ru);
+  return focusedOrder.has(key) ? focusedOrder.get(key) : Number.MAX_SAFE_INTEGER;
+}
+
 function sortRowsForDisplay(sourceRows) {
   if (!sortState.key) {
+    if (focusedRuSet && focusedRuSet.size) {
+      return [...sourceRows].sort((left, right) => focusedRank(left) - focusedRank(right));
+    }
     return sourceRows;
   }
 
@@ -335,8 +341,8 @@ async function loadRows() {
   render();
 }
 
-function addLines(sourceLines) {
-  const existing = new Set(rows.map((row) => normalizedKey(row.ru)));
+function addRowsFromLines(sourceLines) {
+  const existing = new Set(rows.map((row) => normalizedKey(row.ru)).filter(Boolean));
   let added = 0;
 
   for (const line of sourceLines) {
@@ -354,11 +360,10 @@ function addLines(sourceLines) {
   return added;
 }
 
-function syncRowsFromTextarea(includeDraft = false) {
-  const added = addLines(allTypedLines(includeDraft));
-  if (added > 0) {
-    statusText(`Добавлено новых строк: ${added}`);
-  }
+function addBlankRow() {
+  rows.push(emptyRow(""));
+  render();
+  statusText("Добавлена пустая строка.");
 }
 
 async function ensureFullDatabaseLoaded() {
@@ -369,6 +374,19 @@ async function ensureFullDatabaseLoaded() {
   await loadRows();
 }
 
+function setFocusedRows(items) {
+  focusedRuSet = new Set();
+  focusedOrder = new Map();
+  items.forEach((item, index) => {
+    const key = normalizedKey(item.ru || item);
+    if (!key || focusedRuSet.has(key)) {
+      return;
+    }
+    focusedRuSet.add(key);
+    focusedOrder.set(key, index);
+  });
+}
+
 $("onlyNew").addEventListener("change", async () => {
   if (!$("onlyNew").checked) {
     await ensureFullDatabaseLoaded();
@@ -377,18 +395,14 @@ $("onlyNew").addEventListener("change", async () => {
   render();
 });
 
+$("btnAddRow").addEventListener("click", () => {
+  addBlankRow();
+});
+
 $("searchRu").addEventListener("input", render);
 
 document.querySelectorAll(".table-sort").forEach((button) => {
   button.addEventListener("click", () => toggleSort(button.dataset.sort));
-});
-
-$("newDishes").addEventListener("input", () => {
-  syncRowsFromTextarea(false);
-});
-
-$("newDishes").addEventListener("blur", () => {
-  syncRowsFromTextarea(true);
 });
 
 $("btnSave").addEventListener("click", async () => {
@@ -450,37 +464,31 @@ $("btnSave").addEventListener("click", async () => {
 });
 
 window.addEventListener("load", async () => {
-  const missingRaw = loadStorageJson(STORAGE_KEYS.missing);
-  const fixRaw = loadStorageJson(STORAGE_KEYS.fix);
-  const missing = Array.isArray(missingRaw) ? missingRaw : [];
-  const fix = Array.isArray(fixRaw) ? fixRaw : [];
-
-  removeStorage(STORAGE_KEYS.missing);
-  removeStorage(STORAGE_KEYS.fix);
+  const incomingRaw = loadStorageJson(STORAGE_KEYS.editorRows);
+  const incoming = Array.isArray(incomingRaw) ? incomingRaw.filter((item) => item && item.ru) : [];
+  removeStorage(STORAGE_KEYS.editorRows);
 
   $("onlyNew").checked = true;
   updateSearchVisibility();
   updateSortButtons();
 
-  if (missing.length) {
-    focusedRuSet = null;
-    $("newDishes").value = missing.join("\n");
-    syncRowsFromTextarea(true);
-    statusText(`Новых блюд: ${missing.length}`);
-    return;
-  }
-
-  if (fix.length) {
-    focusedRuSet = new Set(fix.map((item) => normalizedKey(item)));
-    $("onlyNew").checked = false;
+  if (incoming.length) {
+    const missing = incoming.filter((item) => item.mode === "missing").map((item) => item.ru);
+    const hasFixRows = incoming.some((item) => item.mode === "fix");
+    setFocusedRows(incoming);
+    $("onlyNew").checked = !hasFixRows;
     updateSearchVisibility();
-    $("newDishes").value = fix.join("\n");
-    await loadRows();
-    statusText(`Неполных блюд: ${fix.length}`);
+
+    if (hasFixRows) {
+      await loadRows();
+    }
+    const added = addRowsFromLines(missing);
+    statusText(`К редактированию: ${incoming.length}, новых строк: ${added}`);
     return;
   }
 
   focusedRuSet = null;
+  focusedOrder = new Map();
   render();
-  status("Быстрый режим: полная база скрыта. Снимите галочку, чтобы загрузить все блюда.");
+  status("Быстрый режим: нажмите + для нового блюда или снимите галочку, чтобы загрузить всю базу.");
 });

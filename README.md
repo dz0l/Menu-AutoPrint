@@ -50,3 +50,11 @@ To fully replace the current dishes table with the CSV contents:
 docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --replace-all --dry-run
 docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --replace-all
 ```
+
+###
+
+```bash
+cd /opt/menu-autoprint
+git pull
+docker compose up -d --build web
+```

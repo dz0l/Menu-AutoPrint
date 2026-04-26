@@ -4,36 +4,30 @@
 {% block topbar_actions %}
 <div class="page-actions">
   <button id="btnSave" class="primary" type="button">Сохранить</button>
+  <button id="btnAddRow" class="icon-button" type="button" title="Добавить блюдо" aria-label="Добавить блюдо">+</button>
   <label class="inline"><input id="onlyNew" type="checkbox" checked> Только новые блюда</label>
   <span id="status" class="muted"></span>
 </div>
 {% endblock %}
 {% block content %}
-<section class="grid-two editor-layout">
-  <div class="panel">
-    <h1>Новые блюда</h1>
-    <p class="muted">Одно блюдо на строку.</p>
-    <textarea id="newDishes" placeholder="Одно блюдо на строку"></textarea>
+<section class="panel table-panel">
+  <div class="editor-table-head">
+    <h1>База</h1>
+    <input id="searchRu" class="editor-search" type="search" placeholder="Поиск RU" autocomplete="off" hidden>
   </div>
-  <div class="panel table-panel">
-    <div class="editor-table-head">
-      <h1>База</h1>
-      <input id="searchRu" class="editor-search" type="search" placeholder="Поиск RU" autocomplete="off" hidden>
-    </div>
-    <table>
-      <thead>
-        <tr>
-          <th><button class="table-sort" type="button" data-sort="ru">RU</button></th>
-          <th><button class="table-sort" type="button" data-sort="en">EN</button></th>
-          <th>kcal</th>
-          <th>гр</th>
-          <th><button class="table-sort" type="button" data-sort="catRu">Группа RU</button></th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
-  </div>
+  <table>
+    <thead>
+      <tr>
+        <th><button class="table-sort" type="button" data-sort="ru">RU</button></th>
+        <th><button class="table-sort" type="button" data-sort="en">EN</button></th>
+        <th>kcal</th>
+        <th>гр</th>
+        <th><button class="table-sort" type="button" data-sort="catRu">Группа RU</button></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
 </section>
 {% endblock %}
 {% block scripts %}
