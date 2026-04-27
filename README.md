@@ -66,5 +66,5 @@ Create a manual PostgreSQL backup:
 
 ```bash
 cd /opt/menu-autoprint
-docker compose exec backup sh /scripts/backup_postgres.sh once
+docker compose run --rm backup sh /scripts/backup_postgres.sh once
 ```

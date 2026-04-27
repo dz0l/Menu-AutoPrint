@@ -57,7 +57,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: ["sh", "/scripts/backup_postgres.sh"]
+    command: ["sh", "/scripts/backup_postgres.sh", "loop"]
     volumes:
       - ./scripts/backup_postgres.sh:/scripts/backup_postgres.sh:ro
       - ./backups:/backups

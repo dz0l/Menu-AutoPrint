@@ -5,6 +5,7 @@ BACKUP_DIR="${BACKUP_DIR:-/backups}"
 BACKUP_INTERVAL_DAYS="${BACKUP_INTERVAL_DAYS:-10}"
 BACKUP_KEEP="${BACKUP_KEEP:-3}"
 BACKUP_START_DELAY_SECONDS="${BACKUP_START_DELAY_SECONDS:-300}"
+MODE="${1:-once}"
 
 mkdir -p "$BACKUP_DIR"
 
@@ -28,9 +29,14 @@ backup_once() {
     | xargs -r rm -f
 }
 
-if [ "${1:-}" = "once" ]; then
+if [ "$MODE" = "once" ]; then
   backup_once
   exit 0
+fi
+
+if [ "$MODE" != "loop" ]; then
+  echo "Usage: $0 [once|loop]" >&2
+  exit 2
 fi
 
 if [ "$BACKUP_START_DELAY_SECONDS" -gt 0 ]; then
