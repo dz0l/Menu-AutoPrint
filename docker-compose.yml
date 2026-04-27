@@ -43,8 +43,8 @@ services:
       - nginx
     env_file: .env
     ports:
-      - "80:80"
-      - "443:443"
+      - "${CADDY_BIND_ADDRESS:-0.0.0.0}:80:80"
+      - "${CADDY_BIND_ADDRESS:-0.0.0.0}:443:443"
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data

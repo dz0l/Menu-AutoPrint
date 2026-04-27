@@ -4,6 +4,7 @@ set -eu
 BACKUP_DIR="${BACKUP_DIR:-/backups}"
 BACKUP_INTERVAL_DAYS="${BACKUP_INTERVAL_DAYS:-10}"
 BACKUP_KEEP="${BACKUP_KEEP:-3}"
+BACKUP_START_DELAY_SECONDS="${BACKUP_START_DELAY_SECONDS:-300}"
 
 mkdir -p "$BACKUP_DIR"
 
@@ -26,6 +27,16 @@ backup_once() {
     | awk "NR>${BACKUP_KEEP}" \
     | xargs -r rm -f
 }
+
+if [ "${1:-}" = "once" ]; then
+  backup_once
+  exit 0
+fi
+
+if [ "$BACKUP_START_DELAY_SECONDS" -gt 0 ]; then
+  echo "Waiting ${BACKUP_START_DELAY_SECONDS}s before first scheduled PostgreSQL backup"
+  sleep "$BACKUP_START_DELAY_SECONDS"
+fi
 
 while true; do
   backup_once

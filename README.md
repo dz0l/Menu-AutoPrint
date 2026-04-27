@@ -17,11 +17,14 @@ Default editor account: `mAdmin` / `qwerty123`
 The password must be changed after the first login.
 
 Default deployment runs through `Caddy` in LAN/HTTP mode with `CADDY_SITE_ADDRESS=:80`.
-For public HTTPS later, update `.env`: set `CADDY_SITE_ADDRESS` to your domain, enable `DJANGO_ENABLE_HTTPS=1`, and set matching `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`.
+Only Caddy publishes ports to the host; `nginx` and `web` stay internal to the Docker network.
+`CADDY_BIND_ADDRESS=0.0.0.0` exposes Caddy on the server network. Use `127.0.0.1` for local-only access.
+For public HTTPS later, update `.env`: set `CADDY_SITE_ADDRESS` to your domain, keep `CADDY_BIND_ADDRESS=0.0.0.0`, enable `DJANGO_ENABLE_HTTPS=1`, and set matching `DJANGO_ALLOWED_HOSTS` and `DJANGO_CSRF_TRUSTED_ORIGINS`.
 
 ```bash
 .env:
 CADDY_SITE_ADDRESS=your-domain.tld
+CADDY_BIND_ADDRESS=0.0.0.0
 DJANGO_ENABLE_HTTPS=1
 DJANGO_ALLOWED_HOSTS=your-domain.tld,...
 DJANGO_CSRF_TRUSTED_ORIGINS=https://your-domain.tld
@@ -51,10 +54,17 @@ docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --r
 docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --replace-all
 ```
 
-###
+## Maintenance
 
 ```bash
 cd /opt/menu-autoprint
 git pull
 docker compose up -d --build web
+```
+
+Create a manual PostgreSQL backup:
+
+```bash
+cd /opt/menu-autoprint
+docker compose exec backup sh /scripts/backup_postgres.sh once
 ```
