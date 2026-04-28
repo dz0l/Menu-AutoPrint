@@ -14,15 +14,15 @@
   </div>
   <input id="printDateCustom" class="date-input" type="date" aria-label="Дата печати">
   <input id="backgroundFile" type="file" accept="image/*" hidden>
-  <button id="btnBackground" class="icon-button" type="button" title="Подложка" aria-label="Подложка"><span class="ui-icon">▧</span></button>
+  <button id="btnBackground" class="icon-button" type="button" title="Подложка" aria-label="Подложка"><span class="ui-icon" data-ui-icon="image-plus"></span></button>
   <label class="toggle-pill" title="Печатать калории и граммовки"><input id="showKcal" type="checkbox" checked><span>Калл/Гр</span></label>
 </div>
 {% endblock %}
 {% block header_controls %}
-<a class="icon-button" href="{% url 'menu:editor' %}" title="База" aria-label="База"><span class="ui-icon">▦</span></a>
-<button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon">☾</span></button>
-<button id="btnSettings" class="icon-button" type="button" aria-expanded="false" aria-controls="settingsBar" aria-label="Настройки" title="Настройки"><span class="ui-icon">☷</span></button>
-<button id="btnPdf" class="primary" type="button">Печать</button>
+<a class="icon-button" href="{% url 'menu:editor' %}" title="База" aria-label="База"><span class="ui-icon" data-ui-icon="database"></span></a>
+<button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon" data-ui-icon="moon-star"></span></button>
+<button id="btnSettings" class="icon-button" type="button" aria-expanded="false" aria-controls="settingsBar" aria-label="Настройки" title="Настройки"><span class="ui-icon" data-ui-icon="settings"></span></button>
+<button id="btnPdf" class="primary" type="button"><span class="ui-icon" data-ui-icon="printer"></span> Печать</button>
 {% endblock %}
 {% block topbar_panel %}
 <section id="settingsBar" class="settings-bar shell" hidden>
@@ -44,10 +44,9 @@
         <span id="lineCounter" class="counter">0 строк</span>
       </div>
       <div class="field-tools">
-        <button id="btnUndo" class="icon-button" type="button" title="Отменить" aria-label="Отменить">↶</button>
-        <button id="btnRedo" class="icon-button" type="button" title="Повторить" aria-label="Повторить">↷</button>
-        <button id="btnAnalyze" class="button" type="button">Совпадения</button>
-        <button id="btnMissing" class="button warn" type="button" disabled>Проверить и открыть редактор</button>
+        <button id="btnUndo" class="icon-button" type="button" title="Отменить" aria-label="Отменить"><span class="ui-icon" data-ui-icon="undo-2"></span></button>
+        <button id="btnRedo" class="icon-button" type="button" title="Повторить" aria-label="Повторить"><span class="ui-icon" data-ui-icon="redo-2"></span></button>
+        <button id="btnMissing" class="button warn" type="button"><span class="ui-icon" data-ui-icon="database-zap"></span> Проверить и открыть редактор</button>
       </div>
     </div>
     <div class="editor-wrap">

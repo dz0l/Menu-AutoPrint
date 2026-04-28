@@ -7,6 +7,7 @@
   <title>{% block title %}Формирование меню{% endblock %}</title>
   <link rel="icon" href="{% static 'favicon.ico' %}" sizes="any">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="{% static 'js/icons.js' %}" defer></script>
   <script>
     (function () {
       try {
@@ -19,37 +20,39 @@
   </script>
 </head>
 <body>
-  <script>
-    (function () {
-      try {
-        var theme = localStorage.getItem("menu_theme_mode") || "light";
-        if (theme === "dark") {
-          document.body.classList.add("theme-dark");
-        }
-      } catch (e) {}
-    })();
-  </script>
-  <header class="topbar">
-    <a class="brand" href="{% url 'menu:index' %}">Формирование меню</a>
-    {% block topbar_actions %}{% endblock %}
-    <nav class="nav">
-      {% block header_controls %}{% endblock %}
-      {% if request.user.is_authenticated %}
-        <span>{{ request.user.username }}</span>
-        <form action="{% url 'logout' %}" method="post">
-          {% csrf_token %}
-          <button type="submit">Выход</button>
-        </form>
-      {% else %}
-        <a href="{% url 'login' %}">Вход</a>
-      {% endif %}
-    </nav>
-  </header>
-  {% block topbar_panel %}{% endblock %}
-  <main class="shell">
-    {% block content %}{% endblock %}
-  </main>
-  <div id="toast" class="toast" hidden></div>
+  <div class="app">
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("menu_theme_mode") || "light";
+          if (theme === "dark") {
+            document.body.classList.add("theme-dark");
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <header class="topbar">
+      <a class="brand" href="{% url 'menu:index' %}">Формирование меню</a>
+      {% block topbar_actions %}{% endblock %}
+      <nav class="nav">
+        {% block header_controls %}{% endblock %}
+        {% if request.user.is_authenticated %}
+          <span>{{ request.user.username }}</span>
+          <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button class="icon-button" type="submit" title="Выход" aria-label="Выход"><span class="ui-icon" data-ui-icon="logout"></span></button>
+          </form>
+        {% else %}
+          <a class="icon-button" href="{% url 'login' %}" title="Вход" aria-label="Вход"><span class="ui-icon" data-ui-icon="login"></span></a>
+        {% endif %}
+      </nav>
+    </header>
+    {% block topbar_panel %}{% endblock %}
+    <main class="shell">
+      {% block content %}{% endblock %}
+    </main>
+    <div id="toast" class="toast" hidden></div>
+  </div>
   {% block scripts %}{% endblock %}
 </body>
 </html>

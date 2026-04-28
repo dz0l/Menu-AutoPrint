@@ -239,15 +239,19 @@ function setRuTextValue(value, options = {}) {
   updateLineCounter();
 }
 
-function themeButtonText(theme) {
-  return theme === "dark" ? "☼" : "☾";
+function themeIconName(theme) {
+  return theme === "dark" ? "sun" : "moon-star";
 }
 
 function applyTheme(theme) {
   document.body.classList.toggle("theme-dark", theme === "dark");
   const button = $("btnTheme");
   if (button) {
-    button.textContent = themeButtonText(theme);
+    const icon = button.querySelector("[data-ui-icon]");
+    if (icon) {
+      icon.setAttribute("data-ui-icon", themeIconName(theme));
+      window.MenuIcons?.render(button);
+    }
     button.title = theme === "dark" ? "Светлая тема" : "Тёмная тема";
     button.setAttribute("aria-label", button.title);
   }
@@ -570,10 +574,9 @@ async function refreshActions(reason = "manual") {
   lastFixables = data.fixables || [];
   actionsAppliedSignature = signature;
   const total = lastMissing.length + lastFixables.length;
-  $("btnMissing").disabled = total === 0;
   $("btnMissing").title = total
     ? `Новых блюд: ${lastMissing.length}, неполных блюд: ${lastFixables.length}`
-    : "Новых и неполных блюд нет";
+    : "Проверить меню и открыть редактор при необходимости";
   debugLog("actions:updated", {
     seq,
     reason,
@@ -926,8 +929,13 @@ function replaceMenuLines(replacements) {
   return replaced;
 }
 
-function renderReview(decisions) {
+function renderReview(decisions, options = {}) {
   const body = $("reviewBody");
+  const finishReview = () => {
+    if (typeof options.onComplete === "function") {
+      options.onComplete();
+    }
+  };
   const autoReplacements = (decisions || [])
     .filter((item) => item.status === "auto" && item.best?.name)
     .map((item) => ({source: item.raw, target: item.best.name}));
@@ -941,6 +949,7 @@ function renderReview(decisions) {
     } else {
       toast("Совпадений для замены не найдено.");
     }
+    finishReview();
     return;
   }
 
@@ -969,6 +978,7 @@ function renderReview(decisions) {
       if (!list.children.length) {
         setReviewOpen(false);
         toast("Все предложенные замены применены.");
+        finishReview();
       }
     });
 
@@ -980,6 +990,7 @@ function renderReview(decisions) {
       if (!list.children.length) {
         setReviewOpen(false);
         toast("Список совпадений обработан.");
+        finishReview();
       }
     });
 
@@ -993,6 +1004,7 @@ function renderReview(decisions) {
     const replaced = replaceMenuLines(replacements);
     setReviewOpen(false);
     toast(`Заменено: ${replaced}${autoCount ? `, автоматически: ${autoCount}` : ""}`);
+    finishReview();
   };
 
   if (autoCount > 0) {
@@ -1001,16 +1013,19 @@ function renderReview(decisions) {
   setReviewOpen(true);
 }
 
-async function runAnalyze() {
+async function runAnalyze(options = {}) {
   if (analyzeInFlight) {
     debugWarn("analyze:skip", {reason: "already-in-flight"});
     return;
   }
 
   analyzeInFlight = true;
-  $("btnAnalyze").disabled = true;
-  const originalText = $("btnAnalyze").textContent;
-  $("btnAnalyze").textContent = "Поиск...";
+  const button = options.button || $("btnMissing");
+  const originalText = button?.textContent || "";
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Проверка...";
+  }
   const started = performance.now();
   debugLog("analyze:start", {
     payload: payloadSummary({text: $("ruText").value}),
@@ -1022,16 +1037,44 @@ async function runAnalyze() {
       {text: $("ruText").value},
       {log: {name: "analyze", reason: "button"}},
     );
-    renderReview(decisions.decisions || []);
+    renderReview(decisions.decisions || [], options);
     debugLog("analyze:done", {
       durationMs: Math.round(performance.now() - started),
       decisions: (decisions.decisions || []).length,
     });
   } finally {
     analyzeInFlight = false;
-    $("btnAnalyze").disabled = false;
-    $("btnAnalyze").textContent = originalText;
+    if (button) {
+      button.disabled = false;
+      if (button.id === "btnMissing") {
+        button.innerHTML = '<span class="ui-icon" data-ui-icon="database-zap"></span> Проверить и открыть редактор';
+        window.MenuIcons?.render(button);
+      } else {
+        button.textContent = originalText;
+      }
+    }
   }
+}
+
+async function openEditorFromActions() {
+  await refreshActions("open-editor");
+  const editorRows = buildEditorRowsFromActions();
+  if (!editorRows.length) {
+    toast("Новых и неполных блюд нет.");
+    return;
+  }
+  saveStorage(STORAGE_KEYS.editorRows, JSON.stringify(editorRows));
+  saveMenuDraft();
+  location.href = "/editor/";
+}
+
+async function checkAndOpenEditor() {
+  await runAnalyze({
+    button: $("btnMissing"),
+    onComplete: () => {
+      openEditorFromActions().catch((error) => toast(error.message));
+    },
+  });
 }
 
 function randomPassword() {
@@ -1447,10 +1490,6 @@ $("backgroundFile").addEventListener("change", (event) => {
   storeBackground(event.target.files?.[0]);
 });
 
-$("btnAnalyze").addEventListener("click", () => {
-  runAnalyze().catch((err) => toast(err.message));
-});
-
 $("btnCloseReview").addEventListener("click", () => {
   setReviewOpen(false);
 });
@@ -1530,14 +1569,7 @@ $("btnPdf").addEventListener("click", async () => {
 });
 
 $("btnMissing").addEventListener("click", async () => {
-  await refreshActions("open-editor");
-  const editorRows = buildEditorRowsFromActions();
-  if (!editorRows.length) {
-    return;
-  }
-  saveStorage(STORAGE_KEYS.editorRows, JSON.stringify(editorRows));
-  saveMenuDraft();
-  location.href = "/editor/";
+  await checkAndOpenEditor();
 });
 
 window.addEventListener("load", () => {
