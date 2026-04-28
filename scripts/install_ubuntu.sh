@@ -76,6 +76,8 @@ fi
 docker compose up -d --build
 docker compose exec -T web python manage.py migrate
 docker compose exec -T web python manage.py bootstrap_editor --username mAdmin --password qwerty123
+docker compose exec -T web python manage.py shell -c "from django.contrib.auth import get_user_model; user = get_user_model().objects.get(username='mAdmin'); assert user.is_active and user.check_password('qwerty123')"
+docker compose exec -T web python manage.py shell -c "from django.core.cache import cache; cache.clear()"
 
 if [[ -f fonts/Times\ New\ Roman.ttf && -f fonts/Times\ New\ Roman\ Bold.ttf ]]; then
   echo "Bundled Times New Roman fonts detected in the repository. The web image uses them automatically."

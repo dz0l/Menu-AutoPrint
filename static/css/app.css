@@ -49,7 +49,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font: 14px/1.4 "IBM Plex Sans", "Segoe UI", Tahoma, sans-serif;
+  font: 13px/1.36 "IBM Plex Sans", "Segoe UI", Tahoma, sans-serif;
 }
 
 a { color: inherit; }
@@ -70,9 +70,9 @@ a { color: inherit; }
   position: sticky;
   top: 0;
   z-index: 1000;
-  min-height: 50px;
+  min-height: 49px;
   display: grid;
-  grid-template-columns: minmax(170px, auto) minmax(0, 1fr);
+  grid-template-columns: auto minmax(340px, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding: 8px 14px;
@@ -81,7 +81,6 @@ a { color: inherit; }
   backdrop-filter: blur(12px);
 }
 
-.topbar-group,
 .page-actions,
 .nav,
 .review-actions,
@@ -93,10 +92,6 @@ a { color: inherit; }
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-}
-
-.topbar-group {
-  min-width: 0;
 }
 
 .brand {
@@ -117,6 +112,12 @@ a { color: inherit; }
 
 .nav a {
   text-decoration: none;
+}
+
+.ui-icon {
+  font-family: "Segoe UI Symbol", "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-size: 17px;
+  line-height: 1;
 }
 
 .nav form {
@@ -412,7 +413,7 @@ body.theme-dark .editor-wrap textarea {
   padding: 30px 26px 10px;
   text-align: center;
   white-space: pre-wrap;
-  font-size: 16px;
+  font-size: 14.5px;
   line-height: 1.36;
 }
 
@@ -858,7 +859,6 @@ td select {
     grid-template-columns: 1fr;
   }
 
-  .topbar-group,
   .main-toolbar,
   .nav {
     justify-content: flex-start;

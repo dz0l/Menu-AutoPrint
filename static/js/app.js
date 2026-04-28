@@ -240,7 +240,7 @@ function setRuTextValue(value, options = {}) {
 }
 
 function themeButtonText(theme) {
-  return theme === "dark" ? "☀️" : "🌙";
+  return theme === "dark" ? "☼" : "☾";
 }
 
 function applyTheme(theme) {

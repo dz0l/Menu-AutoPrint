@@ -14,15 +14,15 @@
   </div>
   <input id="printDateCustom" class="date-input" type="date" aria-label="Дата печати">
   <input id="backgroundFile" type="file" accept="image/*" hidden>
-  <button id="btnBackground" class="button" type="button" title="Выбрать подложку">Подложка</button>
+  <button id="btnBackground" class="icon-button" type="button" title="Подложка" aria-label="Подложка"><span class="ui-icon">▧</span></button>
   <label class="toggle-pill" title="Печатать калории и граммовки"><input id="showKcal" type="checkbox" checked><span>Калл/Гр</span></label>
-  <a class="button-link" href="{% url 'menu:editor' %}" title="Редактор базы">База</a>
-  <button id="btnPdf" class="primary" type="button">Печать</button>
 </div>
 {% endblock %}
 {% block header_controls %}
-<button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему">🌙</button>
-<button id="btnSettings" class="icon-button" type="button" aria-expanded="false" aria-controls="settingsBar" aria-label="Настройки" title="Настройки">⚙️</button>
+<a class="icon-button" href="{% url 'menu:editor' %}" title="База" aria-label="База"><span class="ui-icon">▦</span></a>
+<button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon">☾</span></button>
+<button id="btnSettings" class="icon-button" type="button" aria-expanded="false" aria-controls="settingsBar" aria-label="Настройки" title="Настройки"><span class="ui-icon">☷</span></button>
+<button id="btnPdf" class="primary" type="button">Печать</button>
 {% endblock %}
 {% block topbar_panel %}
 <section id="settingsBar" class="settings-bar shell" hidden>

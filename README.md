@@ -15,6 +15,7 @@ The installer clones or updates the repository, creates `.env` if needed, config
 Default editor account: `mAdmin` / `qwerty123`
 
 The password must be changed after the first login.
+New passwords must include at least 8 characters, one uppercase letter, and one special character.
 
 Default deployment runs through `Caddy` in LAN/HTTP mode with `CADDY_SITE_ADDRESS=:80`.
 Only Caddy publishes ports to the host; `nginx` and `web` stay internal to the Docker network.
@@ -72,3 +73,11 @@ docker compose run --rm backup sh /scripts/backup_postgres.sh once
 ```
 
 Rollback notes are in `ROLLBACK.md`.
+
+Reset the bootstrap editor account if first login does not work:
+
+```bash
+cd /opt/menu-autoprint
+docker compose exec web python manage.py bootstrap_editor --username mAdmin --password qwerty123
+docker compose exec web python manage.py shell -c "from django.core.cache import cache; cache.clear()"
+```

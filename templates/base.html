@@ -30,10 +30,8 @@
     })();
   </script>
   <header class="topbar">
-    <div class="topbar-group">
-      <a class="brand" href="{% url 'menu:index' %}">Формирование меню</a>
-      {% block topbar_actions %}{% endblock %}
-    </div>
+    <a class="brand" href="{% url 'menu:index' %}">Формирование меню</a>
+    {% block topbar_actions %}{% endblock %}
     <nav class="nav">
       {% block header_controls %}{% endblock %}
       {% if request.user.is_authenticated %}
