@@ -29,6 +29,7 @@ let previewSeq = 0;
 let actionsSeq = 0;
 let previewActiveSignature = "";
 let previewRenderedSignature = "";
+let previewQueuedReason = "";
 let actionsActiveSignature = "";
 let actionsAppliedSignature = "";
 let heavyUpdateTimer = null;
@@ -269,15 +270,6 @@ function applyDebugLogging(enabled) {
 async function postJson(url, payload, options = {}) {
   const started = performance.now();
   const log = options.log || null;
-  if (log) {
-    debugLog("request:start", {
-      name: log.name,
-      reason: log.reason,
-      seq: log.seq,
-      url,
-      payload: payloadSummary(payload),
-    });
-  }
 
   try {
     const res = await fetch(url, {
@@ -306,21 +298,12 @@ async function postJson(url, payload, options = {}) {
       throw new Error(body);
     }
     const data = await res.json();
-    if (log) {
-      debugLog("request:done", {
-        name: log.name,
-        reason: log.reason,
-        seq: log.seq,
-        url,
-        status: res.status,
-        durationMs,
-      });
-    }
     return data;
   } catch (error) {
     if (log) {
       const event = error.name === "AbortError" ? "request:abort" : "request:fail";
-      debugWarn(event, {
+      const logger = error.name === "AbortError" ? debugLog : debugWarn;
+      logger(event, {
         name: log.name,
         reason: log.reason,
         seq: log.seq,
@@ -356,6 +339,20 @@ function renderPreview(target, items) {
   }
 }
 
+function finishPreviewRequest(signature, controller) {
+  if (previewActiveSignature === signature) {
+    previewActiveSignature = "";
+  }
+  if (previewController === controller) {
+    previewController = null;
+  }
+  if (previewQueuedReason) {
+    const reason = previewQueuedReason;
+    previewQueuedReason = "";
+    setTimeout(() => preview(`queued:${reason}`).catch((err) => toast(err.message)), 0);
+  }
+}
+
 async function preview(reason = "manual") {
   const payload = {
     ru: $("ruText").value,
@@ -370,12 +367,17 @@ async function preview(reason = "manual") {
     debugLog("preview:skip", {reason, cause: "same-payload-rendered"});
     return;
   }
+  if (previewActiveSignature) {
+    previewQueuedReason = reason;
+    debugLog("preview:queued", {
+      reason,
+      cause: "different-payload-in-flight",
+      payload: payloadSummary(payload),
+    });
+    return;
+  }
 
   const seq = ++previewSeq;
-  if (previewController) {
-    debugLog("preview:abort-previous", {seq, reason, previousSeq: seq - 1});
-    previewController.abort();
-  }
   const controller = new AbortController();
   previewController = controller;
   previewActiveSignature = signature;
@@ -394,28 +396,29 @@ async function preview(reason = "manual") {
       {signal: controller.signal, log: {name: "preview", reason, seq}},
     );
   } catch (error) {
-    if (previewActiveSignature === signature) {
-      previewActiveSignature = "";
-    }
-    if (previewController === controller) {
-      previewController = null;
-    }
+    finishPreviewRequest(signature, controller);
     if (error.name === "AbortError") {
-      debugWarn("preview:aborted", {seq, reason});
+      debugLog("preview:aborted", {seq, reason});
       return;
     }
     debugWarn("preview:error", {seq, reason, error: error.message});
     throw error;
   }
 
+  const currentSignature = previewSignature({
+    ru: $("ruText").value,
+    show_kcal: $("showKcal").checked,
+  });
+  if (currentSignature !== signature) {
+    previewQueuedReason = previewQueuedReason || reason;
+    debugLog("preview:stale-ui", {seq, reason});
+    finishPreviewRequest(signature, controller);
+    return;
+  }
+
   if (seq !== previewSeq) {
-    if (previewActiveSignature === signature) {
-      previewActiveSignature = "";
-    }
-    if (previewController === controller) {
-      previewController = null;
-    }
     debugWarn("preview:stale", {seq, currentSeq: previewSeq, reason});
+    finishPreviewRequest(signature, controller);
     return;
   }
   lastPreviewData = data;
@@ -430,12 +433,7 @@ async function preview(reason = "manual") {
     ruItems: (data.ru || []).length,
     enItems: (data.en || []).length,
   });
-  if (previewActiveSignature === signature) {
-    previewActiveSignature = "";
-  }
-  if (previewController === controller) {
-    previewController = null;
-  }
+  finishPreviewRequest(signature, controller);
 }
 
 async function refreshActions(reason = "manual") {
@@ -483,7 +481,7 @@ async function refreshActions(reason = "manual") {
       actionsController = null;
     }
     if (error.name === "AbortError") {
-      debugWarn("actions:aborted", {seq, reason});
+      debugLog("actions:aborted", {seq, reason});
       return;
     }
     debugWarn("actions:error", {seq, reason, error: error.message});
