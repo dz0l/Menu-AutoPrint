@@ -38,7 +38,10 @@ let ruHistoryIndex = -1;
 let ruHistoryLastCommit = 0;
 let suppressRuHistory = false;
 let debugLoggingEnabled = false;
+let previewResizeObserver = null;
 const RU_HISTORY_LIMIT = 120;
+const A4_RATIO = 210 / 297;
+const PREVIEW_BASE_WIDTH = 375;
 
 function menuStats(value) {
   const text = String(value || "");
@@ -437,6 +440,48 @@ function updatePreviewBackground() {
     image.removeAttribute("src");
     image.hidden = true;
     overlay.hidden = true;
+  }
+}
+
+function fitPreviewPage() {
+  const area = $("previewPageArea");
+  const page = $("previewPage");
+  if (!area || !page) {
+    return;
+  }
+
+  const style = window.getComputedStyle(area);
+  const availableWidth = area.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  const availableHeight = area.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+  if (availableWidth <= 0 || availableHeight <= 0) {
+    return;
+  }
+
+  let width = availableWidth;
+  let height = width / A4_RATIO;
+  if (height > availableHeight) {
+    height = availableHeight;
+    width = height * A4_RATIO;
+  }
+
+  const scale = Math.max(0.72, width / PREVIEW_BASE_WIDTH);
+  page.style.setProperty("--preview-page-width", `${Math.floor(width)}px`);
+  page.style.setProperty("--preview-page-height", `${Math.floor(height)}px`);
+  page.style.setProperty("--preview-scale", String(scale));
+}
+
+function initPreviewPageFit() {
+  const area = $("previewPageArea");
+  if (!area) {
+    return;
+  }
+
+  fitPreviewPage();
+  if ("ResizeObserver" in window) {
+    previewResizeObserver = new ResizeObserver(() => fitPreviewPage());
+    previewResizeObserver.observe(area);
+  } else {
+    window.addEventListener("resize", fitPreviewPage);
   }
 }
 
@@ -896,8 +941,13 @@ function setUsersOpen(open) {
 }
 
 function restoreBackgroundState() {
-  const name = loadStorage(STORAGE_KEYS.pdfBackgroundName, "");
-  $("backgroundName").textContent = name ? `Подложка: ${name}` : "Подложка: не выбрана";
+  const hasBackground = Boolean(loadStorage(STORAGE_KEYS.pdfBackgroundData, ""));
+  const clearButton = $("btnClearBackground");
+  if (clearButton) {
+    clearButton.hidden = !hasBackground;
+    clearButton.disabled = !hasBackground;
+  }
+  $("btnBackground")?.classList.toggle("active", hasBackground);
 }
 
 function storeBackground(file) {
@@ -916,6 +966,18 @@ function storeBackground(file) {
     toast(`Подложка выбрана: ${file.name}`);
   };
   reader.readAsDataURL(file);
+}
+
+function clearBackground() {
+  removeStorage(STORAGE_KEYS.pdfBackgroundName);
+  removeStorage(STORAGE_KEYS.pdfBackgroundData);
+  const input = $("backgroundFile");
+  if (input) {
+    input.value = "";
+  }
+  restoreBackgroundState();
+  updatePreviewBackground();
+  toast("Подложка очищена");
 }
 
 function replaceMenuLine(source, target) {
@@ -1529,6 +1591,8 @@ $("backgroundFile").addEventListener("change", (event) => {
   storeBackground(event.target.files?.[0]);
 });
 
+$("btnClearBackground")?.addEventListener("click", clearBackground);
+
 $("btnCloseReview").addEventListener("click", () => {
   setReviewOpen(false);
 });
@@ -1624,6 +1688,7 @@ window.addEventListener("load", () => {
   updateKcalToggleUi();
   restoreBackgroundState();
   updatePreviewBackground();
+  initPreviewPageFit();
   applyTheme(loadStorage(STORAGE_KEYS.themeMode, "light"));
   applyDebugLogging(loadStorage(STORAGE_KEYS.debugLogging, "0") === "1");
   setSettingsOpen(false);

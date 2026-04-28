@@ -31,7 +31,6 @@
     <button id="btnUsers" type="button">Пользователи</button>
   {% endif %}
   <label class="inline" title="Вывод диагностических сообщений в DevTools Console"><input id="debugLogging" type="checkbox"> Логирование</label>
-  <span id="backgroundName" class="muted">Подложка: не выбрана</span>
 </section>
 {% endblock %}
 {% block content %}
@@ -58,13 +57,16 @@
   <div class="surface preview-shell">
     <div class="preview-title">
       <h2>Предпросмотр</h2>
-      <div class="preview-tabs" aria-label="Язык предпросмотра">
-        <button id="previewTabRu" class="active" type="button" data-preview-lang="ru">RU</button>
-        <button id="previewTabEn" type="button" data-preview-lang="en">EN</button>
+      <div class="preview-actions">
+        <button id="btnClearBackground" class="icon-button" type="button" title="Очистить подложку" aria-label="Очистить подложку" hidden><span class="ui-icon" data-ui-icon="image-off"></span></button>
+        <div class="preview-tabs" aria-label="Язык предпросмотра">
+          <button id="previewTabRu" class="active" type="button" data-preview-lang="ru">RU</button>
+          <button id="previewTabEn" type="button" data-preview-lang="en">EN</button>
+        </div>
       </div>
     </div>
-    <div class="page-area">
-      <article class="preview-page">
+    <div id="previewPageArea" class="page-area">
+      <article id="previewPage" class="preview-page">
         <div class="preview-surface">
           <img id="previewBackground" class="preview-bg" alt="" hidden>
           <div id="previewOverlay" class="preview-overlay" hidden></div>

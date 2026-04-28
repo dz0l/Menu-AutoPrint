@@ -1,6 +1,7 @@
 (function () {
   const icons = {
     "image-plus": '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5z"/><path d="m5 17 4.5-4.5 3 3 2-2L19 18"/><path d="M8.5 9.5h.01"/><path d="M16 6v6"/><path d="M13 9h6"/>',
+    "image-off": '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h9.5"/><path d="M20 14.5v4a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-13"/><path d="m5 17 4.5-4.5 2 2"/><path d="m14 14 1-1 4 5"/><path d="M3 3l18 18"/>',
     database: '<ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v6c0 1.7 3.1 3 7 3s7-1.3 7-3V5"/><path d="M5 11v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/>',
     "database-zap": '<ellipse cx="12" cy="5" rx="7" ry="3"/><path d="M5 5v6c0 1.2 1.5 2.2 3.8 2.7"/><path d="M5 11v6c0 1.7 3.1 3 7 3 .7 0 1.4 0 2-.1"/><path d="m16 12-3 5h4l-2 5 5-7h-4z"/>',
     "moon-star": '<path d="M20 15.5A8 8 0 0 1 8.5 4a7 7 0 1 0 11.5 11.5"/><path d="M17 3v4"/><path d="M15 5h4"/>',

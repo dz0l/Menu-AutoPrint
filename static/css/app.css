@@ -379,6 +379,14 @@ body.theme-dark .warn {
   line-height: 1.2;
 }
 
+.preview-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
 .counter {
   color: var(--muted);
   font-size: 12px;
@@ -405,6 +413,9 @@ body.theme-dark .editor-wrap textarea {
 }
 
 .page-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 0;
   padding: 10px;
   overflow: hidden;
@@ -412,10 +423,12 @@ body.theme-dark .editor-wrap textarea {
 }
 
 .preview-page {
-  width: min(100%, 375px);
-  max-height: 100%;
+  --preview-scale: 1;
+  width: var(--preview-page-width, min(100%, 375px));
+  height: var(--preview-page-height, auto);
   margin: 0 auto;
   aspect-ratio: 210 / 297;
+  flex: 0 0 auto;
 }
 
 .preview-surface {
@@ -465,10 +478,10 @@ body.theme-dark .preview-surface {
   display: grid;
   align-content: center;
   justify-items: center;
-  padding: 24px 21px 8px;
+  padding: calc(24px * var(--preview-scale)) calc(21px * var(--preview-scale)) calc(8px * var(--preview-scale));
   text-align: center;
   white-space: pre-wrap;
-  font-size: 13.75px;
+  font-size: clamp(11px, calc(13.75px * var(--preview-scale)), 19px);
   line-height: 1.36;
 }
 
@@ -482,7 +495,7 @@ body.theme-dark .preview-surface {
 }
 
 .preview-doc .group {
-  margin-top: 14px;
+  margin-top: calc(14px * var(--preview-scale));
   font-weight: 700;
 }
 
@@ -491,7 +504,7 @@ body.theme-dark .preview-surface {
 }
 
 .preview-doc .dish {
-  margin-top: 2px;
+  margin-top: calc(2px * var(--preview-scale));
 }
 
 body.theme-dark .preview-doc .dish {
@@ -508,9 +521,9 @@ body.theme-dark .preview-doc .dish {
   z-index: 1;
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  padding: 0 21px 19px;
-  font-size: 9.5px;
+  gap: calc(10px * var(--preview-scale));
+  padding: 0 calc(21px * var(--preview-scale)) calc(19px * var(--preview-scale));
+  font-size: clamp(8px, calc(9.5px * var(--preview-scale)), 13px);
   color: #101418;
 }
 
@@ -976,18 +989,9 @@ td select {
     padding: 12px;
   }
 
-  .preview-doc {
-    padding: 22px 16px 8px;
-    font-size: 15px;
-  }
-
   .preview-footer,
   .document-footer {
     flex-direction: column;
-  }
-
-  .preview-footer {
-    padding: 0 16px 20px;
   }
 
   .modal-dialog,
