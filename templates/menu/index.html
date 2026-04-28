@@ -15,7 +15,8 @@
   <input id="printDateCustom" class="date-input" type="date" aria-label="Дата печати">
   <input id="backgroundFile" type="file" accept="image/*" hidden>
   <button id="btnBackground" class="icon-button" type="button" title="Подложка" aria-label="Подложка"><span class="ui-icon" data-ui-icon="image-plus"></span></button>
-  <label class="toggle-pill" title="Печатать калории и граммовки"><input id="showKcal" type="checkbox" checked><span>Калл/Гр</span></label>
+  <input id="showKcal" class="visually-hidden" type="checkbox" checked>
+  <button id="btnKcalToggle" class="button toggle-button active" type="button" aria-pressed="true" title="Печатать калории и граммовки"><span class="ui-icon" data-ui-icon="scale"></span> Калл/Гр</button>
 </div>
 {% endblock %}
 {% block header_controls %}
@@ -26,8 +27,6 @@
 {% endblock %}
 {% block topbar_panel %}
 <section id="settingsBar" class="settings-bar shell" hidden>
-  <a class="settings-link" href="{% url 'menu:editor' %}">Редактор</a>
-  <a class="settings-link" href="{% url 'dishes:export_csv' %}">Скачать CSV</a>
   {% if request.user.is_authenticated and request.user.username == "mAdmin" %}
     <button id="btnUsers" type="button">Пользователи</button>
   {% endif %}

@@ -193,19 +193,24 @@ button:disabled {
 }
 
 .button,
-.button-link {
+.button-link,
+.icon-button {
   min-height: 32px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 4px 10px;
   background: var(--input-bg);
   color: var(--ink);
   text-decoration: none;
   white-space: nowrap;
+}
+
+.button,
+.button-link {
+  gap: 7px;
+  padding: 4px 10px;
 }
 
 .primary {
@@ -232,14 +237,9 @@ body.theme-dark .warn {
 .icon-button {
   width: 32px;
   min-width: 32px;
-  min-height: 32px;
   padding: 0;
   font-size: 16px;
   line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  text-decoration: none;
 }
 
 .inline {
@@ -294,6 +294,12 @@ body.theme-dark .warn {
 .toggle-pill input {
   min-height: 0;
   margin: 0;
+}
+
+.toggle-button.active {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .settings-bar {

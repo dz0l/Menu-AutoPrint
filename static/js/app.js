@@ -273,6 +273,17 @@ function applyDebugLogging(enabled) {
   debugLog("logging:enabled");
 }
 
+function updateKcalToggleUi() {
+  const checkbox = $("showKcal");
+  const button = $("btnKcalToggle");
+  if (!checkbox || !button) {
+    return;
+  }
+  const active = checkbox.checked;
+  button.classList.toggle("active", active);
+  button.setAttribute("aria-pressed", String(active));
+}
+
 async function postJson(url, payload, options = {}) {
   const started = performance.now();
   const log = options.log || null;
@@ -1443,8 +1454,15 @@ $("ruText").addEventListener("blur", () => {
 });
 
 $("showKcal").addEventListener("change", () => {
+  updateKcalToggleUi();
   updatePreviewMeta();
   preview("show-kcal-change").catch(() => {});
+});
+
+$("btnKcalToggle")?.addEventListener("click", () => {
+  const checkbox = $("showKcal");
+  checkbox.checked = !checkbox.checked;
+  checkbox.dispatchEvent(new Event("change", {bubbles: true}));
 });
 
 $("debugLogging").addEventListener("change", () => {
@@ -1582,6 +1600,7 @@ window.addEventListener("load", () => {
   $("printDateCustom").value = todayDate();
   updateDateUi();
   updateLineCounter();
+  updateKcalToggleUi();
   restoreBackgroundState();
   applyTheme(loadStorage(STORAGE_KEYS.themeMode, "light"));
   applyDebugLogging(loadStorage(STORAGE_KEYS.debugLogging, "0") === "1");
