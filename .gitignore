@@ -1,7 +1,5 @@
 *.jpg
 CONTINUITY.md
-DJANGO_MIGRATION_PLAN.md
-.old
 .env
 .venv/
 venv/
@@ -12,6 +10,3 @@ media/
 staticfiles/
 backups/
 .pytest_cache/
-ui-prototypes/
-FUTURE_UI.md
-ROLLBACK.md

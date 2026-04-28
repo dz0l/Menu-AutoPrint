@@ -421,6 +421,25 @@ function updatePreviewMeta() {
   }
 }
 
+function updatePreviewBackground() {
+  const image = $("previewBackground");
+  const overlay = $("previewOverlay");
+  if (!image || !overlay) {
+    return;
+  }
+
+  const data = loadStorage(STORAGE_KEYS.pdfBackgroundData, "");
+  if (data) {
+    image.src = data;
+    image.hidden = false;
+    overlay.hidden = false;
+  } else {
+    image.removeAttribute("src");
+    image.hidden = true;
+    overlay.hidden = true;
+  }
+}
+
 function finishPreviewRequest(signature, controller) {
   if (previewActiveSignature === signature) {
     previewActiveSignature = "";
@@ -893,6 +912,7 @@ function storeBackground(file) {
       saveStorage(STORAGE_KEYS.pdfBackgroundData, reader.result);
     }
     restoreBackgroundState();
+    updatePreviewBackground();
     toast(`Подложка выбрана: ${file.name}`);
   };
   reader.readAsDataURL(file);
@@ -1603,6 +1623,7 @@ window.addEventListener("load", () => {
   updateLineCounter();
   updateKcalToggleUi();
   restoreBackgroundState();
+  updatePreviewBackground();
   applyTheme(loadStorage(STORAGE_KEYS.themeMode, "light"));
   applyDebugLogging(loadStorage(STORAGE_KEYS.debugLogging, "0") === "1");
   setSettingsOpen(false);

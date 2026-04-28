@@ -432,6 +432,26 @@ body.theme-dark .editor-wrap textarea {
   font-family: "Times New Roman", "Liberation Serif", serif;
 }
 
+.preview-bg,
+.preview-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.preview-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-overlay {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+body.theme-dark .preview-overlay {
+  background: rgba(13, 18, 24, 0.62);
+}
+
 body.theme-dark .preview-surface {
   border-color: #384451;
   color: #edf2f7;
@@ -439,6 +459,8 @@ body.theme-dark .preview-surface {
 }
 
 .preview-doc {
+  position: relative;
+  z-index: 1;
   min-height: 0;
   display: grid;
   align-content: center;
@@ -482,6 +504,8 @@ body.theme-dark .preview-doc .dish {
 }
 
 .preview-footer {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   gap: 10px;

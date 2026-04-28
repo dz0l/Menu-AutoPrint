@@ -72,8 +72,6 @@ cd /opt/menu-autoprint
 docker compose run --rm backup sh /scripts/backup_postgres.sh once
 ```
 
-Rollback notes are in `ROLLBACK.md`.
-
 Reset the bootstrap editor account if first login does not work:
 
 ```bash
