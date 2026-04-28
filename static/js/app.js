@@ -85,7 +85,7 @@ function debugLog(event, data = {}) {
   if (!debugLoggingEnabled) {
     return;
   }
-  console.debug("[MenuLog]", event, {
+  console.info("[MenuLog]", event, {
     at: new Date().toISOString(),
     ...data,
   });
