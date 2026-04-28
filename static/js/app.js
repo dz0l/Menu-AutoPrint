@@ -585,6 +585,7 @@ async function refreshActions(reason = "manual") {
   lastFixables = data.fixables || [];
   actionsAppliedSignature = signature;
   const total = lastMissing.length + lastFixables.length;
+  $("btnMissing").classList.toggle("warn", total > 0);
   $("btnMissing").title = total
     ? `Новых блюд: ${lastMissing.length}, неполных блюд: ${lastFixables.length}`
     : "Проверить меню и открыть редактор при необходимости";

@@ -406,13 +406,14 @@ body.theme-dark .editor-wrap textarea {
 
 .page-area {
   min-height: 0;
-  padding: 12px;
-  overflow: auto;
+  padding: 10px;
+  overflow: hidden;
   background: var(--panel);
 }
 
 .preview-page {
-  width: min(100%, 405px);
+  width: min(100%, 375px);
+  max-height: 100%;
   margin: 0 auto;
   aspect-ratio: 210 / 297;
 }
@@ -442,10 +443,10 @@ body.theme-dark .preview-surface {
   display: grid;
   align-content: center;
   justify-items: center;
-  padding: 30px 26px 10px;
+  padding: 24px 21px 8px;
   text-align: center;
   white-space: pre-wrap;
-  font-size: 14.5px;
+  font-size: 13.75px;
   line-height: 1.36;
 }
 
@@ -459,7 +460,7 @@ body.theme-dark .preview-surface {
 }
 
 .preview-doc .group {
-  margin-top: 16px;
+  margin-top: 14px;
   font-weight: 700;
 }
 
@@ -484,8 +485,8 @@ body.theme-dark .preview-doc .dish {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  padding: 0 26px 24px;
-  font-size: 10px;
+  padding: 0 21px 19px;
+  font-size: 9.5px;
   color: #101418;
 }
 
