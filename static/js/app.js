@@ -202,6 +202,7 @@ function applyRuHistoryState(value) {
   suppressRuHistory = false;
   hideSuggest();
   saveMenuDraft();
+  updateLineCounter();
   flushHeavyUpdate("history");
   textarea.focus();
   textarea.setSelectionRange(value.length, value.length);
@@ -235,6 +236,7 @@ function setRuTextValue(value, options = {}) {
   textarea.value = next;
   pushRuHistory(next, {force: options.forceHistory !== false});
   saveMenuDraft();
+  updateLineCounter();
 }
 
 function themeButtonText(theme) {
@@ -334,8 +336,73 @@ function renderPreview(target, items) {
   for (const item of items || []) {
     const span = document.createElement("span");
     span.className = item.type === "group" ? "group" : "dish";
-    span.textContent = `${item.type === "dish" ? "\u2022 " : ""}${item.text}${item.suffix || ""}`;
+    const text = `${item.type === "dish" ? "\u2022 " : ""}${item.text}${item.suffix || ""}`;
+    if (text.includes("??")) {
+      const [before, ...rest] = text.split("??");
+      span.appendChild(document.createTextNode(before));
+      rest.forEach((part) => {
+        const unknown = document.createElement("span");
+        unknown.className = "unknown";
+        unknown.textContent = "??";
+        span.appendChild(unknown);
+        span.appendChild(document.createTextNode(part));
+      });
+    } else {
+      span.textContent = text;
+    }
     target.appendChild(span);
+  }
+}
+
+function pluralRu(value, one, few, many) {
+  const abs = Math.abs(Number(value) || 0);
+  const lastTwo = abs % 100;
+  const last = abs % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) {
+    return many;
+  }
+  if (last === 1) {
+    return one;
+  }
+  if (last >= 2 && last <= 4) {
+    return few;
+  }
+  return many;
+}
+
+function updateLineCounter() {
+  const counter = $("lineCounter");
+  if (!counter) {
+    return;
+  }
+  const count = lines($("ruText").value).length;
+  counter.textContent = `${count} ${pluralRu(count, "строка", "строки", "строк")}`;
+}
+
+function setPreviewLang(lang) {
+  const isEn = lang === "en";
+  $("previewRu").hidden = isEn;
+  $("previewEn").hidden = !isEn;
+  $("previewRu").classList.toggle("active", !isEn);
+  $("previewEn").classList.toggle("active", isEn);
+  $("previewTabRu")?.classList.toggle("active", !isEn);
+  $("previewTabEn")?.classList.toggle("active", isEn);
+}
+
+function updatePreviewMeta() {
+  const date = $("previewFooterDate");
+  if (date) {
+    const value = resolvedPrintDate();
+    if (value) {
+      const [year, month, day] = value.split("-");
+      date.textContent = year && month && day ? `${day}.${month}.${year}` : value;
+    } else {
+      date.textContent = "";
+    }
+  }
+  const note = $("previewFooterNote");
+  if (note) {
+    note.hidden = !$("showKcal").checked;
   }
 }
 
@@ -425,6 +492,7 @@ async function preview(reason = "manual") {
   renderPreview($("previewRu"), data.ru);
   renderPreview($("previewEn"), data.en);
   $("enText").value = (data.en || []).map((item) => item.text).join("\n");
+  updatePreviewMeta();
   previewRenderedSignature = signature;
   debugLog("preview:rendered", {
     seq,
@@ -749,7 +817,20 @@ function tomorrowDate() {
 
 function updateDateUi() {
   const mode = $("printDateMode").value;
-  $("printDateCustom").hidden = mode !== "custom";
+  if (mode === "today") {
+    $("printDateCustom").value = todayDate();
+  } else if (mode === "tomorrow") {
+    $("printDateCustom").value = tomorrowDate();
+  }
+  document.querySelectorAll("[data-date-mode]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.dateMode === mode);
+  });
+  updatePreviewMeta();
+}
+
+function setDateMode(mode) {
+  $("printDateMode").value = mode;
+  updateDateUi();
 }
 
 function resolvedPrintDate() {
@@ -974,6 +1055,7 @@ async function collectPdfValidation() {
   renderPreview($("previewRu"), data.ru);
   renderPreview($("previewEn"), data.en);
   $("enText").value = (data.en || []).map((item) => item.text).join("\n");
+  updatePreviewMeta();
 
   const ruPreview = data.ru || [];
   const enPreview = data.en || [];
@@ -1116,7 +1198,7 @@ function setPdfBusy(busy) {
     return;
   }
   button.disabled = busy;
-  button.textContent = busy ? "PDF..." : "PDF";
+  button.textContent = busy ? "Печать..." : "Печать";
 }
 
 function showUserResult(message) {
@@ -1260,6 +1342,7 @@ async function createUser() {
 $("ruText").addEventListener("input", () => {
   pushRuHistory($("ruText").value);
   saveMenuDraft();
+  updateLineCounter();
   scheduleSuggest();
   scheduleHeavyUpdate(650, "ru-input");
 });
@@ -1317,6 +1400,7 @@ $("ruText").addEventListener("blur", () => {
 });
 
 $("showKcal").addEventListener("change", () => {
+  updatePreviewMeta();
   preview("show-kcal-change").catch(() => {});
 });
 
@@ -1329,6 +1413,31 @@ $("btnTheme").addEventListener("click", () => {
 });
 
 $("printDateMode").addEventListener("change", updateDateUi);
+
+document.querySelectorAll("[data-date-mode]").forEach((button) => {
+  button.addEventListener("click", () => setDateMode(button.dataset.dateMode));
+});
+
+$("printDateCustom").addEventListener("change", () => {
+  $("printDateMode").value = "custom";
+  updateDateUi();
+});
+
+$("btnUndo")?.addEventListener("click", () => {
+  if (undoRuChange()) {
+    updateLineCounter();
+  }
+});
+
+$("btnRedo")?.addEventListener("click", () => {
+  if (redoRuChange()) {
+    updateLineCounter();
+  }
+});
+
+document.querySelectorAll("[data-preview-lang]").forEach((button) => {
+  button.addEventListener("click", () => setPreviewLang(button.dataset.previewLang));
+});
 
 $("btnBackground").addEventListener("click", () => {
   $("backgroundFile").click();
@@ -1440,12 +1549,14 @@ window.addEventListener("load", () => {
   $("printDateMode").value = "today";
   $("printDateCustom").value = todayDate();
   updateDateUi();
+  updateLineCounter();
   restoreBackgroundState();
   applyTheme(loadStorage(STORAGE_KEYS.themeMode, "light"));
   applyDebugLogging(loadStorage(STORAGE_KEYS.debugLogging, "0") === "1");
   setSettingsOpen(false);
   setReviewOpen(false);
   setUsersOpen(false);
+  setPreviewLang("ru");
   resetRuHistory($("ruText").value);
 
   preview("page-load").catch(() => {});

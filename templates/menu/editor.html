@@ -2,33 +2,51 @@
 {% load static %}
 {% block title %}Редактор базы{% endblock %}
 {% block topbar_actions %}
-<div class="page-actions">
-  <button id="btnSave" class="primary" type="button">Сохранить</button>
+<div class="page-actions editor-actions">
   <button id="btnAddRow" class="icon-button" type="button" title="Добавить блюдо" aria-label="Добавить блюдо">+</button>
-  <label class="inline"><input id="onlyNew" type="checkbox" checked> Только новые блюда</label>
+  <a class="button-link" href="{% url 'dishes:export_csv' %}">Экспорт CSV</a>
+  <button id="btnSave" class="primary" type="button">Сохранить</button>
   <span id="status" class="muted"></span>
 </div>
 {% endblock %}
 {% block content %}
-<section class="panel table-panel">
-  <div class="editor-table-head">
-    <h1>База</h1>
-    <input id="searchRu" class="editor-search" type="search" placeholder="Поиск RU" autocomplete="off" hidden>
-  </div>
-  <table>
-    <thead>
-      <tr>
-        <th><button class="table-sort" type="button" data-sort="ru">RU</button></th>
-        <th><button class="table-sort" type="button" data-sort="en">EN</button></th>
-        <th>kcal</th>
-        <th>гр</th>
-        <th><button class="table-sort" type="button" data-sort="catRu">Группа RU</button></th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody id="rows"></tbody>
-  </table>
-</section>
+<div class="editor-workspace">
+  <aside class="surface editor-sidebar">
+    <section class="filter-section">
+      <h1>Фильтры и режимы</h1>
+      <div class="segment-row" aria-label="Режим отображения">
+        <label class="toggle-pill mode-toggle"><input id="onlyNew" type="checkbox" checked><span>Только новые</span></label>
+      </div>
+      <input id="searchRu" class="editor-search" type="search" placeholder="Поиск RU" autocomplete="off" hidden>
+      <button id="btnResetFilters" class="button" type="button">Сбросить</button>
+    </section>
+  </aside>
+
+  <section class="surface table-panel desk-panel">
+    <div class="editor-table-head">
+      <h1>Рабочая таблица</h1>
+    </div>
+    <div class="table-shell">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 30%;"><button class="table-sort" type="button" data-sort="ru">RU</button></th>
+            <th style="width: 28%;"><button class="table-sort" type="button" data-sort="en">EN</button></th>
+            <th style="width: 16%;">
+              <div class="number-head">
+                <span>Калл</span>
+                <span>Гр</span>
+              </div>
+            </th>
+            <th style="width: 18%;"><button class="table-sort" type="button" data-sort="catRu">Группа RU</button></th>
+            <th class="action-col" style="width: 8%;">Действие</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'js/editor.js' %}" defer></script>

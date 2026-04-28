@@ -231,6 +231,7 @@ function updateSearchVisibility() {
 
 function buildGroupSelect(row) {
   const select = document.createElement("select");
+  select.className = "compact-input";
   GROUP_OPTIONS.forEach((option) => {
     const element = document.createElement("option");
     element.value = option;
@@ -255,32 +256,57 @@ function render() {
   visibleRows().forEach((row) => {
     const index = rows.indexOf(row);
     const tr = document.createElement("tr");
+    tr.classList.toggle("new-row", Boolean(row._isNew));
+    tr.classList.toggle("dirty-row", !row._isNew && Boolean(row._dirty));
+    tr.classList.toggle("error-row", !String(row.ru || "").trim());
 
-    ["ru", "en", "kcal", "gr"].forEach((key) => {
+    ["ru", "en"].forEach((key) => {
       const td = document.createElement("td");
-      if (key === "kcal" || key === "gr") {
-        td.className = "small";
-      }
       const input = document.createElement("input");
+      input.className = "compact-input";
       input.value = row[key] ?? "";
-      input.type = key === "kcal" || key === "gr" ? "number" : "text";
+      input.type = "text";
       input.addEventListener("input", () => {
         row[key] = input.value;
         syncRowDirty(row);
+        tr.classList.toggle("dirty-row", !row._isNew && Boolean(row._dirty));
+        tr.classList.toggle("error-row", !String(row.ru || "").trim());
       });
       td.appendChild(input);
       tr.appendChild(td);
     });
+
+    const numberTd = document.createElement("td");
+    numberTd.className = "number-cell";
+    const numberGrid = document.createElement("div");
+    numberGrid.className = "number-grid";
+    ["kcal", "gr"].forEach((key) => {
+      const input = document.createElement("input");
+      input.className = "compact-input number-field";
+      input.value = row[key] ?? "";
+      input.type = "number";
+      input.addEventListener("input", () => {
+        row[key] = input.value;
+        syncRowDirty(row);
+        tr.classList.toggle("dirty-row", !row._isNew && Boolean(row._dirty));
+      });
+      numberGrid.appendChild(input);
+    });
+    numberTd.appendChild(numberGrid);
+    tr.appendChild(numberTd);
 
     const groupTd = document.createElement("td");
     groupTd.appendChild(buildGroupSelect(row));
     tr.appendChild(groupTd);
 
     const action = document.createElement("td");
+    action.className = "action-col";
     const del = document.createElement("button");
     del.type = "button";
-    del.className = "danger";
-    del.textContent = "Удалить";
+    del.className = "icon-button danger";
+    del.textContent = "×";
+    del.title = "Удалить";
+    del.setAttribute("aria-label", "Удалить");
     del.addEventListener("click", () => {
       if (row.id) {
         deletedRowIds.push(row.id);
@@ -400,6 +426,13 @@ $("btnAddRow").addEventListener("click", () => {
 });
 
 $("searchRu").addEventListener("input", render);
+
+$("btnResetFilters").addEventListener("click", () => {
+  $("searchRu").value = "";
+  sortState = {key: "", direction: "asc"};
+  updateSortButtons();
+  render();
+});
 
 document.querySelectorAll(".table-sort").forEach((button) => {
   button.addEventListener("click", () => toggleSort(button.dataset.sort));

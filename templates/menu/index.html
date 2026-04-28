@@ -2,20 +2,22 @@
 {% load static %}
 {% block title %}Формирование меню{% endblock %}
 {% block topbar_actions %}
-<div class="page-actions">
-  <label class="toolbar-field">Дата
-    <select id="printDateMode">
-      <option value="today">Сегодня</option>
-      <option value="tomorrow">Завтра</option>
-      <option value="custom">Своя</option>
-    </select>
-  </label>
-  <input id="printDateCustom" type="date" hidden>
+<div class="page-actions main-toolbar">
+  <select id="printDateMode" class="visually-hidden" aria-hidden="true" tabindex="-1">
+    <option value="today">Сегодня</option>
+    <option value="tomorrow">Завтра</option>
+    <option value="custom">Своя</option>
+  </select>
+  <div class="segmented" aria-label="Дата печати">
+    <button id="btnDateToday" class="segment-option active" type="button" data-date-mode="today">Сегодня</button>
+    <button id="btnDateTomorrow" class="segment-option" type="button" data-date-mode="tomorrow">Завтра</button>
+  </div>
+  <input id="printDateCustom" class="date-input" type="date" aria-label="Дата печати">
   <input id="backgroundFile" type="file" accept="image/*" hidden>
-  <button id="btnBackground" type="button">Подложка</button>
-  <button id="btnAnalyze" type="button">Проверить совпадения</button>
-  <button id="btnPdf" type="button">PDF</button>
-  <button id="btnMissing" type="button" disabled>Добавить в базу</button>
+  <button id="btnBackground" class="button" type="button" title="Выбрать подложку">Подложка</button>
+  <label class="toggle-pill" title="Печатать калории и граммовки"><input id="showKcal" type="checkbox" checked><span>Калл/Гр</span></label>
+  <a class="button-link" href="{% url 'menu:editor' %}" title="Редактор базы">База</a>
+  <button id="btnPdf" class="primary" type="button">Печать</button>
 </div>
 {% endblock %}
 {% block header_controls %}
@@ -29,29 +31,52 @@
   {% if request.user.is_authenticated and request.user.username == "mAdmin" %}
     <button id="btnUsers" type="button">Пользователи</button>
   {% endif %}
-  <label class="inline"><input id="showKcal" type="checkbox" checked> kcal/гр</label>
   <label class="inline" title="Вывод диагностических сообщений в DevTools Console"><input id="debugLogging" type="checkbox"> Логирование</label>
   <span id="backgroundName" class="muted">Подложка: не выбрана</span>
 </section>
 {% endblock %}
 {% block content %}
-<section class="grid-two">
-  <div class="panel">
-    <h1>Меню RU</h1>
-    <textarea id="ruText" placeholder="Одно блюдо на строку" autocomplete="off" spellcheck="false"></textarea>
+<section class="workspace">
+  <div class="surface menu-input">
+    <div class="panel-head">
+      <div class="panel-title">
+        <h1>Русское меню</h1>
+        <span id="lineCounter" class="counter">0 строк</span>
+      </div>
+      <div class="field-tools">
+        <button id="btnUndo" class="icon-button" type="button" title="Отменить" aria-label="Отменить">↶</button>
+        <button id="btnRedo" class="icon-button" type="button" title="Повторить" aria-label="Повторить">↷</button>
+        <button id="btnAnalyze" class="button" type="button">Совпадения</button>
+        <button id="btnMissing" class="button warn" type="button" disabled>Проверить и открыть редактор</button>
+      </div>
+    </div>
+    <div class="editor-wrap">
+      <textarea id="ruText" placeholder="Одно блюдо на строку" autocomplete="off" spellcheck="false"></textarea>
+    </div>
     <div id="suggestRu" class="suggest-box" hidden></div>
+    <textarea id="enText" class="visually-hidden" aria-hidden="true" tabindex="-1" readonly></textarea>
   </div>
-  <div class="panel">
-    <h1>Меню EN</h1>
-    <textarea id="enText" placeholder="Заполняется автоматически из базы" readonly></textarea>
-  </div>
-</section>
 
-<section class="panel preview-panel">
-  <h1>Предпросмотр</h1>
-  <div class="preview-grid">
-    <div id="previewRu" class="preview"></div>
-    <div id="previewEn" class="preview"></div>
+  <div class="surface preview-shell">
+    <div class="preview-title">
+      <h2>Предпросмотр</h2>
+      <div class="preview-tabs" aria-label="Язык предпросмотра">
+        <button id="previewTabRu" class="active" type="button" data-preview-lang="ru">RU</button>
+        <button id="previewTabEn" type="button" data-preview-lang="en">EN</button>
+      </div>
+    </div>
+    <div class="page-area">
+      <article class="preview-page">
+        <div class="preview-surface">
+          <div id="previewRu" class="preview-doc active"></div>
+          <div id="previewEn" class="preview-doc" hidden></div>
+          <div class="preview-footer">
+            <div id="previewFooterNote">Калорийность и вес указаны на порцию</div>
+            <div id="previewFooterDate"></div>
+          </div>
+        </div>
+      </article>
+    </div>
   </div>
 </section>
 
