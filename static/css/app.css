@@ -37,7 +37,7 @@ body.theme-dark {
   --danger-soft: #3a2023;
   --shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
   --input-bg: #161c23;
-  --preview-bg: #fffdf6;
+  --preview-bg: #1d242c;
   --readonly-bg: #202833;
   --modal-backdrop: rgba(0, 0, 0, 0.68);
 }
@@ -348,7 +348,7 @@ body.theme-dark .warn {
 .preview-shell {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  height: calc(100vh - 78px);
+  height: calc((100vh - 78px) * 0.95);
   min-height: 0;
   overflow: hidden;
 }
@@ -431,6 +431,12 @@ body.theme-dark .editor-wrap textarea {
   font-family: "Times New Roman", "Liberation Serif", serif;
 }
 
+body.theme-dark .preview-surface {
+  border-color: #384451;
+  color: #edf2f7;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.28);
+}
+
 .preview-doc {
   min-height: 0;
   display: grid;
@@ -465,6 +471,10 @@ body.theme-dark .editor-wrap textarea {
   margin-top: 2px;
 }
 
+body.theme-dark .preview-doc .dish {
+  color: #edf2f7;
+}
+
 .preview-doc .unknown {
   color: var(--danger);
   font-weight: 700;
@@ -477,6 +487,10 @@ body.theme-dark .editor-wrap textarea {
   padding: 0 26px 24px;
   font-size: 10px;
   color: #101418;
+}
+
+body.theme-dark .preview-footer {
+  color: #cbd5e1;
 }
 
 .preview-footer > :last-child {
