@@ -5,6 +5,7 @@
   pdfBackgroundName: "menu_pdf_background_name",
   pdfBackgroundData: "menu_pdf_background_data",
   themeMode: "menu_theme_mode",
+  debugLogging: "menu_debug_logging",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -26,12 +27,79 @@ let previewController = null;
 let actionsController = null;
 let previewSeq = 0;
 let actionsSeq = 0;
+let previewActiveSignature = "";
+let previewRenderedSignature = "";
+let actionsActiveSignature = "";
+let actionsAppliedSignature = "";
 let heavyUpdateTimer = null;
 let ruHistory = [];
 let ruHistoryIndex = -1;
 let ruHistoryLastCommit = 0;
 let suppressRuHistory = false;
+let debugLoggingEnabled = false;
 const RU_HISTORY_LIMIT = 120;
+
+function menuStats(value) {
+  const text = String(value || "");
+  return {
+    chars: text.length,
+    lines: lines(text).length,
+  };
+}
+
+function payloadSummary(payload) {
+  if (!payload || typeof payload !== "object") {
+    return {};
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "ru")) {
+    return {
+      ru: menuStats(payload.ru),
+      show_kcal: payload.show_kcal,
+    };
+  }
+  if (Array.isArray(payload.ru_lines)) {
+    return {
+      ru_lines: payload.ru_lines.length,
+    };
+  }
+  if (Object.prototype.hasOwnProperty.call(payload, "text")) {
+    return {
+      text: menuStats(payload.text),
+    };
+  }
+  return {};
+}
+
+function previewSignature(payload) {
+  return JSON.stringify({
+    ru: payload.ru || "",
+    show_kcal: Boolean(payload.show_kcal),
+  });
+}
+
+function actionsSignature(payload) {
+  return JSON.stringify(payload.ru_lines || []);
+}
+
+function debugLog(event, data = {}) {
+  if (!debugLoggingEnabled) {
+    return;
+  }
+  console.debug("[MenuLog]", event, {
+    at: new Date().toISOString(),
+    ...data,
+  });
+}
+
+function debugWarn(event, data = {}) {
+  if (!debugLoggingEnabled) {
+    return;
+  }
+  console.warn("[MenuLog]", event, {
+    at: new Date().toISOString(),
+    ...data,
+  });
+}
 
 function toast(message) {
   const box = $("toast");
@@ -133,7 +201,7 @@ function applyRuHistoryState(value) {
   suppressRuHistory = false;
   hideSuggest();
   saveMenuDraft();
-  flushHeavyUpdate();
+  flushHeavyUpdate("history");
   textarea.focus();
   textarea.setSelectionRange(value.length, value.length);
 }
@@ -188,20 +256,81 @@ function toggleTheme() {
   applyTheme(next);
 }
 
-async function postJson(url, payload, options = {}) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": csrfToken(),
-    },
-    body: JSON.stringify(payload),
-    signal: options.signal,
-  });
-  if (!res.ok) {
-    throw new Error(await res.text());
+function applyDebugLogging(enabled) {
+  debugLoggingEnabled = Boolean(enabled);
+  const checkbox = $("debugLogging");
+  if (checkbox) {
+    checkbox.checked = debugLoggingEnabled;
   }
-  return res.json();
+  saveStorage(STORAGE_KEYS.debugLogging, debugLoggingEnabled ? "1" : "0");
+  debugLog("logging:enabled");
+}
+
+async function postJson(url, payload, options = {}) {
+  const started = performance.now();
+  const log = options.log || null;
+  if (log) {
+    debugLog("request:start", {
+      name: log.name,
+      reason: log.reason,
+      seq: log.seq,
+      url,
+      payload: payloadSummary(payload),
+    });
+  }
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": csrfToken(),
+      },
+      body: JSON.stringify(payload),
+      signal: options.signal,
+    });
+    const durationMs = Math.round(performance.now() - started);
+    if (!res.ok) {
+      const body = await res.text();
+      if (log) {
+        debugWarn("request:error", {
+          name: log.name,
+          reason: log.reason,
+          seq: log.seq,
+          url,
+          status: res.status,
+          durationMs,
+          body: body.slice(0, 500),
+        });
+      }
+      throw new Error(body);
+    }
+    const data = await res.json();
+    if (log) {
+      debugLog("request:done", {
+        name: log.name,
+        reason: log.reason,
+        seq: log.seq,
+        url,
+        status: res.status,
+        durationMs,
+      });
+    }
+    return data;
+  } catch (error) {
+    if (log) {
+      const event = error.name === "AbortError" ? "request:abort" : "request:fail";
+      debugWarn(event, {
+        name: log.name,
+        reason: log.reason,
+        seq: log.seq,
+        url,
+        durationMs: Math.round(performance.now() - started),
+        error: error.message,
+      });
+    }
+    throw error;
+  }
 }
 
 async function requestJson(url, options = {}) {
@@ -227,94 +356,202 @@ function renderPreview(target, items) {
   }
 }
 
-async function preview() {
+async function preview(reason = "manual") {
+  const payload = {
+    ru: $("ruText").value,
+    show_kcal: $("showKcal").checked,
+  };
+  const signature = previewSignature(payload);
+  if (signature === previewActiveSignature) {
+    debugLog("preview:skip", {reason, cause: "same-payload-in-flight"});
+    return;
+  }
+  if (signature === previewRenderedSignature) {
+    debugLog("preview:skip", {reason, cause: "same-payload-rendered"});
+    return;
+  }
+
   const seq = ++previewSeq;
-  previewController?.abort();
-  previewController = new AbortController();
+  if (previewController) {
+    debugLog("preview:abort-previous", {seq, reason, previousSeq: seq - 1});
+    previewController.abort();
+  }
+  const controller = new AbortController();
+  previewController = controller;
+  previewActiveSignature = signature;
+  const started = performance.now();
+  debugLog("preview:start", {
+    seq,
+    reason,
+    payload: payloadSummary(payload),
+  });
 
   let data;
   try {
     data = await postJson(
       "/api/menu/preview",
-      {
-        ru: $("ruText").value,
-        show_kcal: $("showKcal").checked,
-      },
-      {signal: previewController.signal},
+      payload,
+      {signal: controller.signal, log: {name: "preview", reason, seq}},
     );
   } catch (error) {
+    if (previewActiveSignature === signature) {
+      previewActiveSignature = "";
+    }
+    if (previewController === controller) {
+      previewController = null;
+    }
     if (error.name === "AbortError") {
+      debugWarn("preview:aborted", {seq, reason});
       return;
     }
+    debugWarn("preview:error", {seq, reason, error: error.message});
     throw error;
   }
 
   if (seq !== previewSeq) {
+    if (previewActiveSignature === signature) {
+      previewActiveSignature = "";
+    }
+    if (previewController === controller) {
+      previewController = null;
+    }
+    debugWarn("preview:stale", {seq, currentSeq: previewSeq, reason});
     return;
   }
   lastPreviewData = data;
   renderPreview($("previewRu"), data.ru);
   renderPreview($("previewEn"), data.en);
   $("enText").value = (data.en || []).map((item) => item.text).join("\n");
+  previewRenderedSignature = signature;
+  debugLog("preview:rendered", {
+    seq,
+    reason,
+    durationMs: Math.round(performance.now() - started),
+    ruItems: (data.ru || []).length,
+    enItems: (data.en || []).length,
+  });
+  if (previewActiveSignature === signature) {
+    previewActiveSignature = "";
+  }
+  if (previewController === controller) {
+    previewController = null;
+  }
 }
 
-async function refreshActions() {
+async function refreshActions(reason = "manual") {
+  const payload = {
+    ru_lines: lines($("ruText").value),
+  };
+  const signature = actionsSignature(payload);
+  const force = reason === "open-editor";
+  if (!force && signature === actionsActiveSignature) {
+    debugLog("actions:skip", {reason, cause: "same-payload-in-flight"});
+    return;
+  }
+  if (!force && signature === actionsAppliedSignature) {
+    debugLog("actions:skip", {reason, cause: "same-payload-applied"});
+    return;
+  }
+
   const seq = ++actionsSeq;
-  actionsController?.abort();
-  actionsController = new AbortController();
+  if (actionsController) {
+    debugLog("actions:abort-previous", {seq, reason, previousSeq: seq - 1});
+    actionsController.abort();
+  }
+  const controller = new AbortController();
+  actionsController = controller;
+  actionsActiveSignature = signature;
+  const started = performance.now();
+  debugLog("actions:start", {
+    seq,
+    reason,
+    payload: payloadSummary(payload),
+  });
 
   let data;
   try {
     data = await postJson(
       "/api/dishes/check-missing-fixables",
-      {
-        ru_lines: lines($("ruText").value),
-      },
-      {signal: actionsController.signal},
+      payload,
+      {signal: controller.signal, log: {name: "check-missing-fixables", reason, seq}},
     );
   } catch (error) {
+    if (actionsActiveSignature === signature) {
+      actionsActiveSignature = "";
+    }
+    if (actionsController === controller) {
+      actionsController = null;
+    }
     if (error.name === "AbortError") {
+      debugWarn("actions:aborted", {seq, reason});
       return;
     }
+    debugWarn("actions:error", {seq, reason, error: error.message});
     throw error;
   }
 
   if (seq !== actionsSeq) {
+    if (actionsActiveSignature === signature) {
+      actionsActiveSignature = "";
+    }
+    if (actionsController === controller) {
+      actionsController = null;
+    }
+    debugWarn("actions:stale", {seq, currentSeq: actionsSeq, reason});
     return;
   }
   lastMissing = data.missing || [];
   lastFixables = data.fixables || [];
+  actionsAppliedSignature = signature;
   const total = lastMissing.length + lastFixables.length;
   $("btnMissing").disabled = total === 0;
   $("btnMissing").title = total
     ? `Новых блюд: ${lastMissing.length}, неполных блюд: ${lastFixables.length}`
     : "Новых и неполных блюд нет";
+  debugLog("actions:updated", {
+    seq,
+    reason,
+    durationMs: Math.round(performance.now() - started),
+    missing: lastMissing.length,
+    fixables: lastFixables.length,
+  });
+  if (actionsActiveSignature === signature) {
+    actionsActiveSignature = "";
+  }
+  if (actionsController === controller) {
+    actionsController = null;
+  }
 }
 
-function schedulePreview() {
+function schedulePreview(reason = "scheduled-preview") {
   clearTimeout(previewTimer);
-  previewTimer = setTimeout(() => preview().catch((err) => toast(err.message)), 260);
+  debugLog("preview:scheduled", {reason, delayMs: 260});
+  previewTimer = setTimeout(() => preview(reason).catch((err) => toast(err.message)), 260);
 }
 
-function scheduleActions() {
+function scheduleActions(reason = "scheduled-actions") {
   clearTimeout(actionTimer);
-  actionTimer = setTimeout(() => refreshActions().catch(() => {}), 320);
+  debugLog("actions:scheduled", {reason, delayMs: 320});
+  actionTimer = setTimeout(() => refreshActions(reason).catch(() => {}), 320);
 }
 
-function scheduleHeavyUpdate(delay = 650) {
+function scheduleHeavyUpdate(delay = 650, reason = "idle") {
   clearTimeout(heavyUpdateTimer);
+  debugLog("heavy-update:scheduled", {reason, delayMs: delay});
   heavyUpdateTimer = setTimeout(() => {
-    preview().catch((err) => toast(err.message));
-    refreshActions().catch(() => {});
+    debugLog("heavy-update:run", {reason});
+    preview(`heavy:${reason}`).catch((err) => toast(err.message));
+    refreshActions(`heavy:${reason}`).catch(() => {});
   }, delay);
 }
 
-function flushHeavyUpdate() {
+function flushHeavyUpdate(reason = "flush") {
   clearTimeout(heavyUpdateTimer);
   clearTimeout(previewTimer);
   clearTimeout(actionTimer);
-  preview().catch((err) => toast(err.message));
-  refreshActions().catch(() => {});
+  debugLog("heavy-update:flush", {reason});
+  preview(`flush:${reason}`).catch((err) => toast(err.message));
+  refreshActions(`flush:${reason}`).catch(() => {});
 }
 
 function currentLineInfo(textarea) {
@@ -422,8 +659,17 @@ async function loadSuggestions() {
     return;
   }
 
+  const started = performance.now();
+  debugLog("suggest:fallback:start", {
+    queryChars: query.length,
+    url: "/api/dishes/suggest",
+  });
   const res = await fetch(`/api/dishes/suggest?q=${encodeURIComponent(query)}&lang=ru`);
   if (!res.ok) {
+    debugWarn("suggest:fallback:error", {
+      status: res.status,
+      durationMs: Math.round(performance.now() - started),
+    });
     hideSuggest();
     return;
   }
@@ -432,6 +678,10 @@ async function loadSuggestions() {
   suggestItems = (data.items || []).slice(0, 4);
   suggestActive = suggestItems.length ? 0 : -1;
   renderSuggest();
+  debugLog("suggest:fallback:done", {
+    durationMs: Math.round(performance.now() - started),
+    items: suggestItems.length,
+  });
 }
 
 function renderSuggest() {
@@ -478,7 +728,7 @@ function chooseSuggest(index) {
   const nextPos = info.start + text.length;
   textarea.setSelectionRange(nextPos, nextPos);
   hideSuggest();
-  flushHeavyUpdate();
+  flushHeavyUpdate("suggest-choice");
 }
 
 function scheduleSuggest() {
@@ -561,7 +811,7 @@ function replaceMenuLine(source, target) {
     .map((line) => (line.trim() === source.trim() ? target : line))
     .join("\n");
   setRuTextValue(updated);
-  flushHeavyUpdate();
+  flushHeavyUpdate("replace-one");
 }
 
 function replaceMenuLines(replacements) {
@@ -592,7 +842,7 @@ function replaceMenuLines(replacements) {
 
   if (replaced > 0) {
     setRuTextValue(updated);
-    flushHeavyUpdate();
+    flushHeavyUpdate("replace-many");
   }
   return replaced;
 }
@@ -674,6 +924,7 @@ function renderReview(decisions) {
 
 async function runAnalyze() {
   if (analyzeInFlight) {
+    debugWarn("analyze:skip", {reason: "already-in-flight"});
     return;
   }
 
@@ -681,10 +932,22 @@ async function runAnalyze() {
   $("btnAnalyze").disabled = true;
   const originalText = $("btnAnalyze").textContent;
   $("btnAnalyze").textContent = "Поиск...";
+  const started = performance.now();
+  debugLog("analyze:start", {
+    payload: payloadSummary({text: $("ruText").value}),
+  });
 
   try {
-    const decisions = await postJson("/api/menu/analyze", {text: $("ruText").value});
+    const decisions = await postJson(
+      "/api/menu/analyze",
+      {text: $("ruText").value},
+      {log: {name: "analyze", reason: "button"}},
+    );
     renderReview(decisions.decisions || []);
+    debugLog("analyze:done", {
+      durationMs: Math.round(performance.now() - started),
+      decisions: (decisions.decisions || []).length,
+    });
   } finally {
     analyzeInFlight = false;
     $("btnAnalyze").disabled = false;
@@ -700,10 +963,15 @@ function randomPassword() {
 }
 
 async function collectPdfValidation() {
-  const data = await postJson("/api/menu/preview", {
+  const payload = {
     ru: $("ruText").value,
     show_kcal: $("showKcal").checked,
-  });
+  };
+  const data = await postJson(
+    "/api/menu/preview",
+    payload,
+    {log: {name: "pdf-validation-preview", reason: "pdf-button"}},
+  );
   lastPreviewData = data;
   renderPreview($("previewRu"), data.ru);
   renderPreview($("previewEn"), data.en);
@@ -826,11 +1094,20 @@ function localSuggest(query, catalog) {
 }
 
 async function preloadSuggestCatalog() {
+  const started = performance.now();
+  debugLog("dish-catalog:start", {url: "/api/dishes/names?lang=ru"});
   try {
     const data = await requestJson("/api/dishes/names?lang=ru");
     suggestCatalog = data.items || [];
+    debugLog("dish-catalog:done", {
+      durationMs: Math.round(performance.now() - started),
+      items: suggestCatalog.length,
+    });
   } catch {
     suggestCatalog = [];
+    debugWarn("dish-catalog:error", {
+      durationMs: Math.round(performance.now() - started),
+    });
   }
 }
 
@@ -986,7 +1263,7 @@ $("ruText").addEventListener("input", () => {
   pushRuHistory($("ruText").value);
   saveMenuDraft();
   scheduleSuggest();
-  scheduleHeavyUpdate(650);
+  scheduleHeavyUpdate(650, "ru-input");
 });
 
 $("ruText").addEventListener("click", scheduleSuggest);
@@ -1007,12 +1284,12 @@ $("ruText").addEventListener("keydown", (event) => {
     return;
   }
   if (event.key === "Enter" && ($("suggestRu").hidden || suggestItems.length === 0)) {
-    setTimeout(() => flushHeavyUpdate(), 0);
+    setTimeout(() => flushHeavyUpdate("enter"), 0);
   }
 });
 
 $("ruText").addEventListener("paste", () => {
-  setTimeout(() => flushHeavyUpdate(), 0);
+  setTimeout(() => flushHeavyUpdate("paste"), 0);
 });
 
 $("ruText").addEventListener("keydown", (event) => {
@@ -1038,11 +1315,15 @@ $("ruText").addEventListener("keydown", (event) => {
 
 $("ruText").addEventListener("blur", () => {
   setTimeout(hideSuggest, 120);
-  flushHeavyUpdate();
+  flushHeavyUpdate("blur");
 });
 
 $("showKcal").addEventListener("change", () => {
-  preview().catch(() => {});
+  preview("show-kcal-change").catch(() => {});
+});
+
+$("debugLogging").addEventListener("change", () => {
+  applyDebugLogging($("debugLogging").checked);
 });
 
 $("btnTheme").addEventListener("click", () => {
@@ -1142,7 +1423,7 @@ $("btnPdf").addEventListener("click", async () => {
 });
 
 $("btnMissing").addEventListener("click", async () => {
-  await refreshActions();
+  await refreshActions("open-editor");
   const editorRows = buildEditorRowsFromActions();
   if (!editorRows.length) {
     return;
@@ -1163,12 +1444,13 @@ window.addEventListener("load", () => {
   updateDateUi();
   restoreBackgroundState();
   applyTheme(loadStorage(STORAGE_KEYS.themeMode, "light"));
+  applyDebugLogging(loadStorage(STORAGE_KEYS.debugLogging, "0") === "1");
   setSettingsOpen(false);
   setReviewOpen(false);
   setUsersOpen(false);
   resetRuHistory($("ruText").value);
 
-  preview().catch(() => {});
-  refreshActions().catch(() => {});
+  preview("page-load").catch(() => {});
+  refreshActions("page-load").catch(() => {});
   preloadSuggestCatalog().catch(() => {});
 });

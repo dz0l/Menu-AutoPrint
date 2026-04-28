@@ -12,3 +12,5 @@ media/
 staticfiles/
 backups/
 .pytest_cache/
+ui-prototypes/
+FUTURE_UI.md
