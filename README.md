@@ -62,6 +62,8 @@ git pull
 docker compose up -d --build web
 ```
 
+`web` runs `collectstatic` automatically on container start. Do not run a second manual `collectstatic` immediately after rebuilding `web`.
+
 Create a manual PostgreSQL backup:
 
 ```bash
