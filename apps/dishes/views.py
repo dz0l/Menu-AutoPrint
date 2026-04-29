@@ -29,6 +29,12 @@ def _json_body(request) -> dict:
     return json.loads(request.body.decode("utf-8"))
 
 
+def _to_bool(value) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() not in {"", "0", "false", "no", "off", "none"}
+
+
 def _editor_required(request):
     return request.user.is_authenticated and request.user.is_active
 
@@ -150,4 +156,5 @@ def bulk_upsert(request):
 def check_missing_fixables_view(request):
     payload = _json_body(request)
     lines = payload.get("ru_lines") or payload.get("lines") or []
-    return JsonResponse(check_missing_fixables(lines))
+    show_kcal = _to_bool(payload.get("show_kcal", True))
+    return JsonResponse(check_missing_fixables(lines, show_kcal=show_kcal))

@@ -20,6 +20,8 @@
         {% for item in page.items %}
           {% if item.type == "group" %}
           <div class="document-group">{{ item.text }}{{ item.suffix|default:"" }}</div>
+          {% elif item.wrap_tail %}
+          <div class="document-dish">&bull; {% if item.wrap_head %}{{ item.wrap_head }} {% endif %}<span class="document-nowrap">{{ item.wrap_tail }}{{ item.suffix|default:"" }}</span></div>
           {% else %}
           <div class="document-dish">&bull; {{ item.text }}{{ item.suffix|default:"" }}</div>
           {% endif %}

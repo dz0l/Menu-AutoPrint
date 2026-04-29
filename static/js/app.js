@@ -2,6 +2,7 @@
   editorRows: "menu_editor_rows",
   lastRu: "menu_last_ru",
   lastEn: "menu_last_en",
+  editorSavedChanges: "menu_editor_saved_changes",
   pdfBackgroundName: "menu_pdf_background_name",
   pdfBackgroundData: "menu_pdf_background_data",
   themeMode: "menu_theme_mode",
@@ -82,7 +83,10 @@ function previewSignature(payload) {
 }
 
 function actionsSignature(payload) {
-  return JSON.stringify(payload.ru_lines || []);
+  return JSON.stringify({
+    ru_lines: payload.ru_lines || [],
+    show_kcal: Boolean(payload.show_kcal),
+  });
 }
 
 function debugLog(event, data = {}) {
@@ -586,6 +590,7 @@ async function preview(reason = "manual") {
 async function refreshActions(reason = "manual") {
   const payload = {
     ru_lines: lines($("ruText").value),
+    show_kcal: $("showKcal").checked,
   };
   const signature = actionsSignature(payload);
   const force = reason === "open-editor";
@@ -1040,7 +1045,7 @@ function renderReview(decisions, options = {}) {
     setReviewOpen(false);
     if (autoCount > 0) {
       toast(`Автоматически заменено: ${autoCount}`);
-    } else {
+    } else if (!options.quietNoMatches) {
       toast("Совпадений для замены не найдено.");
     }
     finishReview();
@@ -1167,6 +1172,17 @@ async function checkAndOpenEditor() {
     button: $("btnMissing"),
     onComplete: () => {
       openEditorFromActions().catch((error) => toast(error.message));
+    },
+  });
+}
+
+async function refreshAfterEditorSave() {
+  await runAnalyze({
+    button: $("btnMissing"),
+    quietNoMatches: true,
+    onComplete: () => {
+      preview("editor-save-check").catch((error) => toast(error.message));
+      refreshActions("editor-save-check").catch(() => {});
     },
   });
 }
@@ -1540,6 +1556,7 @@ $("showKcal").addEventListener("change", () => {
   updateKcalToggleUi();
   updatePreviewMeta();
   preview("show-kcal-change").catch(() => {});
+  refreshActions("show-kcal-change").catch(() => {});
 });
 
 $("btnKcalToggle")?.addEventListener("click", () => {
@@ -1676,6 +1693,8 @@ $("btnMissing").addEventListener("click", async () => {
 });
 
 window.addEventListener("load", () => {
+  const runEditorSaveCheck = loadStorage(STORAGE_KEYS.editorSavedChanges, "") === "1";
+  removeStorage(STORAGE_KEYS.editorSavedChanges);
   $("ruText").value = loadStorage(STORAGE_KEYS.lastRu, "");
   $("enText").value = loadStorage(STORAGE_KEYS.lastEn, "");
   removeStorage(STORAGE_KEYS.lastRu);
@@ -1700,4 +1719,7 @@ window.addEventListener("load", () => {
   preview("page-load").catch(() => {});
   refreshActions("page-load").catch(() => {});
   preloadSuggestCatalog().catch(() => {});
+  if (runEditorSaveCheck) {
+    setTimeout(() => refreshAfterEditorSave().catch((error) => toast(error.message)), 0);
+  }
 });

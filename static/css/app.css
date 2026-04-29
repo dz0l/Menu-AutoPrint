@@ -911,6 +911,10 @@ td select {
   margin-top: 2pt;
 }
 
+.document-nowrap {
+  white-space: nowrap;
+}
+
 .document-group + .document-dish {
   margin-top: 6pt;
 }

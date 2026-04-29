@@ -1,5 +1,6 @@
 const STORAGE_KEYS = {
   editorRows: "menu_editor_rows",
+  editorSavedChanges: "menu_editor_saved_changes",
 };
 
 const GROUP_OPTIONS = [
@@ -110,6 +111,12 @@ function loadStorageJson(key, fallback = []) {
 function removeStorage(key) {
   try {
     localStorage.removeItem(key);
+  } catch {}
+}
+
+function saveStorage(key, value) {
+  try {
+    localStorage.setItem(key, value);
   } catch {}
 }
 
@@ -486,6 +493,9 @@ $("btnSave").addEventListener("click", async () => {
       row._dirty = false;
       row._original = rowSnapshot(row);
     });
+    if ((data.created || 0) > 0 || (data.updated || 0) > 0) {
+      saveStorage(STORAGE_KEYS.editorSavedChanges, "1");
+    }
     location.href = "/";
   } catch (error) {
     const message = error?.message || "Ошибка сохранения";

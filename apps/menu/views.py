@@ -107,6 +107,22 @@ def _build_pdf_from_payload(payload: dict) -> bytes:
     )
 
 
+def _split_last_word(value: str) -> tuple[str, str]:
+    parts = (value or "").strip().rsplit(" ", 1)
+    if len(parts) == 2:
+        return parts[0], parts[1]
+    return "", parts[0] if parts else ""
+
+
+def _document_item(item: dict) -> dict:
+    prepared = dict(item)
+    if prepared.get("type") == "dish" and prepared.get("suffix"):
+        head, tail = _split_last_word(prepared.get("text", ""))
+        prepared["wrap_head"] = head
+        prepared["wrap_tail"] = tail
+    return prepared
+
+
 @ensure_csrf_cookie
 def index(request):
     return render(request, "menu/index.html")
@@ -148,8 +164,8 @@ def render_document_api(request):
 def document_preview_page(request, token: str):
     payload = _get_document(request, token)
     pages = [
-        {"label": "RU", "items": payload["preview"].get("ru") or []},
-        {"label": "EN", "items": payload["preview"].get("en") or []},
+        {"label": "RU", "items": [_document_item(item) for item in (payload["preview"].get("ru") or [])]},
+        {"label": "EN", "items": [_document_item(item) for item in (payload["preview"].get("en") or [])]},
     ]
     return render(
         request,

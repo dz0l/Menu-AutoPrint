@@ -600,7 +600,7 @@ def _prepared_catalog() -> list[dict]:
     return prepared
 
 
-def check_missing_fixables(ru_lines: list[str]) -> dict:
+def check_missing_fixables(ru_lines: list[str], *, show_kcal: bool = True) -> dict:
     missing = []
     fixables = []
     seen = set()
@@ -617,7 +617,10 @@ def check_missing_fixables(ru_lines: list[str]) -> dict:
         if not dish:
             missing.append(text)
             continue
-        if dish.kcal_per_100 is None or dish.grams_default is None:
+        if not dish.name_en:
+            fixables.append(text)
+            continue
+        if show_kcal and (dish.kcal_per_100 is None or dish.grams_default is None):
             fixables.append(text)
     return {"missing": missing, "fixables": fixables}
 
