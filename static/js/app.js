@@ -5,6 +5,7 @@
   editorSavedChanges: "menu_editor_saved_changes",
   pdfBackgroundName: "menu_pdf_background_name",
   pdfBackgroundData: "menu_pdf_background_data",
+  alternatePrintMode: "menu_alt_print_mode",
   themeMode: "menu_theme_mode",
   debugLogging: "menu_debug_logging",
 };
@@ -278,6 +279,18 @@ function applyDebugLogging(enabled) {
   }
   saveStorage(STORAGE_KEYS.debugLogging, debugLoggingEnabled ? "1" : "0");
   debugLog("logging:enabled");
+}
+
+function applyAlternatePrintMode(enabled) {
+  const checkbox = $("alternatePrintMode");
+  if (checkbox) {
+    checkbox.checked = Boolean(enabled);
+  }
+  saveStorage(STORAGE_KEYS.alternatePrintMode, enabled ? "1" : "0");
+}
+
+function isAlternatePrintMode() {
+  return $("alternatePrintMode")?.checked || false;
 }
 
 function updateKcalToggleUi() {
@@ -1246,6 +1259,11 @@ async function openDocumentFlow() {
   location.href = data.preview_url;
 }
 
+async function openAlternativePrintFlow() {
+  const data = await postJson("/api/menu/render", buildDocumentPayload());
+  location.href = data.print_url;
+}
+
 function normalizeSuggestValue(value) {
   return String(value || "")
     .toLowerCase()
@@ -1351,7 +1369,10 @@ function setPdfBusy(busy) {
     return;
   }
   button.disabled = busy;
-  button.textContent = busy ? "Печать..." : "Печать";
+  button.innerHTML = busy
+    ? '<span class="ui-icon" data-ui-icon="printer"></span> Печать...'
+    : '<span class="ui-icon" data-ui-icon="printer"></span> Печать';
+  window.MenuIcons?.render(button);
 }
 
 function showUserResult(message) {
@@ -1569,6 +1590,10 @@ $("debugLogging").addEventListener("change", () => {
   applyDebugLogging($("debugLogging").checked);
 });
 
+$("alternatePrintMode").addEventListener("change", () => {
+  applyAlternatePrintMode($("alternatePrintMode").checked);
+});
+
 $("btnTheme").addEventListener("click", () => {
   toggleTheme();
 });
@@ -1680,11 +1705,15 @@ $("btnPdf").addEventListener("click", async () => {
       setPdfBusy(false);
       return;
     }
-    await openDocumentFlow();
+    if (isAlternatePrintMode()) {
+      await openAlternativePrintFlow();
+    } else {
+      await openDocumentFlow();
+    }
     setTimeout(() => setPdfBusy(false), 1800);
   } catch (err) {
     setPdfBusy(false);
-    toast(err.message || "Ошибка генерации PDF");
+    toast(err.message || "Ошибка формирования документа");
   }
 });
 
@@ -1710,6 +1739,7 @@ window.addEventListener("load", () => {
   initPreviewPageFit();
   applyTheme(loadStorage(STORAGE_KEYS.themeMode, "light"));
   applyDebugLogging(loadStorage(STORAGE_KEYS.debugLogging, "0") === "1");
+  applyAlternatePrintMode(loadStorage(STORAGE_KEYS.alternatePrintMode, "0") === "1");
   setSettingsOpen(false);
   setReviewOpen(false);
   setUsersOpen(false);

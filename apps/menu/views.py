@@ -123,6 +123,14 @@ def _document_item(item: dict) -> dict:
     return prepared
 
 
+def _document_pages(payload: dict) -> list[dict]:
+    preview = payload.get("preview") or {}
+    return [
+        {"label": "RU", "items": [_document_item(item) for item in (preview.get("ru") or [])]},
+        {"label": "EN", "items": [_document_item(item) for item in (preview.get("en") or [])]},
+    ]
+
+
 @ensure_csrf_cookie
 def index(request):
     return render(request, "menu/index.html")
@@ -155,6 +163,7 @@ def render_document_api(request):
             "token": token,
             "filename": payload["filename"],
             "preview_url": reverse("menu:document_preview", args=[token]),
+            "print_url": reverse("menu:document_print", args=[token]),
             "pdf_url": reverse("menu:document_pdf", args=[token]),
             "pdf_download_url": f"{reverse('menu:document_pdf', args=[token])}?download=1",
         }
@@ -163,10 +172,6 @@ def render_document_api(request):
 
 def document_preview_page(request, token: str):
     payload = _get_document(request, token)
-    pages = [
-        {"label": "RU", "items": [_document_item(item) for item in (payload["preview"].get("ru") or [])]},
-        {"label": "EN", "items": [_document_item(item) for item in (payload["preview"].get("en") or [])]},
-    ]
     return render(
         request,
         "menu/document_preview.html",
@@ -179,7 +184,24 @@ def document_preview_page(request, token: str):
             "footer_note": FOOTER_NOTE,
             "pdf_url": reverse("menu:document_pdf", args=[token]),
             "pdf_download_url": f"{reverse('menu:document_pdf', args=[token])}?download=1",
-            "pages": pages,
+            "pages": _document_pages(payload),
+        },
+    )
+
+
+def document_print_page(request, token: str):
+    payload = _get_document(request, token)
+    return render(
+        request,
+        "menu/print.html",
+        {
+            "token": token,
+            "filename": payload["filename"],
+            "display_date": payload["display_date"],
+            "show_kcal": payload["show_kcal"],
+            "background_data": payload.get("background_data") or "",
+            "footer_note": FOOTER_NOTE,
+            "pages": _document_pages(payload),
         },
     )
 
