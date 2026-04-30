@@ -170,21 +170,5 @@
     {% endfor %}
   </main>
 
-  <script>
-    window.addEventListener("load", () => {
-      const images = Array.from(document.images || []);
-      Promise.all(images.map((image) => {
-        if (image.complete) {
-          return Promise.resolve();
-        }
-        return new Promise((resolve) => {
-          image.addEventListener("load", resolve, {once: true});
-          image.addEventListener("error", resolve, {once: true});
-        });
-      })).then(() => {
-        setTimeout(() => window.print(), 150);
-      });
-    });
-  </script>
 </body>
 </html>
