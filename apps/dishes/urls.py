@@ -14,4 +14,6 @@ urlpatterns = [
     path("import.csv", views.import_csv, name="import_csv"),
     path("bulk-upsert", views.bulk_upsert, name="bulk_upsert"),
     path("check-missing-fixables", views.check_missing_fixables_view, name="check_missing_fixables"),
+    path("translation-status", views.translation_status_view, name="translation_status"),
+    path("translate", views.translate_view, name="translate"),
 ]

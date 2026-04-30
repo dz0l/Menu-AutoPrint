@@ -21,6 +21,13 @@ from .services import (
     update_dish,
     upsert_dish,
 )
+from .translation import (
+    MAX_TRANSLATE_ITEMS,
+    TranslationError,
+    TranslationNotConfigured,
+    is_translation_configured,
+    translate_ru_to_en,
+)
 
 
 def _json_body(request) -> dict:
@@ -158,3 +165,31 @@ def check_missing_fixables_view(request):
     lines = payload.get("ru_lines") or payload.get("lines") or []
     show_kcal = _to_bool(payload.get("show_kcal", True))
     return JsonResponse(check_missing_fixables(lines, show_kcal=show_kcal))
+
+
+@require_http_methods(["GET"])
+def translation_status_view(request):
+    if not _editor_required(request):
+        return JsonResponse({"enabled": False})
+    return JsonResponse({"enabled": is_translation_configured()})
+
+
+@require_http_methods(["POST"])
+def translate_view(request):
+    if not _editor_required(request):
+        return JsonResponse({"error": "forbidden"}, status=403)
+    payload = _json_body(request)
+    texts = payload.get("texts") or []
+    if not isinstance(texts, list):
+        return JsonResponse({"error": "texts must be a list"}, status=400)
+    texts = [str(text or "").strip() for text in texts if str(text or "").strip()]
+    if not texts:
+        return JsonResponse({"translations": []})
+    if len(texts) > MAX_TRANSLATE_ITEMS:
+        return JsonResponse({"error": "too_many_texts", "limit": MAX_TRANSLATE_ITEMS}, status=400)
+    try:
+        return JsonResponse({"translations": translate_ru_to_en(texts)})
+    except TranslationNotConfigured as exc:
+        return JsonResponse({"error": exc.code}, status=400)
+    except TranslationError as exc:
+        return JsonResponse({"error": exc.code}, status=502)

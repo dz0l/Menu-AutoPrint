@@ -1,8 +1,11 @@
 const STORAGE_KEYS = {
   editorRows: "menu_editor_rows",
   editorSavedChanges: "menu_editor_saved_changes",
+  debugLogging: "menu_debug_logging",
 };
 
+const EDITOR_CONFIG = JSON.parse(document.getElementById("editorConfig")?.textContent || "{}");
+const TRANSLATION_ENABLED = Boolean(EDITOR_CONFIG.translationEnabled);
 const GROUP_OPTIONS = [
   "",
   "Салаты",
@@ -25,7 +28,22 @@ let fullDatabaseLoaded = false;
 let focusedRuSet = null;
 let focusedOrder = new Map();
 let saveInFlight = false;
+let translateAllInFlight = false;
 let sortState = {key: "", direction: "asc"};
+
+function debugLog(event, data = {}) {
+  try {
+    if (localStorage.getItem(STORAGE_KEYS.debugLogging) !== "1") {
+      return;
+    }
+  } catch {
+    return;
+  }
+  console.info("[EditorLog]", event, {
+    at: new Date().toISOString(),
+    ...data,
+  });
+}
 
 function status(text) {
   $("status").textContent = text;
@@ -65,6 +83,8 @@ function emptyRow(ru = "") {
     gr: "",
     catRu: "",
     catEn: "",
+    _autoTranslated: false,
+    _translating: false,
     _isNew: true,
     _dirty: true,
     _original: null,
@@ -236,7 +256,7 @@ function updateSearchVisibility() {
   }
 }
 
-function buildGroupSelect(row) {
+function buildGroupSelect(row, onManualEdit = null) {
   const select = document.createElement("select");
   select.className = "compact-input";
   GROUP_OPTIONS.forEach((option) => {
@@ -251,9 +271,138 @@ function buildGroupSelect(row) {
   select.addEventListener("change", () => {
     row.catRu = select.value;
     row.catEn = "";
-    syncRowDirty(row);
+    if (typeof onManualEdit === "function") {
+      onManualEdit();
+    } else {
+      syncRowDirty(row);
+    }
   });
   return select;
+}
+
+function markManualEdit(row, tr) {
+  row._autoTranslated = false;
+  syncRowDirty(row);
+  tr.classList.toggle("dirty-row", !row._isNew && Boolean(row._dirty));
+  tr.classList.toggle("error-row", !String(row.ru || "").trim());
+  tr.classList.toggle("auto-translated-row", false);
+  updateTranslateAllButton();
+}
+
+function canTranslateRow(row) {
+  return (
+    TRANSLATION_ENABLED &&
+    !translateAllInFlight &&
+    !row._translating &&
+    String(row.ru || "").trim() &&
+    !String(row.en || "").trim()
+  );
+}
+
+function translatableVisibleRows() {
+  return visibleRows().filter((row) => canTranslateRow(row));
+}
+
+function updateTranslateAllButton() {
+  const button = $("btnTranslateAll");
+  if (!button) {
+    return;
+  }
+  const count = translatableVisibleRows().length;
+  button.disabled = translateAllInFlight || count === 0;
+  button.title = count ? `Перевести пустые EN: ${count}` : "Нет строк для перевода";
+  button.setAttribute("aria-label", button.title);
+}
+
+function updateTranslateButton(button, row) {
+  if (!button) {
+    return;
+  }
+  button.disabled = !canTranslateRow(row);
+  button.title = row._translating ? "Перевод..." : "Перевести RU в EN";
+  button.setAttribute("aria-label", button.title);
+}
+
+function buildTextInput(row, key, tr, updateRowButtons) {
+  const input = document.createElement("input");
+  input.className = "compact-input";
+  input.value = row[key] ?? "";
+  input.type = "text";
+  input.addEventListener("input", () => {
+    row[key] = input.value;
+    markManualEdit(row, tr);
+    if (typeof updateRowButtons === "function") {
+      updateRowButtons();
+    }
+  });
+  return input;
+}
+
+async function requestTranslation(texts) {
+  const res = await fetch("/api/dishes/translate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken(),
+    },
+    body: JSON.stringify({texts}),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Ошибка перевода");
+  }
+  return data.translations || [];
+}
+
+async function translateRows(targetRows, reason = "row") {
+  if (!TRANSLATION_ENABLED) {
+    return;
+  }
+  const candidates = targetRows.filter((row) => canTranslateRow(row));
+  if (!candidates.length) {
+    toast("Нет строк для перевода.");
+    return;
+  }
+  if (reason === "bulk") {
+    translateAllInFlight = true;
+  }
+  candidates.forEach((row) => {
+    row._translating = true;
+  });
+  render();
+  status(`Перевод: ${candidates.length} строк...`);
+  debugLog("translate:start", {reason, count: candidates.length});
+
+  let translated = 0;
+  try {
+    for (let start = 0; start < candidates.length; start += 50) {
+      const chunk = candidates.slice(start, start + 50);
+      const translations = await requestTranslation(chunk.map((row) => row.ru));
+      translations.forEach((value, index) => {
+        const row = chunk[index];
+        if (!row || !value) {
+          return;
+        }
+        row.en = value;
+        row._autoTranslated = true;
+        row._dirty = isRowDirty(row);
+        translated += 1;
+      });
+    }
+    statusText(`Переведено: ${translated}`);
+    toast(`Переведено: ${translated}`);
+    debugLog("translate:done", {reason, count: translated});
+  } catch (error) {
+    status(`Ошибка перевода: ${error.message}`);
+    toast(`Ошибка перевода: ${error.message}`);
+    debugLog("translate:error", {reason, error: error.message, translated});
+  } finally {
+    candidates.forEach((row) => {
+      row._translating = false;
+    });
+    translateAllInFlight = false;
+    render();
+  }
 }
 
 function render() {
@@ -266,22 +415,31 @@ function render() {
     tr.classList.toggle("new-row", Boolean(row._isNew));
     tr.classList.toggle("dirty-row", !row._isNew && Boolean(row._dirty));
     tr.classList.toggle("error-row", !String(row.ru || "").trim());
+    tr.classList.toggle("auto-translated-row", Boolean(row._autoTranslated));
 
-    ["ru", "en"].forEach((key) => {
-      const td = document.createElement("td");
-      const input = document.createElement("input");
-      input.className = "compact-input";
-      input.value = row[key] ?? "";
-      input.type = "text";
-      input.addEventListener("input", () => {
-        row[key] = input.value;
-        syncRowDirty(row);
-        tr.classList.toggle("dirty-row", !row._isNew && Boolean(row._dirty));
-        tr.classList.toggle("error-row", !String(row.ru || "").trim());
-      });
-      td.appendChild(input);
-      tr.appendChild(td);
-    });
+    let translateButton = null;
+    const updateRowButtons = () => updateTranslateButton(translateButton, row);
+
+    const ruTd = document.createElement("td");
+    ruTd.appendChild(buildTextInput(row, "ru", tr, updateRowButtons));
+    tr.appendChild(ruTd);
+
+    if (TRANSLATION_ENABLED) {
+      const translateTd = document.createElement("td");
+      translateTd.className = "translate-cell";
+      translateButton = document.createElement("button");
+      translateButton.type = "button";
+      translateButton.className = "icon-button";
+      translateButton.innerHTML = '<span class="ui-icon" data-ui-icon="spell-check"></span>';
+      translateButton.addEventListener("click", () => translateRows([row]).catch((error) => toast(error.message)));
+      translateTd.appendChild(translateButton);
+      tr.appendChild(translateTd);
+      updateRowButtons();
+    }
+
+    const enTd = document.createElement("td");
+    enTd.appendChild(buildTextInput(row, "en", tr, updateRowButtons));
+    tr.appendChild(enTd);
 
     const numberTd = document.createElement("td");
     numberTd.className = "number-cell";
@@ -294,8 +452,7 @@ function render() {
       input.type = "number";
       input.addEventListener("input", () => {
         row[key] = input.value;
-        syncRowDirty(row);
-        tr.classList.toggle("dirty-row", !row._isNew && Boolean(row._dirty));
+        markManualEdit(row, tr);
       });
       numberGrid.appendChild(input);
     });
@@ -303,7 +460,7 @@ function render() {
     tr.appendChild(numberTd);
 
     const groupTd = document.createElement("td");
-    groupTd.appendChild(buildGroupSelect(row));
+    groupTd.appendChild(buildGroupSelect(row, () => markManualEdit(row, tr)));
     tr.appendChild(groupTd);
 
     const action = document.createElement("td");
@@ -328,6 +485,8 @@ function render() {
     tbody.appendChild(tr);
   });
 
+  window.MenuIcons?.render(tbody);
+  updateTranslateAllButton();
   statusText();
 }
 
@@ -358,6 +517,8 @@ async function loadRows() {
     gr: dish.gr ?? "",
     catRu: dish.catRu || "",
     catEn: dish.catEn || "",
+    _autoTranslated: false,
+    _translating: false,
     _isNew: false,
     _dirty: false,
     _original: {
@@ -445,6 +606,12 @@ document.querySelectorAll(".table-sort").forEach((button) => {
   button.addEventListener("click", () => toggleSort(button.dataset.sort));
 });
 
+if ($("btnTranslateAll")) {
+  $("btnTranslateAll").addEventListener("click", () => {
+    translateRows(translatableVisibleRows(), "bulk").catch((error) => toast(error.message));
+  });
+}
+
 $("btnSave").addEventListener("click", async () => {
   if (saveInFlight) {
     return;
@@ -491,6 +658,7 @@ $("btnSave").addEventListener("click", async () => {
     payloadRows.forEach((row) => {
       row._isNew = false;
       row._dirty = false;
+      row._autoTranslated = false;
       row._original = rowSnapshot(row);
     });
     if ((data.created || 0) > 0 || (data.updated || 0) > 0) {

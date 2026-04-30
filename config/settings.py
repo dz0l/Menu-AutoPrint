@@ -156,3 +156,9 @@ LOGIN_REDIRECT_URL = "menu:index"
 LOGOUT_REDIRECT_URL = "menu:index"
 
 EXPORT_RATE_LIMIT_PER_MINUTE = int(os.environ.get("EXPORT_RATE_LIMIT_PER_MINUTE", "30"))
+
+DEEPL_API_URL = os.environ.get("DEEPL_API_URL", "https://api-free.deepl.com").rstrip("/")
+DEEPL_AUTH_KEY = os.environ.get("DEEPL_AUTH_KEY", "").strip()
+DEEPL_SOURCE_LANG = os.environ.get("DEEPL_SOURCE_LANG", "RU").strip() or "RU"
+DEEPL_TARGET_LANG = os.environ.get("DEEPL_TARGET_LANG", "EN").strip() or "EN"
+DEEPL_TIMEOUT_SECONDS = env_int("DEEPL_TIMEOUT_SECONDS", 10)

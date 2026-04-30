@@ -663,6 +663,14 @@ tbody tr.error-row {
   box-shadow: inset 3px 0 0 var(--danger);
 }
 
+tbody tr.auto-translated-row {
+  background: color-mix(in srgb, var(--warning-soft) 72%, transparent);
+}
+
+body.theme-dark tbody tr.auto-translated-row {
+  background: rgba(245, 158, 11, 0.16);
+}
+
 .table-sort {
   min-height: 0;
   padding: 0;
@@ -685,14 +693,25 @@ td select {
 .number-head,
 .number-grid {
   display: grid;
-  grid-template-columns: minmax(74px, 1fr) minmax(74px, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(46px, 52px));
+  gap: 6px;
+  justify-content: center;
   text-align: center;
 }
 
 .number-field {
-  min-width: 74px;
+  min-width: 0;
+  max-width: 52px;
   text-align: right;
+}
+
+.translate-col,
+.translate-cell {
+  text-align: center;
+}
+
+.translate-cell .icon-button {
+  margin-inline: auto;
 }
 
 .action-col {

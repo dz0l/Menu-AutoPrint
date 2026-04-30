@@ -79,3 +79,5 @@ cd /opt/menu-autoprint
 docker compose exec web python manage.py bootstrap_editor --username mAdmin --password qwerty123
 docker compose exec web python manage.py shell -c "from django.core.cache import cache; cache.clear()"
 ```
+
+Enable editor auto-translation by filling `DEEPL_AUTH_KEY` in `.env`; `DEEPL_API_URL` defaults to `https://api-free.deepl.com` and can be changed to `https://api.deepl.com` for DeepL Pro. Restart `web` after changing `.env`.

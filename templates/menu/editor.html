@@ -30,9 +30,12 @@
       <table>
         <thead>
           <tr>
-            <th style="width: 30%;"><button class="table-sort" type="button" data-sort="ru">RU</button></th>
-            <th style="width: 28%;"><button class="table-sort" type="button" data-sort="en">EN</button></th>
-            <th style="width: 16%;">
+            <th style="width: 29%;"><button class="table-sort" type="button" data-sort="ru">RU</button></th>
+            {% if editor_config.translationEnabled %}
+            <th class="translate-col" style="width: 6%;"><button id="btnTranslateAll" class="icon-button" type="button" title="Перевести пустые EN" aria-label="Перевести пустые EN"><span class="ui-icon" data-ui-icon="spell-check"></span></button></th>
+            {% endif %}
+            <th style="width: 29%;"><button class="table-sort" type="button" data-sort="en">EN</button></th>
+            <th style="width: 10%;">
               <div class="number-head">
                 <span>Калл</span>
                 <span>Гр</span>
@@ -49,5 +52,6 @@
 </div>
 {% endblock %}
 {% block scripts %}
+{{ editor_config|json_script:"editorConfig" }}
 <script src="{% static 'js/editor.js' %}" defer></script>
 {% endblock %}

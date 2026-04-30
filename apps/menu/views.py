@@ -14,6 +14,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
 from apps.dishes.services import analyze_pasted
+from apps.dishes.translation import is_translation_configured
 from apps.pdf.services import FOOTER_NOTE, build_download_filename, build_menu_pdf, format_print_date
 
 from .services import build_preview, normalize_lines, translate_lines
@@ -139,7 +140,7 @@ def index(request):
 @ensure_csrf_cookie
 @login_required
 def editor(request):
-    return render(request, "menu/editor.html")
+    return render(request, "menu/editor.html", {"editor_config": {"translationEnabled": is_translation_configured()}})
 
 
 @require_http_methods(["POST"])
