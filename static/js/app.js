@@ -1259,9 +1259,16 @@ async function openDocumentFlow() {
   location.href = data.preview_url;
 }
 
-async function openAlternativePrintFlow() {
+async function openAlternativePrintFlow(printWindow = null) {
   const data = await postJson("/api/menu/render", buildDocumentPayload());
-  location.href = data.print_url;
+  if (printWindow && !printWindow.closed) {
+    printWindow.location.href = data.print_url;
+    return;
+  }
+  const opened = window.open(data.print_url, "_blank");
+  if (!opened) {
+    location.href = data.print_url;
+  }
 }
 
 function normalizeSuggestValue(value) {
@@ -1697,21 +1704,34 @@ $("btnPdf").addEventListener("click", async () => {
     return;
   }
 
+  const useAlternativePrint = isAlternatePrintMode();
+  const printWindow = useAlternativePrint ? window.open("", "_blank") : null;
+  if (printWindow) {
+    printWindow.document.write("<!doctype html><title>Печать</title><body>Подготовка печати...</body>");
+    printWindow.document.close();
+  }
+
   setPdfBusy(true);
   try {
     const issues = await collectPdfValidation();
     if (issues.length) {
+      if (printWindow && !printWindow.closed) {
+        printWindow.close();
+      }
       toast(issues[0]);
       setPdfBusy(false);
       return;
     }
-    if (isAlternatePrintMode()) {
-      await openAlternativePrintFlow();
+    if (useAlternativePrint) {
+      await openAlternativePrintFlow(printWindow);
     } else {
       await openDocumentFlow();
     }
     setTimeout(() => setPdfBusy(false), 1800);
   } catch (err) {
+    if (printWindow && !printWindow.closed) {
+      printWindow.close();
+    }
     setPdfBusy(false);
     toast(err.message || "Ошибка формирования документа");
   }
