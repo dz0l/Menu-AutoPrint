@@ -25,6 +25,7 @@ from .translation import (
     MAX_TRANSLATE_ITEMS,
     TranslationError,
     TranslationNotConfigured,
+    TranslationProviderError,
     is_translation_configured,
     translate_ru_to_en,
 )
@@ -191,5 +192,7 @@ def translate_view(request):
         return JsonResponse({"translations": translate_ru_to_en(texts)})
     except TranslationNotConfigured as exc:
         return JsonResponse({"error": exc.code}, status=400)
+    except TranslationProviderError as exc:
+        return JsonResponse({"error": exc.code, "provider_status": exc.provider_status}, status=502)
     except TranslationError as exc:
         return JsonResponse({"error": exc.code}, status=502)

@@ -349,7 +349,8 @@ async function requestTranslation(texts) {
   });
   const data = await res.json();
   if (!res.ok) {
-    throw new Error(data.error || "Ошибка перевода");
+    const providerStatus = data.provider_status ? ` (${data.provider_status})` : "";
+    throw new Error(`${data.error || "Ошибка перевода"}${providerStatus}`);
   }
   return data.translations || [];
 }

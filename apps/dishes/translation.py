@@ -34,6 +34,10 @@ class TranslationBadResponse(TranslationError):
 class TranslationProviderError(TranslationError):
     code = "provider_error"
 
+    def __init__(self, message: str = "", *, provider_status: int | None = None):
+        super().__init__(message)
+        self.provider_status = provider_status
+
 
 def _auth_key() -> str:
     return str(getattr(settings, "DEEPL_AUTH_KEY", "") or "").strip()
@@ -91,7 +95,7 @@ def _translate_with_deepl(texts: list[str]) -> list[str]:
         raise TranslationTimeout("DeepL request timed out") from exc
     except urllib.error.HTTPError as exc:
         logger.warning("deepl translation http error: status=%s", exc.code)
-        raise TranslationProviderError(f"DeepL HTTP error: {exc.code}") from exc
+        raise TranslationProviderError(f"DeepL HTTP error: {exc.code}", provider_status=exc.code) from exc
     except urllib.error.URLError as exc:
         logger.warning("deepl translation url error: reason=%s", exc.reason)
         raise TranslationProviderError("DeepL request failed") from exc
