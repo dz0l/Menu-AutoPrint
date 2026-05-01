@@ -693,7 +693,7 @@ td select {
 .number-head,
 .number-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(46px, 52px));
+  grid-template-columns: repeat(2, minmax(54px, 58px));
   gap: 6px;
   justify-content: center;
   text-align: center;
@@ -701,8 +701,18 @@ td select {
 
 .number-field {
   min-width: 0;
-  max-width: 52px;
+  max-width: 58px;
+  padding-inline: 6px;
   text-align: right;
+  font-variant-numeric: tabular-nums;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.number-field::-webkit-inner-spin-button,
+.number-field::-webkit-outer-spin-button {
+  margin: 0;
+  -webkit-appearance: none;
 }
 
 .translate-col,
