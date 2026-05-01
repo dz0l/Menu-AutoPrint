@@ -12,7 +12,15 @@ logger = logging.getLogger(__name__)
 
 MAX_TRANSLATE_ITEMS = 50
 MAX_TRANSLATE_BODY_BYTES = 128 * 1024
-PLACEHOLDER_KEYS = {"", "YOU_API_TOKEN", "YOUR_API_TOKEN", "CHANGE-ME", "CHANGE_ME"}
+MAX_TRANSLATE_CHARS = 50_000
+PLACEHOLDER_KEYS = {
+    "",
+    "YOU_API_TOKEN",
+    "YOUR_API_TOKEN",
+    "YOUR_AZURE_TRANSLATOR_KEY",
+    "CHANGE-ME",
+    "CHANGE_ME",
+}
 
 
 class TranslationError(Exception):
@@ -40,7 +48,7 @@ class TranslationProviderError(TranslationError):
 
 
 def _auth_key() -> str:
-    return str(getattr(settings, "DEEPL_AUTH_KEY", "") or "").strip()
+    return str(getattr(settings, "AZURE_TRANSLATOR_KEY", "") or "").strip()
 
 
 def is_translation_configured() -> bool:
@@ -52,63 +60,86 @@ def translate_ru_to_en(texts: list[str]) -> list[str]:
     if not cleaned:
         return []
     if not is_translation_configured():
-        raise TranslationNotConfigured("DeepL API key is not configured")
+        raise TranslationNotConfigured("Azure Translator key is not configured")
     if len(cleaned) > MAX_TRANSLATE_ITEMS:
         raise TranslationBadResponse(f"too many texts: {len(cleaned)}")
+    if sum(len(text) for text in cleaned) > MAX_TRANSLATE_CHARS:
+        raise TranslationBadResponse("request text is too large")
 
-    logger.info("deepl translation start: items=%s", len(cleaned))
-    translations = _translate_with_deepl(cleaned)
-    logger.info("deepl translation done: items=%s", len(translations))
+    logger.info("azure translation start: items=%s", len(cleaned))
+    translations = _translate_with_azure(cleaned)
+    logger.info("azure translation done: items=%s", len(translations))
     return translations
 
 
-def _translate_with_deepl(texts: list[str]) -> list[str]:
-    fields: list[tuple[str, str]] = [
-        ("source_lang", getattr(settings, "DEEPL_SOURCE_LANG", "RU")),
-        ("target_lang", getattr(settings, "DEEPL_TARGET_LANG", "EN")),
-    ]
-    fields.extend(("text", text) for text in texts)
-    body = urllib.parse.urlencode(fields).encode("utf-8")
+def _translate_with_azure(texts: list[str]) -> list[str]:
+    source_lang = getattr(settings, "AZURE_TRANSLATOR_SOURCE_LANG", "ru")
+    target_lang = getattr(settings, "AZURE_TRANSLATOR_TARGET_LANG", "en")
+    query = urllib.parse.urlencode(
+        {
+            "api-version": "3.0",
+            "from": source_lang,
+            "to": target_lang,
+        }
+    )
+    body = json.dumps([{"Text": text} for text in texts], ensure_ascii=False).encode("utf-8")
     if len(body) > MAX_TRANSLATE_BODY_BYTES:
         raise TranslationBadResponse("request body is too large")
 
-    url = f"{getattr(settings, 'DEEPL_API_URL', 'https://api-free.deepl.com').rstrip('/')}/v2/translate"
+    endpoint = getattr(
+        settings,
+        "AZURE_TRANSLATOR_ENDPOINT",
+        "https://api.cognitive.microsofttranslator.com",
+    ).rstrip("/")
+    url = f"{endpoint}/translate?{query}"
+    headers = {
+        "Ocp-Apim-Subscription-Key": _auth_key(),
+        "Content-Type": "application/json; charset=utf-8",
+        "Accept": "application/json",
+    }
+    region = str(getattr(settings, "AZURE_TRANSLATOR_REGION", "") or "").strip()
+    if region:
+        headers["Ocp-Apim-Subscription-Region"] = region
+
     request = urllib.request.Request(
         url,
         data=body,
-        headers={
-            "Authorization": f"DeepL-Auth-Key {_auth_key()}",
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Accept": "application/json",
-        },
+        headers=headers,
         method="POST",
     )
 
     try:
-        with urllib.request.urlopen(request, timeout=getattr(settings, "DEEPL_TIMEOUT_SECONDS", 10)) as response:
+        timeout = getattr(settings, "AZURE_TRANSLATOR_TIMEOUT_SECONDS", 10)
+        with urllib.request.urlopen(request, timeout=timeout) as response:
             payload = response.read(MAX_TRANSLATE_BODY_BYTES).decode("utf-8")
     except TimeoutError as exc:
-        logger.warning("deepl translation timeout")
-        raise TranslationTimeout("DeepL request timed out") from exc
+        logger.warning("azure translation timeout")
+        raise TranslationTimeout("Azure Translator request timed out") from exc
     except socket.timeout as exc:
-        logger.warning("deepl translation socket timeout")
-        raise TranslationTimeout("DeepL request timed out") from exc
+        logger.warning("azure translation socket timeout")
+        raise TranslationTimeout("Azure Translator request timed out") from exc
     except urllib.error.HTTPError as exc:
-        logger.warning("deepl translation http error: status=%s", exc.code)
-        raise TranslationProviderError(f"DeepL HTTP error: {exc.code}", provider_status=exc.code) from exc
+        logger.warning("azure translation http error: status=%s", exc.code)
+        raise TranslationProviderError(f"Azure Translator HTTP error: {exc.code}", provider_status=exc.code) from exc
     except urllib.error.URLError as exc:
-        logger.warning("deepl translation url error: reason=%s", exc.reason)
-        raise TranslationProviderError("DeepL request failed") from exc
+        logger.warning("azure translation url error: reason=%s", exc.reason)
+        raise TranslationProviderError("Azure Translator request failed") from exc
 
     try:
         data = json.loads(payload)
-        translations = data["translations"]
-        result = [str(item.get("text", "")).strip() for item in translations]
+        result = [
+            str(item["translations"][0].get("text", "")).strip()
+            for item in data
+        ]
     except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
-        logger.warning("deepl translation bad response")
-        raise TranslationBadResponse("DeepL response format is invalid") from exc
+        logger.warning("azure translation bad response")
+        raise TranslationBadResponse("Azure Translator response format is invalid") from exc
 
     if len(result) != len(texts) or any(not item for item in result):
-        logger.warning("deepl translation incomplete response: expected=%s actual=%s", len(texts), len(result))
-        raise TranslationBadResponse("DeepL response is incomplete")
+        logger.warning(
+            "azure translation incomplete response: expected=%s actual=%s",
+            len(texts),
+            len(result),
+        )
+        raise TranslationBadResponse("Azure Translator response is incomplete")
     return result

@@ -80,4 +80,4 @@ docker compose exec web python manage.py bootstrap_editor --username mAdmin --pa
 docker compose exec web python manage.py shell -c "from django.core.cache import cache; cache.clear()"
 ```
 
-Enable editor auto-translation by filling `DEEPL_AUTH_KEY` in `.env`; `DEEPL_API_URL` defaults to `https://api-free.deepl.com` and can be changed to `https://api.deepl.com` for DeepL Pro. Restart `web` after changing `.env`.
+Enable editor auto-translation by filling `AZURE_TRANSLATOR_KEY` in `.env`; use `AZURE_TRANSLATOR_REGION=westeurope` for a West Europe Azure Translator resource and keep `AZURE_TRANSLATOR_ENDPOINT=https://api.cognitive.microsofttranslator.com` for text translation. Restart `web` after changing `.env`.

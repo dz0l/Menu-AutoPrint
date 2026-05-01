@@ -157,8 +157,12 @@ LOGOUT_REDIRECT_URL = "menu:index"
 
 EXPORT_RATE_LIMIT_PER_MINUTE = int(os.environ.get("EXPORT_RATE_LIMIT_PER_MINUTE", "30"))
 
-DEEPL_API_URL = os.environ.get("DEEPL_API_URL", "https://api-free.deepl.com").rstrip("/")
-DEEPL_AUTH_KEY = os.environ.get("DEEPL_AUTH_KEY", "").strip()
-DEEPL_SOURCE_LANG = os.environ.get("DEEPL_SOURCE_LANG", "RU").strip() or "RU"
-DEEPL_TARGET_LANG = os.environ.get("DEEPL_TARGET_LANG", "EN").strip() or "EN"
-DEEPL_TIMEOUT_SECONDS = env_int("DEEPL_TIMEOUT_SECONDS", 10)
+AZURE_TRANSLATOR_ENDPOINT = os.environ.get(
+    "AZURE_TRANSLATOR_ENDPOINT",
+    "https://api.cognitive.microsofttranslator.com",
+).rstrip("/")
+AZURE_TRANSLATOR_KEY = os.environ.get("AZURE_TRANSLATOR_KEY", "").strip()
+AZURE_TRANSLATOR_REGION = os.environ.get("AZURE_TRANSLATOR_REGION", "").strip()
+AZURE_TRANSLATOR_SOURCE_LANG = os.environ.get("AZURE_TRANSLATOR_SOURCE_LANG", "ru").strip() or "ru"
+AZURE_TRANSLATOR_TARGET_LANG = os.environ.get("AZURE_TRANSLATOR_TARGET_LANG", "en").strip() or "en"
+AZURE_TRANSLATOR_TIMEOUT_SECONDS = env_int("AZURE_TRANSLATOR_TIMEOUT_SECONDS", 10)
