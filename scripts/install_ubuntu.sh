@@ -210,6 +210,11 @@ else
   fi
   docker compose exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD="$ADMIN_PASSWORD" web python manage.py create_staff_user "$ADMIN_USERNAME" --role admin
   unset ADMIN_PASSWORD
+  if ! admin_exists; then
+    echo "Admin user was not created. Check the output above and run create_staff_user manually."
+    exit 1
+  fi
+  echo "Admin user created: $ADMIN_USERNAME"
 fi
 docker compose exec -T web python manage.py shell -c "from django.core.cache import cache; cache.clear()"
 
