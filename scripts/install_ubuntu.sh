@@ -96,6 +96,18 @@ read_admin_credentials() {
   fi
 }
 
+prompt_new_install_admin_credentials() {
+  if [[ "$ENV_CREATED" != "1" ]]; then
+    return
+  fi
+  if [[ -n "${MENU_AUTOPRINT_NEW_USER_PASSWORD:-}" ]]; then
+    return
+  fi
+
+  echo "First admin account will be created after database migrations."
+  read_admin_credentials
+}
+
 HOST_IP="${HOST_IP:-$(detect_host_ip)}"
 
 sudo apt-get update
@@ -119,6 +131,8 @@ if [[ ! -f .env ]]; then
   cp .env.example .env
   ENV_CREATED=1
 fi
+
+prompt_new_install_admin_credentials
 
 DJANGO_SECRET_KEY_VALUE="$(get_env_value "DJANGO_SECRET_KEY")"
 if [[ "$ENV_CREATED" == "1" || -z "$DJANGO_SECRET_KEY_VALUE" ]]; then
@@ -164,7 +178,10 @@ docker compose exec -T web python manage.py migrate
 if admin_exists; then
   echo "Admin user already exists; skipping admin creation."
 else
-  read_admin_credentials
+  if [[ -z "${ADMIN_PASSWORD:-}" ]]; then
+    echo "No active admin user found. Creating the first admin account."
+    read_admin_credentials
+  fi
   docker compose exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD="$ADMIN_PASSWORD" web python manage.py create_staff_user "$ADMIN_USERNAME" --role admin
   unset ADMIN_PASSWORD
 fi
