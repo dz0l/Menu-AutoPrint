@@ -8,6 +8,7 @@
   alternatePrintMode: "menu_alt_print_mode",
   themeMode: "menu_theme_mode",
   debugLogging: "menu_debug_logging",
+  showKcal: "menu_show_kcal",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -1404,8 +1405,10 @@ function renderUsers(users) {
 
     const meta = document.createElement("div");
     meta.className = "users-meta";
+    const roleLabel = user.role === "admin" ? "Admin" : "User";
     meta.innerHTML = `
       <strong>${user.username}</strong>
+      <span class="muted">Роль: ${roleLabel}</span>
       <span class="muted">${user.must_change_password ? "Требуется смена пароля" : "Пароль обновлён"}</span>
     `;
     item.appendChild(meta);
@@ -1413,7 +1416,7 @@ function renderUsers(users) {
     const actions = document.createElement("div");
     actions.className = "review-actions";
 
-    if (!user.is_madmin) {
+    if (!user.is_admin) {
       const resetBtn = document.createElement("button");
       resetBtn.type = "button";
       resetBtn.textContent = "Сбросить пароль";
@@ -1462,7 +1465,7 @@ function renderUsers(users) {
     } else {
       const label = document.createElement("span");
       label.className = "muted";
-      label.textContent = "mAdmin защищён от удаления и сброса";
+      label.textContent = "Администратор защищён от удаления и сброса";
       actions.appendChild(label);
     }
 
@@ -1581,6 +1584,7 @@ $("ruText").addEventListener("blur", () => {
 });
 
 $("showKcal").addEventListener("change", () => {
+  saveStorage(STORAGE_KEYS.showKcal, $("showKcal").checked ? "1" : "0");
   updateKcalToggleUi();
   updatePreviewMeta();
   preview("show-kcal-change").catch(() => {});
@@ -1751,6 +1755,7 @@ window.addEventListener("load", () => {
 
   $("printDateMode").value = "today";
   $("printDateCustom").value = todayDate();
+  $("showKcal").checked = loadStorage(STORAGE_KEYS.showKcal, $("showKcal").checked ? "1" : "0") === "1";
   updateDateUi();
   updateLineCounter();
   updateKcalToggleUi();

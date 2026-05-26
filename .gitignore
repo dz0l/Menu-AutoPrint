@@ -1,5 +1,4 @@
 *.jpg
-CONTINUITY.md
 .env
 .venv/
 venv/
@@ -10,3 +9,6 @@ media/
 staticfiles/
 backups/
 .pytest_cache/
+.local/
+*.local.md
+.old/

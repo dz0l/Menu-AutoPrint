@@ -51,15 +51,17 @@ def _editor_required(request):
     return request.user.is_authenticated and request.user.is_active
 
 
-def _madmin_required(request):
-    return _editor_required(request) and request.user.username == "mAdmin"
+def _admin_required(request):
+    return _editor_required(request) and request.user.is_admin
 
 
 def _serialize_user(user):
     return {
         "id": user.id,
         "username": user.username,
-        "is_madmin": user.username == "mAdmin",
+        "role": user.role,
+        "is_admin": user.is_admin,
+        "is_madmin": user.is_admin,
         "must_change_password": user.must_change_password,
     }
 
@@ -78,7 +80,7 @@ def _generate_valid_password(user=None) -> str:
 
 @require_http_methods(["GET", "POST"])
 def users(request):
-    if not _madmin_required(request):
+    if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
 
     if request.method == "GET":
@@ -96,7 +98,12 @@ def users(request):
         return JsonResponse({"errors": exc.messages}, status=400)
 
     try:
-        user = User.objects.create_user(username=username, password=password, must_change_password=True)
+        user = User.objects.create_user(
+            username=username,
+            password=password,
+            role=User.Role.USER,
+            must_change_password=True,
+        )
     except IntegrityError:
         return JsonResponse({"error": "username already exists"}, status=400)
 
@@ -105,14 +112,14 @@ def users(request):
 
 @require_http_methods(["DELETE"])
 def user_detail(request, user_id):
-    if not _madmin_required(request):
+    if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
 
     user = User.objects.filter(id=user_id).first()
     if not user:
         return JsonResponse({"error": "not found"}, status=404)
-    if user.username == "mAdmin":
-        return JsonResponse({"error": "mAdmin cannot be deleted"}, status=400)
+    if user.is_admin:
+        return JsonResponse({"error": "admin users cannot be deleted here"}, status=400)
 
     user.delete()
     return JsonResponse({"deleted": True})
@@ -120,14 +127,14 @@ def user_detail(request, user_id):
 
 @require_http_methods(["POST"])
 def user_reset_password(request, user_id):
-    if not _madmin_required(request):
+    if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
 
     user = User.objects.filter(id=user_id).first()
     if not user:
         return JsonResponse({"error": "not found"}, status=404)
-    if user.username == "mAdmin":
-        return JsonResponse({"error": "mAdmin password cannot be reset here"}, status=400)
+    if user.is_admin:
+        return JsonResponse({"error": "admin user passwords cannot be reset here"}, status=400)
 
     password = _generate_valid_password(user)
     user.set_password(password)

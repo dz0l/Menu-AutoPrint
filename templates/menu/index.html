@@ -27,7 +27,7 @@
 {% endblock %}
 {% block topbar_panel %}
 <section id="settingsBar" class="settings-bar shell" hidden>
-  {% if request.user.is_authenticated and request.user.username == "mAdmin" %}
+  {% if request.user.is_authenticated and request.user.is_admin %}
     <button id="btnUsers" type="button">Пользователи</button>
   {% endif %}
   <label class="inline" title="Печатать через HTML-страницу браузера вместо PDF"><input id="alternatePrintMode" type="checkbox"> Режим альтернативной печати</label>
@@ -97,7 +97,7 @@
   </div>
 </div>
 
-{% if request.user.is_authenticated and request.user.username == "mAdmin" %}
+{% if request.user.is_authenticated and request.user.is_admin %}
 <div id="usersModal" class="modal" hidden>
   <div class="modal-backdrop" data-close-users="1"></div>
   <div class="modal-dialog users-dialog" role="dialog" aria-modal="true" aria-labelledby="usersTitle">

@@ -9,3 +9,7 @@ db.sqlite3
 media
 staticfiles
 backups
+docs
+CONTINUITY.md
+*.local.md
+.cursor
