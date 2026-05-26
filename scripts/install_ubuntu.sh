@@ -108,6 +108,31 @@ prompt_new_install_admin_credentials() {
   read_admin_credentials
 }
 
+profile_enabled() {
+  local profile="$1"
+  local profiles
+  profiles="$(get_env_value "COMPOSE_PROFILES")"
+  [[ ",$profiles," == *",$profile,"* ]]
+}
+
+remove_compose_service_if_present() {
+  local profile="$1"
+  local service="$2"
+  if docker compose --profile "$profile" ps -q "$service" >/dev/null 2>&1; then
+    docker compose --profile "$profile" stop "$service" >/dev/null 2>&1 || true
+    docker compose --profile "$profile" rm -f "$service" >/dev/null 2>&1 || true
+  fi
+}
+
+cleanup_inactive_profile_services() {
+  if ! profile_enabled "caddy"; then
+    remove_compose_service_if_present "caddy" "caddy"
+  fi
+  if ! profile_enabled "external-proxy"; then
+    remove_compose_service_if_present "external-proxy" "nginx-public"
+  fi
+}
+
 HOST_IP="${HOST_IP:-$(detect_host_ip)}"
 
 sudo apt-get update
@@ -173,7 +198,8 @@ if [[ -n "${HOST_IP:-}" ]]; then
   append_csv_env_value "DJANGO_CSRF_TRUSTED_ORIGINS" "http://$HOST_IP"
 fi
 
-docker compose up -d --build
+cleanup_inactive_profile_services
+docker compose up -d --build --remove-orphans
 docker compose exec -T web python manage.py migrate
 if admin_exists; then
   echo "Admin user already exists; skipping admin creation."

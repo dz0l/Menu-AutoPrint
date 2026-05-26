@@ -102,11 +102,20 @@ DJANGO_CSRF_TRUSTED_ORIGINS=https://your-domain.tld
 ```
 
 Configure the host reverse proxy to send traffic to `http://127.0.0.1:8080/` and pass `X-Forwarded-Proto: https`.
+This mode does not serve public HTTPS by itself; a host-level proxy must listen on `80` and `443`.
 
 If you publish plain HTTP on a non-standard port, open the app as `http://server-ip:port/`.
 
 ```bash
-docker compose up -d --build
+docker compose up -d --build --remove-orphans
+```
+
+When switching between `COMPOSE_PROFILES=caddy` and `COMPOSE_PROFILES=external-proxy`, remove the previously active profile service:
+
+```bash
+docker compose --profile caddy rm -sf caddy
+docker compose --profile external-proxy rm -sf nginx-public
+docker compose up -d --build --remove-orphans
 ```
 
 ## CSV Import From Server Path
