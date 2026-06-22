@@ -424,7 +424,6 @@ body.theme-dark .editor-wrap textarea {
 
 .preview-page {
   --preview-scale: 1;
-  --preview-content-fit: 1;
   width: var(--preview-page-width, min(100%, 375px));
   height: var(--preview-page-height, auto);
   margin: 0 auto;
@@ -481,26 +480,27 @@ body.theme-dark .preview-surface {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: calc(24px * var(--preview-scale) * var(--preview-content-fit, 1)) calc(21px * var(--preview-scale) * var(--preview-content-fit, 1)) calc(8px * var(--preview-scale) * var(--preview-content-fit, 1));
+  padding: calc(24px * var(--preview-scale)) calc(21px * var(--preview-scale)) calc(8px * var(--preview-scale));
   text-align: center;
-  font-size: calc(var(--menu-font-pt, 20) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+  font-size: calc(var(--menu-font-pt, 20) * 1pt * var(--preview-scale));
   line-height: calc(var(--menu-leading-pt, 28) / var(--menu-font-pt, 20));
 }
 
 .preview-doc-inner {
   width: 100%;
   max-width: 100%;
+  transform-origin: top center;
 }
 
 .preview-doc-inner > .group-block,
 .preview-doc-inner > .group {
-  margin-top: calc(var(--group-space-pt, 20) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+  margin-top: calc(var(--group-space-pt, 20) * 1pt * var(--preview-scale));
   font-weight: 700;
 }
 
 .preview-doc-inner > .dish-block,
 .preview-doc-inner > .dish {
-  margin-top: calc(var(--dish-space-pt, 2) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+  margin-top: calc(var(--dish-space-pt, 2) * 1pt * var(--preview-scale));
 }
 
 .preview-doc-inner > :first-child {
@@ -511,14 +511,14 @@ body.theme-dark .preview-surface {
 .preview-doc-inner > .group + .dish-block,
 .preview-doc-inner > .group-block + .dish,
 .preview-doc-inner > .group + .dish {
-  margin-top: calc(var(--after-group-space-pt, 6) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+  margin-top: calc(var(--after-group-space-pt, 6) * 1pt * var(--preview-scale));
 }
 
 .preview-doc-inner > .dish-block + .group-block,
 .preview-doc-inner > .dish-block + .group,
 .preview-doc-inner > .dish + .group-block,
 .preview-doc-inner > .dish + .group {
-  margin-top: calc(var(--group-space-pt, 20) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+  margin-top: calc(var(--group-space-pt, 20) * 1pt * var(--preview-scale));
 }
 
 .preview-doc .group-block,
@@ -544,7 +544,7 @@ body.theme-dark .preview-surface {
 }
 
 .preview-doc .group-line.continuation {
-  margin-top: calc(var(--menu-leading-pt, 28) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+  margin-top: calc(var(--menu-leading-pt, 28) * 1pt * var(--preview-scale));
   font-weight: 700;
 }
 
@@ -553,7 +553,7 @@ body.theme-dark .preview-surface {
 }
 
 .preview-doc .dish-block > .dish-line.continuation {
-  margin-top: calc((var(--continuation-leading-pt, 18) - var(--menu-font-pt, 20)) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+  margin-top: max(2px, calc((var(--continuation-leading-pt, 24) - var(--menu-font-pt, 20)) * 1pt * var(--preview-scale)));
 }
 
 body.theme-dark .preview-doc .dish {
@@ -1035,7 +1035,7 @@ td select {
 }
 
 .document-dish-block > .document-dish-line.continuation {
-  margin-top: calc(var(--continuation-leading, 18pt) - 1em);
+  margin-top: max(2pt, calc(var(--continuation-leading, 24pt) - var(--menu-font-size, 20pt)));
 }
 
 .document-footer {

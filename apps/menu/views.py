@@ -53,7 +53,7 @@ def _build_document_payload(data: dict) -> dict:
     ru_lines = normalize_lines(data.get("ru") or data.get("ru_lines"))
     en_lines = translate_lines(ru_lines)
     show_kcal = _to_bool(data.get("show_kcal", True))
-    auto_format = _to_bool(data.get("auto_format", True))
+    auto_format = _to_bool(data.get("auto_format", False))
     print_date = data.get("print_date") or ""
     background_name = data.get("background_name") or ""
     background_data = data.get("background_data") or ""
@@ -107,7 +107,7 @@ def _build_pdf_from_payload(payload: dict) -> bytes:
         background_name=payload.get("background_name") or "",
         background_data=payload.get("background_data") or "",
         document_title=payload.get("filename") or "menu.pdf",
-        auto_format=bool(payload.get("auto_format", True)),
+        auto_format=bool(payload.get("auto_format", False)),
     )
 
 

@@ -73,11 +73,12 @@ BASE_MENU_FONT_SIZE = 20
 BASE_MENU_LEADING = 28
 BASE_GROUP_FONT_SIZE = 20
 BASE_GROUP_LEADING = 28
-BASE_CONTINUATION_LEADING = 18
+BASE_CONTINUATION_LEADING = 24
 BASE_GROUP_SPACE_BEFORE = 20
 BASE_AFTER_GROUP_SPACE_BEFORE = 6
 BASE_DISH_SPACE_BEFORE = 2
 MIN_MENU_FONT_SIZE = 12
+SPACING_SCALE_STEPS = (1.0, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7, 0.65, 0.6, 0.55, 0.5)
 
 PAGE_MARGIN_LEFT = 42
 PAGE_MARGIN_RIGHT = 42
@@ -98,17 +99,28 @@ class PageLayout:
     dish_space_before: int
 
     @classmethod
-    def from_menu_font_size(cls, menu_font_size: int) -> PageLayout:
-        scale = menu_font_size / BASE_MENU_FONT_SIZE
+    def from_menu_font_size(cls, menu_font_size: int, spacing_scale: float = 1.0) -> PageLayout:
+        return cls.create(menu_font_size, spacing_scale=spacing_scale)
+
+    @classmethod
+    def create(cls, menu_font_size: int, *, spacing_scale: float = 1.0) -> PageLayout:
+        font_scale = menu_font_size / BASE_MENU_FONT_SIZE
+        space_scale = spacing_scale
+        menu_leading = max(1, round(BASE_MENU_LEADING * font_scale * space_scale))
+        dish_space_before = max(1, round(BASE_DISH_SPACE_BEFORE * font_scale * space_scale))
+        scaled_continuation = round(BASE_CONTINUATION_LEADING * font_scale * space_scale)
+        min_continuation = max(4, round(menu_leading * 0.72))
+        max_continuation = max(min_continuation + 1, menu_leading + dish_space_before - 2)
+        continuation_leading = max(min_continuation, min(scaled_continuation, max_continuation))
         return cls(
             menu_font_size=menu_font_size,
-            menu_leading=max(1, round(BASE_MENU_LEADING * scale)),
+            menu_leading=menu_leading,
             group_font_size=menu_font_size,
-            group_leading=max(1, round(BASE_GROUP_LEADING * scale)),
-            continuation_leading=max(1, round(BASE_CONTINUATION_LEADING * scale)),
-            group_space_before=max(1, round(BASE_GROUP_SPACE_BEFORE * scale)),
-            after_group_space_before=max(1, round(BASE_AFTER_GROUP_SPACE_BEFORE * scale)),
-            dish_space_before=max(1, round(BASE_DISH_SPACE_BEFORE * scale)),
+            group_leading=max(1, round(BASE_GROUP_LEADING * font_scale * space_scale)),
+            continuation_leading=continuation_leading,
+            group_space_before=max(1, round(BASE_GROUP_SPACE_BEFORE * font_scale * space_scale)),
+            after_group_space_before=max(1, round(BASE_AFTER_GROUP_SPACE_BEFORE * font_scale * space_scale)),
+            dish_space_before=dish_space_before,
         )
 
     def to_dict(self) -> dict:
@@ -143,7 +155,7 @@ def build_menu_pdf(
     background_name: str = "",
     background_data: str = "",
     document_title: str = "menu.pdf",
-    auto_format: bool = True,
+    auto_format: bool = False,
 ) -> bytes:
     regular_font, bold_font = _ensure_fonts_registered()
     display_date = format_print_date(print_date)
@@ -357,8 +369,8 @@ def compute_page_layout(
         return PageLayout.from_menu_font_size(BASE_MENU_FONT_SIZE)
 
     available_height = _page_content_top() - PAGE_CONTENT_BOTTOM
-    for font_size in range(BASE_MENU_FONT_SIZE, MIN_MENU_FONT_SIZE - 1, -1):
-        layout = PageLayout.from_menu_font_size(font_size)
+
+    def fits(layout: PageLayout) -> bool:
         blocks = _build_blocks(
             items,
             max_width=_page_max_width(),
@@ -366,9 +378,20 @@ def compute_page_layout(
             bold_font=bold_font,
             layout=layout,
         )
-        if _total_blocks_height(blocks) <= available_height:
+        return _total_blocks_height(blocks) <= available_height
+
+    for spacing_scale in SPACING_SCALE_STEPS:
+        layout = PageLayout.create(BASE_MENU_FONT_SIZE, spacing_scale=spacing_scale)
+        if fits(layout):
             return layout
-    return PageLayout.from_menu_font_size(MIN_MENU_FONT_SIZE)
+
+    for font_size in range(BASE_MENU_FONT_SIZE - 1, MIN_MENU_FONT_SIZE - 1, -1):
+        for spacing_scale in SPACING_SCALE_STEPS:
+            layout = PageLayout.create(font_size, spacing_scale=spacing_scale)
+            if fits(layout):
+                return layout
+
+    return PageLayout.create(MIN_MENU_FONT_SIZE, spacing_scale=SPACING_SCALE_STEPS[-1])
 
 
 def enrich_page_items(

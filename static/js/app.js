@@ -392,7 +392,7 @@ function applyPreviewLayout(target, layout) {
   const values = layout || {};
   target.style.setProperty("--menu-font-pt", values.menu_font_size || 20);
   target.style.setProperty("--menu-leading-pt", values.menu_leading || 28);
-  target.style.setProperty("--continuation-leading-pt", values.continuation_leading || 18);
+  target.style.setProperty("--continuation-leading-pt", values.continuation_leading || 24);
   target.style.setProperty("--group-space-pt", values.group_space_before || 20);
   target.style.setProperty("--after-group-space-pt", values.after_group_space_before || 6);
   target.style.setProperty("--dish-space-pt", values.dish_space_before || 2);
@@ -534,7 +534,7 @@ function fitPreviewContent() {
     return;
   }
 
-  page.style.setProperty("--preview-content-fit", "1");
+  inner.style.transform = "";
   const footer = surface.querySelector(".preview-footer");
   const footerHeight = footer?.offsetHeight || 0;
   const docStyle = window.getComputedStyle(activeDoc);
@@ -542,19 +542,11 @@ function fitPreviewContent() {
     parseFloat(docStyle.paddingTop) +
     parseFloat(docStyle.paddingBottom);
   const available = surface.clientHeight - footerHeight - padding;
-  const measure = () => inner.scrollHeight;
-
-  let fit = 1;
-  page.style.setProperty("--preview-content-fit", "1");
-  let contentHeight = measure();
+  const contentHeight = inner.scrollHeight;
   if (contentHeight > available && available > 0) {
-    fit = Math.max(0.32, available / contentHeight);
-    page.style.setProperty("--preview-content-fit", String(fit));
-    contentHeight = measure();
-    if (contentHeight > available) {
-      fit = Math.max(0.28, fit * (available / contentHeight));
-      page.style.setProperty("--preview-content-fit", String(fit));
-    }
+    const scale = Math.max(0.4, available / contentHeight);
+    inner.style.transform = `scale(${scale})`;
+    inner.style.transformOrigin = "top center";
   }
 }
 
@@ -588,6 +580,7 @@ function fitPreviewPage() {
 
 function initPreviewPageFit() {
   const area = $("previewPageArea");
+  const shell = area?.closest(".preview-shell");
   if (!area) {
     return;
   }
@@ -596,6 +589,9 @@ function initPreviewPageFit() {
   if ("ResizeObserver" in window) {
     previewResizeObserver = new ResizeObserver(() => fitPreviewPage());
     previewResizeObserver.observe(area);
+    if (shell) {
+      previewResizeObserver.observe(shell);
+    }
   } else {
     window.addEventListener("resize", fitPreviewPage);
   }
@@ -619,7 +615,7 @@ async function preview(reason = "manual") {
   const payload = {
     ru: $("ruText").value,
     show_kcal: $("showKcal").checked,
-    auto_format: $("autoFormat")?.checked ?? true,
+    auto_format: $("autoFormat")?.checked ?? false,
   };
   const signature = previewSignature(payload);
   if (signature === previewActiveSignature) {
@@ -671,7 +667,7 @@ async function preview(reason = "manual") {
   const currentSignature = previewSignature({
     ru: $("ruText").value,
     show_kcal: $("showKcal").checked,
-    auto_format: $("autoFormat")?.checked ?? true,
+    auto_format: $("autoFormat")?.checked ?? false,
   });
   if (currentSignature !== signature) {
     previewQueuedReason = previewQueuedReason || reason;
@@ -1314,7 +1310,7 @@ async function collectPdfValidation() {
   const payload = {
     ru: $("ruText").value,
     show_kcal: $("showKcal").checked,
-    auto_format: $("autoFormat")?.checked ?? true,
+    auto_format: $("autoFormat")?.checked ?? false,
   };
   const data = await postJson(
     "/api/menu/preview",
@@ -1354,7 +1350,7 @@ function buildDocumentPayload() {
   return {
     ru: $("ruText").value,
     show_kcal: $("showKcal").checked,
-    auto_format: $("autoFormat")?.checked ?? true,
+    auto_format: $("autoFormat")?.checked ?? false,
     print_date: resolvedPrintDate(),
     background_name: loadStorage(STORAGE_KEYS.pdfBackgroundName, ""),
     background_data: loadStorage(STORAGE_KEYS.pdfBackgroundData, ""),
@@ -1869,7 +1865,7 @@ window.addEventListener("load", () => {
   $("showKcal").checked = loadStorage(STORAGE_KEYS.showKcal, $("showKcal").checked ? "1" : "0") === "1";
   const autoFormat = $("autoFormat");
   if (autoFormat) {
-    autoFormat.checked = loadStorage(STORAGE_KEYS.autoFormat, "1") === "1";
+    autoFormat.checked = loadStorage(STORAGE_KEYS.autoFormat, "0") === "1";
   }
   updateDateUi();
   updateLineCounter();

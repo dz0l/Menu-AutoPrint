@@ -77,7 +77,7 @@ def line_info(line: str, ru_ref: str | None = None) -> MenuLine:
     return MenuLine(raw=line, is_group=False, grams=str(dish.grams_default), kcal=str(kcal), missing=False)
 
 
-def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto_format=True) -> dict:
+def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto_format=False) -> dict:
     missing = []
     ru = []
     en = []

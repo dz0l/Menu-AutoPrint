@@ -134,7 +134,7 @@
     }
 
     .dish-block > .dish-line.continuation {
-      margin-top: calc(var(--continuation-leading, 18pt) - 1em);
+      margin-top: max(2pt, calc(var(--continuation-leading, 24pt) - var(--menu-font-size, 20pt)));
     }
 
     .footer {
@@ -183,7 +183,7 @@
     <section
       class="page"
       aria-label="{{ page.label }}"
-      style="--menu-font-size: {{ page.layout.menu_font_size|default:20 }}pt; --menu-leading: {{ page.layout.menu_leading|default:28 }}pt; --continuation-leading: {{ page.layout.continuation_leading|default:18 }}pt; --group-space: {{ page.layout.group_space_before|default:20 }}pt; --after-group-space: {{ page.layout.after_group_space_before|default:6 }}pt; --dish-space: {{ page.layout.dish_space_before|default:2 }}pt;"
+      style="--menu-font-size: {{ page.layout.menu_font_size|default:20 }}pt; --menu-leading: {{ page.layout.menu_leading|default:28 }}pt; --continuation-leading: {{ page.layout.continuation_leading|default:24 }}pt; --group-space: {{ page.layout.group_space_before|default:20 }}pt; --after-group-space: {{ page.layout.after_group_space_before|default:6 }}pt; --dish-space: {{ page.layout.dish_space_before|default:2 }}pt;"
     >
       {% if background_data %}
       <img class="page-bg" src="{{ background_data }}" alt="">
