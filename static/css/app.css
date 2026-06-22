@@ -480,24 +480,20 @@ body.theme-dark .preview-surface {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
-  padding: calc(24px * var(--preview-scale)) calc(21px * var(--preview-scale)) calc(8px * var(--preview-scale));
+  align-items: stretch;
+  box-sizing: border-box;
+  padding:
+    calc(var(--preview-page-height, 530px) * 0.0606)
+    calc(var(--preview-page-width, 375px) * 0.0667)
+    calc(var(--preview-page-height, 530px) * 0.0741);
   text-align: center;
   font-size: calc(var(--menu-font-pt, 20) * 1pt * var(--preview-scale));
   line-height: calc(var(--menu-leading-pt, 28) / var(--menu-font-pt, 20));
 }
 
-.preview-doc-stage {
-  width: 100%;
-  max-height: 100%;
-  overflow: hidden;
-  flex: 0 1 auto;
-}
-
 .preview-doc-inner {
   width: 100%;
-  max-width: 100%;
-  transform-origin: top center;
+  flex: 0 0 auto;
 }
 
 .preview-doc-inner > .group-block,
@@ -538,7 +534,8 @@ body.theme-dark .preview-surface {
   display: block;
   width: 100%;
   max-width: 100%;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
+  word-break: normal;
   text-align: center;
 }
 
@@ -579,8 +576,8 @@ body.theme-dark .preview-doc .dish {
   display: flex;
   justify-content: space-between;
   gap: calc(10px * var(--preview-scale));
-  padding: 0 calc(21px * var(--preview-scale)) calc(19px * var(--preview-scale));
-  font-size: clamp(8px, calc(9.5px * var(--preview-scale)), 13px);
+  padding: 0 calc(var(--preview-page-width, 375px) * 0.0667) calc(var(--preview-page-height, 530px) * 0.0236);
+  font-size: calc(11pt * var(--preview-scale));
   color: #101418;
 }
 

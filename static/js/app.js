@@ -398,27 +398,21 @@ function applyPreviewLayout(target, layout) {
   target.style.setProperty("--dish-space-pt", values.dish_space_before || 2);
 }
 
-function getPreviewStage(target) {
-  let stage = target.querySelector(".preview-doc-stage");
-  if (!stage) {
-    stage = document.createElement("div");
-    stage.className = "preview-doc-stage";
-    const inner = target.querySelector(".preview-doc-inner");
-    target.appendChild(stage);
-    if (inner) {
-      stage.appendChild(inner);
+function getPreviewInner(target) {
+  const stage = target.querySelector(".preview-doc-stage");
+  if (stage) {
+    const stagedInner = stage.querySelector(".preview-doc-inner");
+    if (stagedInner) {
+      stage.replaceWith(stagedInner);
+    } else {
+      stage.remove();
     }
   }
-  return stage;
-}
-
-function getPreviewInner(target) {
-  const stage = getPreviewStage(target);
-  let inner = stage.querySelector(".preview-doc-inner");
+  let inner = target.querySelector(":scope > .preview-doc-inner");
   if (!inner) {
     inner = document.createElement("div");
     inner.className = "preview-doc-inner";
-    stage.appendChild(inner);
+    target.appendChild(inner);
   }
   return inner;
 }
@@ -497,7 +491,6 @@ function setPreviewLang(lang) {
   $("previewTabRu")?.classList.toggle("active", !isEn);
   $("previewTabEn")?.classList.toggle("active", isEn);
   updatePreviewMeta();
-  fitPreviewContent();
 }
 
 function updatePreviewMeta() {
@@ -540,38 +533,6 @@ function updatePreviewBackground() {
   }
 }
 
-function fitPreviewContent() {
-  const page = $("previewPage");
-  const surface = page?.querySelector(".preview-surface");
-  const activeDoc = $("previewEn").hidden ? $("previewRu") : $("previewEn");
-  const stage = activeDoc?.querySelector(".preview-doc-stage");
-  const inner = stage?.querySelector(".preview-doc-inner");
-  if (!page || !surface || !activeDoc || !stage || !inner) {
-    return;
-  }
-
-  inner.style.transform = "";
-  stage.style.height = "";
-  const footer = surface.querySelector(".preview-footer");
-  const footerHeight = footer?.offsetHeight || 0;
-  const docStyle = window.getComputedStyle(activeDoc);
-  const padding =
-    parseFloat(docStyle.paddingTop) +
-    parseFloat(docStyle.paddingBottom);
-  const available = surface.clientHeight - footerHeight - padding;
-  const contentHeight = inner.scrollHeight;
-  if (contentHeight <= 0 || available <= 0) {
-    return;
-  }
-
-  const scale = Math.min(1, available / contentHeight);
-  if (scale < 0.999) {
-    inner.style.transform = `scale(${scale})`;
-    inner.style.transformOrigin = "top center";
-    stage.style.height = `${contentHeight * scale}px`;
-  }
-}
-
 function fitPreviewPage() {
   const area = $("previewPageArea");
   const page = $("previewPage");
@@ -593,11 +554,10 @@ function fitPreviewPage() {
     width = height * A4_RATIO;
   }
 
-  const scale = Math.max(0.72, width / PREVIEW_BASE_WIDTH);
+  const scale = Math.min(1, Math.max(0.72, width / PREVIEW_BASE_WIDTH));
   page.style.setProperty("--preview-page-width", `${Math.floor(width)}px`);
   page.style.setProperty("--preview-page-height", `${Math.floor(height)}px`);
   page.style.setProperty("--preview-scale", String(scale));
-  fitPreviewContent();
 }
 
 function initPreviewPageFit() {
@@ -718,9 +678,6 @@ async function preview(reason = "manual") {
     enItems: (data.en || []).length,
   });
   finishPreviewRequest(signature, controller);
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => fitPreviewContent());
-  });
 }
 
 async function refreshActions(reason = "manual") {
@@ -1347,7 +1304,6 @@ async function collectPdfValidation() {
   renderPreview($("previewEn"), data.en, layout.en);
   $("enText").value = (data.en || []).map((item) => item.text).join("\n");
   updatePreviewMeta();
-  fitPreviewContent();
 
   const ruPreview = data.ru || [];
   const enPreview = data.en || [];
