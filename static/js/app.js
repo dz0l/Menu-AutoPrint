@@ -398,12 +398,27 @@ function applyPreviewLayout(target, layout) {
   target.style.setProperty("--dish-space-pt", values.dish_space_before || 2);
 }
 
+function getPreviewStage(target) {
+  let stage = target.querySelector(".preview-doc-stage");
+  if (!stage) {
+    stage = document.createElement("div");
+    stage.className = "preview-doc-stage";
+    const inner = target.querySelector(".preview-doc-inner");
+    target.appendChild(stage);
+    if (inner) {
+      stage.appendChild(inner);
+    }
+  }
+  return stage;
+}
+
 function getPreviewInner(target) {
-  let inner = target.querySelector(".preview-doc-inner");
+  const stage = getPreviewStage(target);
+  let inner = stage.querySelector(".preview-doc-inner");
   if (!inner) {
     inner = document.createElement("div");
     inner.className = "preview-doc-inner";
-    target.appendChild(inner);
+    stage.appendChild(inner);
   }
   return inner;
 }
@@ -529,12 +544,14 @@ function fitPreviewContent() {
   const page = $("previewPage");
   const surface = page?.querySelector(".preview-surface");
   const activeDoc = $("previewEn").hidden ? $("previewRu") : $("previewEn");
-  const inner = activeDoc?.querySelector(".preview-doc-inner");
-  if (!page || !surface || !activeDoc || !inner) {
+  const stage = activeDoc?.querySelector(".preview-doc-stage");
+  const inner = stage?.querySelector(".preview-doc-inner");
+  if (!page || !surface || !activeDoc || !stage || !inner) {
     return;
   }
 
   inner.style.transform = "";
+  stage.style.height = "";
   const footer = surface.querySelector(".preview-footer");
   const footerHeight = footer?.offsetHeight || 0;
   const docStyle = window.getComputedStyle(activeDoc);
@@ -543,10 +560,15 @@ function fitPreviewContent() {
     parseFloat(docStyle.paddingBottom);
   const available = surface.clientHeight - footerHeight - padding;
   const contentHeight = inner.scrollHeight;
-  if (contentHeight > available && available > 0) {
-    const scale = Math.max(0.4, available / contentHeight);
+  if (contentHeight <= 0 || available <= 0) {
+    return;
+  }
+
+  const scale = Math.min(1, available / contentHeight);
+  if (scale < 0.999) {
     inner.style.transform = `scale(${scale})`;
     inner.style.transformOrigin = "top center";
+    stage.style.height = `${contentHeight * scale}px`;
   }
 }
 
@@ -696,7 +718,9 @@ async function preview(reason = "manual") {
     enItems: (data.en || []).length,
   });
   finishPreviewRequest(signature, controller);
-  requestAnimationFrame(() => fitPreviewContent());
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => fitPreviewContent());
+  });
 }
 
 async function refreshActions(reason = "manual") {
