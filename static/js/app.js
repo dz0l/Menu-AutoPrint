@@ -133,7 +133,10 @@ function loadStorage(key, fallback = "") {
 function saveStorage(key, value) {
   try {
     localStorage.setItem(key, value);
-  } catch {}
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function removeStorage(key) {
@@ -554,7 +557,7 @@ function fitPreviewPage() {
     width = height * A4_RATIO;
   }
 
-  const scale = Math.min(1, Math.max(0.72, width / PREVIEW_BASE_WIDTH));
+  const scale = Math.max(0.72, width / PREVIEW_BASE_WIDTH);
   page.style.setProperty("--preview-page-width", `${Math.floor(width)}px`);
   page.style.setProperty("--preview-page-height", `${Math.floor(height)}px`);
   page.style.setProperty("--preview-scale", String(scale));
@@ -1055,9 +1058,18 @@ function storeBackground(file) {
 
   const reader = new FileReader();
   reader.onload = () => {
+    if (typeof reader.result !== "string") {
+      toast("Не удалось прочитать файл подложки.");
+      return;
+    }
+    if (reader.result.length > 4_500_000) {
+      toast("Подложка слишком большая. Выберите изображение меньше 3 МБ.");
+      return;
+    }
     saveStorage(STORAGE_KEYS.pdfBackgroundName, file.name);
-    if (typeof reader.result === "string") {
-      saveStorage(STORAGE_KEYS.pdfBackgroundData, reader.result);
+    if (!saveStorage(STORAGE_KEYS.pdfBackgroundData, reader.result)) {
+      toast("Не удалось сохранить подложку в браузере. Уменьшите файл или отключите режим приватного просмотра.");
+      return;
     }
     restoreBackgroundState();
     updatePreviewBackground();
