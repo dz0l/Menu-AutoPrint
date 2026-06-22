@@ -59,6 +59,8 @@ COVER_LOCATIONS = {
     "dubai.jpg": "Дубай",
     "kd.jpg": "КД",
     "kd-ng.jpg": "КД НГ",
+    "mandarin.jpg": "Mandarin",
+    "max.jpg": "MaxxRoyal",
     "spa.jpg": "СПА",
     "tash.jpg": "Ташкент",
     "train.jpg": "Поезд",
