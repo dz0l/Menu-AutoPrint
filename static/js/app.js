@@ -398,9 +398,20 @@ function applyPreviewLayout(target, layout) {
   target.style.setProperty("--dish-space-pt", values.dish_space_before || 2);
 }
 
+function getPreviewInner(target) {
+  let inner = target.querySelector(".preview-doc-inner");
+  if (!inner) {
+    inner = document.createElement("div");
+    inner.className = "preview-doc-inner";
+    target.appendChild(inner);
+  }
+  return inner;
+}
+
 function renderPreview(target, items, layout) {
-  target.innerHTML = "";
   applyPreviewLayout(target, layout);
+  const inner = getPreviewInner(target);
+  inner.innerHTML = "";
   for (const item of items || []) {
     const lines = item.lines;
     if (!lines || lines.length <= 1) {
@@ -408,7 +419,7 @@ function renderPreview(target, items, layout) {
       span.className = item.type === "group" ? "group" : "dish";
       const text = lines?.[0] ?? `${item.type === "dish" ? "\u2022 " : ""}${item.text}${item.suffix || ""}`;
       appendTextWithUnknown(span, text);
-      target.appendChild(span);
+      inner.appendChild(span);
       continue;
     }
 
@@ -421,7 +432,7 @@ function renderPreview(target, items, layout) {
         appendTextWithUnknown(span, line);
         block.appendChild(span);
       });
-      target.appendChild(block);
+      inner.appendChild(block);
       continue;
     }
 
@@ -433,7 +444,7 @@ function renderPreview(target, items, layout) {
       appendTextWithUnknown(span, line);
       block.appendChild(span);
     });
-    target.appendChild(block);
+    inner.appendChild(block);
   }
 }
 
@@ -518,7 +529,8 @@ function fitPreviewContent() {
   const page = $("previewPage");
   const surface = page?.querySelector(".preview-surface");
   const activeDoc = $("previewEn").hidden ? $("previewRu") : $("previewEn");
-  if (!page || !surface || !activeDoc) {
+  const inner = activeDoc?.querySelector(".preview-doc-inner");
+  if (!page || !surface || !activeDoc || !inner) {
     return;
   }
 
@@ -530,9 +542,19 @@ function fitPreviewContent() {
     parseFloat(docStyle.paddingTop) +
     parseFloat(docStyle.paddingBottom);
   const available = surface.clientHeight - footerHeight - padding;
-  const contentHeight = activeDoc.scrollHeight;
+  const measure = () => inner.scrollHeight;
+
+  let fit = 1;
+  page.style.setProperty("--preview-content-fit", "1");
+  let contentHeight = measure();
   if (contentHeight > available && available > 0) {
-    page.style.setProperty("--preview-content-fit", String(Math.max(0.55, available / contentHeight)));
+    fit = Math.max(0.32, available / contentHeight);
+    page.style.setProperty("--preview-content-fit", String(fit));
+    contentHeight = measure();
+    if (contentHeight > available) {
+      fit = Math.max(0.28, fit * (available / contentHeight));
+      page.style.setProperty("--preview-content-fit", String(fit));
+    }
   }
 }
 
@@ -678,7 +700,7 @@ async function preview(reason = "manual") {
     enItems: (data.en || []).length,
   });
   finishPreviewRequest(signature, controller);
-  fitPreviewContent();
+  requestAnimationFrame(() => fitPreviewContent());
 }
 
 async function refreshActions(reason = "manual") {

@@ -312,6 +312,8 @@ def _draw_preview_page(
                     y -= block.continuation_leading
                 else:
                     y -= block.leading
+            else:
+                y -= block.leading
 
     pdf.setFont(regular_font, FOOTER_FONT_SIZE)
     if show_kcal:
@@ -331,12 +333,12 @@ def _block_height(block: TextBlock) -> float:
     height = block.space_before
     if not block.lines:
         return height
-    height += block.leading
     for line_index in range(1, len(block.lines)):
         if block.is_dish and line_index == 1:
             height += block.continuation_leading
         else:
             height += block.leading
+    height += block.leading
     return height
 
 
