@@ -9,6 +9,7 @@
   themeMode: "menu_theme_mode",
   debugLogging: "menu_debug_logging",
   showKcal: "menu_show_kcal",
+  autoFormat: "menu_auto_format",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -81,6 +82,7 @@ function previewSignature(payload) {
   return JSON.stringify({
     ru: payload.ru || "",
     show_kcal: Boolean(payload.show_kcal),
+    auto_format: Boolean(payload.auto_format),
   });
 }
 
@@ -367,26 +369,71 @@ async function requestJson(url, options = {}) {
   return data;
 }
 
-function renderPreview(target, items) {
+function appendTextWithUnknown(parent, text) {
+  if (!text.includes("??")) {
+    parent.appendChild(document.createTextNode(text));
+    return;
+  }
+  const [before, ...rest] = text.split("??");
+  parent.appendChild(document.createTextNode(before));
+  rest.forEach((part) => {
+    const unknown = document.createElement("span");
+    unknown.className = "unknown";
+    unknown.textContent = "??";
+    parent.appendChild(unknown);
+    parent.appendChild(document.createTextNode(part));
+  });
+}
+
+function applyPreviewLayout(target, layout) {
+  if (!target) {
+    return;
+  }
+  const values = layout || {};
+  target.style.setProperty("--menu-font-pt", values.menu_font_size || 20);
+  target.style.setProperty("--menu-leading-pt", values.menu_leading || 28);
+  target.style.setProperty("--continuation-leading-pt", values.continuation_leading || 18);
+  target.style.setProperty("--group-space-pt", values.group_space_before || 20);
+  target.style.setProperty("--after-group-space-pt", values.after_group_space_before || 6);
+  target.style.setProperty("--dish-space-pt", values.dish_space_before || 2);
+}
+
+function renderPreview(target, items, layout) {
   target.innerHTML = "";
+  applyPreviewLayout(target, layout);
   for (const item of items || []) {
-    const span = document.createElement("span");
-    span.className = item.type === "group" ? "group" : "dish";
-    const text = `${item.type === "dish" ? "\u2022 " : ""}${item.text}${item.suffix || ""}`;
-    if (text.includes("??")) {
-      const [before, ...rest] = text.split("??");
-      span.appendChild(document.createTextNode(before));
-      rest.forEach((part) => {
-        const unknown = document.createElement("span");
-        unknown.className = "unknown";
-        unknown.textContent = "??";
-        span.appendChild(unknown);
-        span.appendChild(document.createTextNode(part));
-      });
-    } else {
-      span.textContent = text;
+    const lines = item.lines;
+    if (!lines || lines.length <= 1) {
+      const span = document.createElement("span");
+      span.className = item.type === "group" ? "group" : "dish";
+      const text = lines?.[0] ?? `${item.type === "dish" ? "\u2022 " : ""}${item.text}${item.suffix || ""}`;
+      appendTextWithUnknown(span, text);
+      target.appendChild(span);
+      continue;
     }
-    target.appendChild(span);
+
+    if (item.type === "group") {
+      const block = document.createElement("span");
+      block.className = "group-block";
+      lines.forEach((line, index) => {
+        const span = document.createElement("span");
+        span.className = index === 0 ? "group" : "group-line continuation";
+        appendTextWithUnknown(span, line);
+        block.appendChild(span);
+      });
+      target.appendChild(block);
+      continue;
+    }
+
+    const block = document.createElement("span");
+    block.className = "dish-block";
+    lines.forEach((line, index) => {
+      const span = document.createElement("span");
+      span.className = index === 0 ? "dish" : "dish-line continuation";
+      appendTextWithUnknown(span, line);
+      block.appendChild(span);
+    });
+    target.appendChild(block);
   }
 }
 
@@ -423,6 +470,8 @@ function setPreviewLang(lang) {
   $("previewEn").classList.toggle("active", isEn);
   $("previewTabRu")?.classList.toggle("active", !isEn);
   $("previewTabEn")?.classList.toggle("active", isEn);
+  updatePreviewMeta();
+  fitPreviewContent();
 }
 
 function updatePreviewMeta() {
@@ -439,6 +488,10 @@ function updatePreviewMeta() {
   const note = $("previewFooterNote");
   if (note) {
     note.hidden = !$("showKcal").checked;
+    if (!note.hidden) {
+      const isEn = !$("previewEn").hidden;
+      note.textContent = isEn ? "Calories indicated per serving" : "Калорийность и вес указаны на порцию";
+    }
   }
 }
 
@@ -458,6 +511,28 @@ function updatePreviewBackground() {
     image.removeAttribute("src");
     image.hidden = true;
     overlay.hidden = true;
+  }
+}
+
+function fitPreviewContent() {
+  const page = $("previewPage");
+  const surface = page?.querySelector(".preview-surface");
+  const activeDoc = $("previewEn").hidden ? $("previewRu") : $("previewEn");
+  if (!page || !surface || !activeDoc) {
+    return;
+  }
+
+  page.style.setProperty("--preview-content-fit", "1");
+  const footer = surface.querySelector(".preview-footer");
+  const footerHeight = footer?.offsetHeight || 0;
+  const docStyle = window.getComputedStyle(activeDoc);
+  const padding =
+    parseFloat(docStyle.paddingTop) +
+    parseFloat(docStyle.paddingBottom);
+  const available = surface.clientHeight - footerHeight - padding;
+  const contentHeight = activeDoc.scrollHeight;
+  if (contentHeight > available && available > 0) {
+    page.style.setProperty("--preview-content-fit", String(Math.max(0.55, available / contentHeight)));
   }
 }
 
@@ -486,6 +561,7 @@ function fitPreviewPage() {
   page.style.setProperty("--preview-page-width", `${Math.floor(width)}px`);
   page.style.setProperty("--preview-page-height", `${Math.floor(height)}px`);
   page.style.setProperty("--preview-scale", String(scale));
+  fitPreviewContent();
 }
 
 function initPreviewPageFit() {
@@ -521,6 +597,7 @@ async function preview(reason = "manual") {
   const payload = {
     ru: $("ruText").value,
     show_kcal: $("showKcal").checked,
+    auto_format: $("autoFormat")?.checked ?? true,
   };
   const signature = previewSignature(payload);
   if (signature === previewActiveSignature) {
@@ -572,6 +649,7 @@ async function preview(reason = "manual") {
   const currentSignature = previewSignature({
     ru: $("ruText").value,
     show_kcal: $("showKcal").checked,
+    auto_format: $("autoFormat")?.checked ?? true,
   });
   if (currentSignature !== signature) {
     previewQueuedReason = previewQueuedReason || reason;
@@ -586,8 +664,9 @@ async function preview(reason = "manual") {
     return;
   }
   lastPreviewData = data;
-  renderPreview($("previewRu"), data.ru);
-  renderPreview($("previewEn"), data.en);
+  const layout = data.layout || {};
+  renderPreview($("previewRu"), data.ru, layout.ru);
+  renderPreview($("previewEn"), data.en, layout.en);
   $("enText").value = (data.en || []).map((item) => item.text).join("\n");
   updatePreviewMeta();
   previewRenderedSignature = signature;
@@ -599,6 +678,7 @@ async function preview(reason = "manual") {
     enItems: (data.en || []).length,
   });
   finishPreviewRequest(signature, controller);
+  fitPreviewContent();
 }
 
 async function refreshActions(reason = "manual") {
@@ -1212,6 +1292,7 @@ async function collectPdfValidation() {
   const payload = {
     ru: $("ruText").value,
     show_kcal: $("showKcal").checked,
+    auto_format: $("autoFormat")?.checked ?? true,
   };
   const data = await postJson(
     "/api/menu/preview",
@@ -1219,10 +1300,12 @@ async function collectPdfValidation() {
     {log: {name: "pdf-validation-preview", reason: "pdf-button"}},
   );
   lastPreviewData = data;
-  renderPreview($("previewRu"), data.ru);
-  renderPreview($("previewEn"), data.en);
+  const layout = data.layout || {};
+  renderPreview($("previewRu"), data.ru, layout.ru);
+  renderPreview($("previewEn"), data.en, layout.en);
   $("enText").value = (data.en || []).map((item) => item.text).join("\n");
   updatePreviewMeta();
+  fitPreviewContent();
 
   const ruPreview = data.ru || [];
   const enPreview = data.en || [];
@@ -1249,6 +1332,7 @@ function buildDocumentPayload() {
   return {
     ru: $("ruText").value,
     show_kcal: $("showKcal").checked,
+    auto_format: $("autoFormat")?.checked ?? true,
     print_date: resolvedPrintDate(),
     background_name: loadStorage(STORAGE_KEYS.pdfBackgroundName, ""),
     background_data: loadStorage(STORAGE_KEYS.pdfBackgroundData, ""),
@@ -1605,6 +1689,11 @@ $("alternatePrintMode").addEventListener("change", () => {
   applyAlternatePrintMode($("alternatePrintMode").checked);
 });
 
+$("autoFormat")?.addEventListener("change", () => {
+  saveStorage(STORAGE_KEYS.autoFormat, $("autoFormat").checked ? "1" : "0");
+  scheduleHeavyUpdate(120, "auto-format");
+});
+
 $("btnTheme").addEventListener("click", () => {
   toggleTheme();
 });
@@ -1756,6 +1845,10 @@ window.addEventListener("load", () => {
   $("printDateMode").value = "today";
   $("printDateCustom").value = todayDate();
   $("showKcal").checked = loadStorage(STORAGE_KEYS.showKcal, $("showKcal").checked ? "1" : "0") === "1";
+  const autoFormat = $("autoFormat");
+  if (autoFormat) {
+    autoFormat.checked = loadStorage(STORAGE_KEYS.autoFormat, "1") === "1";
+  }
   updateDateUi();
   updateLineCounter();
   updateKcalToggleUi();

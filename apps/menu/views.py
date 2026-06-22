@@ -15,7 +15,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.dishes.services import analyze_pasted
 from apps.dishes.translation import is_translation_configured
-from apps.pdf.services import FOOTER_NOTE, build_download_filename, build_menu_pdf, format_print_date
+from apps.pdf.services import FOOTER_NOTE_EN, FOOTER_NOTE_RU, build_download_filename, build_menu_pdf, format_print_date
 
 from .services import build_preview, normalize_lines, translate_lines
 
@@ -53,14 +53,16 @@ def _build_document_payload(data: dict) -> dict:
     ru_lines = normalize_lines(data.get("ru") or data.get("ru_lines"))
     en_lines = translate_lines(ru_lines)
     show_kcal = _to_bool(data.get("show_kcal", True))
+    auto_format = _to_bool(data.get("auto_format", True))
     print_date = data.get("print_date") or ""
     background_name = data.get("background_name") or ""
     background_data = data.get("background_data") or ""
-    preview = build_preview(ru_lines, en_lines, show_kcal=show_kcal)
+    preview = build_preview(ru_lines, en_lines, show_kcal=show_kcal, auto_format=auto_format)
     filename = build_download_filename(print_date, background_name, ru_lines=ru_lines)
     return {
         "preview": preview,
         "show_kcal": show_kcal,
+        "auto_format": auto_format,
         "print_date": print_date,
         "display_date": format_print_date(print_date),
         "background_name": background_name,
@@ -105,30 +107,26 @@ def _build_pdf_from_payload(payload: dict) -> bytes:
         background_name=payload.get("background_name") or "",
         background_data=payload.get("background_data") or "",
         document_title=payload.get("filename") or "menu.pdf",
+        auto_format=bool(payload.get("auto_format", True)),
     )
-
-
-def _split_last_word(value: str) -> tuple[str, str]:
-    parts = (value or "").strip().rsplit(" ", 1)
-    if len(parts) == 2:
-        return parts[0], parts[1]
-    return "", parts[0] if parts else ""
-
-
-def _document_item(item: dict) -> dict:
-    prepared = dict(item)
-    if prepared.get("type") == "dish" and prepared.get("suffix"):
-        head, tail = _split_last_word(prepared.get("text", ""))
-        prepared["wrap_head"] = head
-        prepared["wrap_tail"] = tail
-    return prepared
 
 
 def _document_pages(payload: dict) -> list[dict]:
     preview = payload.get("preview") or {}
+    layout = preview.get("layout") or {}
     return [
-        {"label": "RU", "items": [_document_item(item) for item in (preview.get("ru") or [])]},
-        {"label": "EN", "items": [_document_item(item) for item in (preview.get("en") or [])]},
+        {
+            "label": "RU",
+            "items": preview.get("ru") or [],
+            "layout": layout.get("ru") or {},
+            "footer_note": FOOTER_NOTE_RU,
+        },
+        {
+            "label": "EN",
+            "items": preview.get("en") or [],
+            "layout": layout.get("en") or {},
+            "footer_note": FOOTER_NOTE_EN,
+        },
     ]
 
 
@@ -182,7 +180,6 @@ def document_preview_page(request, token: str):
             "display_date": payload["display_date"],
             "show_kcal": payload["show_kcal"],
             "background_data": payload.get("background_data") or "",
-            "footer_note": FOOTER_NOTE,
             "pdf_url": reverse("menu:document_pdf", args=[token]),
             "pdf_download_url": f"{reverse('menu:document_pdf', args=[token])}?download=1",
             "pages": _document_pages(payload),
@@ -201,7 +198,6 @@ def document_print_page(request, token: str):
             "display_date": payload["display_date"],
             "show_kcal": payload["show_kcal"],
             "background_data": payload.get("background_data") or "",
-            "footer_note": FOOTER_NOTE,
             "pages": _document_pages(payload),
         },
     )

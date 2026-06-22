@@ -10,7 +10,10 @@
 {% block content %}
 <section class="document-stack">
   {% for page in pages %}
-  <article class="document-page">
+  <article
+    class="document-page"
+    style="--menu-font-size: {{ page.layout.menu_font_size|default:20 }}pt; --menu-leading: {{ page.layout.menu_leading|default:28 }}pt; --continuation-leading: {{ page.layout.continuation_leading|default:18 }}pt; --group-space: {{ page.layout.group_space_before|default:20 }}pt; --after-group-space: {{ page.layout.after_group_space_before|default:6 }}pt; --dish-space: {{ page.layout.dish_space_before|default:2 }}pt;"
+  >
     <div class="document-surface">
       {% if background_data %}
       <img class="document-bg" src="{{ background_data }}" alt="">
@@ -19,16 +22,28 @@
       <div class="document-content">
         {% for item in page.items %}
           {% if item.type == "group" %}
-          <div class="document-group">{{ item.text }}{{ item.suffix|default:"" }}</div>
-          {% elif item.wrap_tail %}
-          <div class="document-dish">&bull; {% if item.wrap_head %}{{ item.wrap_head }} {% endif %}<span class="document-nowrap">{{ item.wrap_tail }}{{ item.suffix|default:"" }}</span></div>
+            {% if item.lines %}
+            <div class="document-group-block">
+              {% for line in item.lines %}
+              <div class="{% if forloop.first %}document-group{% else %}document-group-line continuation{% endif %}">{{ line }}</div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="document-group">{{ item.text }}{{ item.suffix|default:"" }}</div>
+            {% endif %}
+          {% elif item.lines %}
+          <div class="document-dish-block">
+            {% for line in item.lines %}
+            <div class="{% if forloop.first %}document-dish{% else %}document-dish-line continuation{% endif %}">{{ line }}</div>
+            {% endfor %}
+          </div>
           {% else %}
           <div class="document-dish">&bull; {{ item.text }}{{ item.suffix|default:"" }}</div>
           {% endif %}
         {% endfor %}
       </div>
       <div class="document-footer">
-        <div class="document-footer-left">{% if show_kcal %}{{ footer_note }}{% endif %}</div>
+        <div class="document-footer-left">{% if show_kcal %}{{ page.footer_note }}{% endif %}</div>
         <div class="document-footer-right">{{ display_date }}</div>
       </div>
     </div>

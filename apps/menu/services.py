@@ -2,6 +2,7 @@
 
 from apps.core.text import clean_name
 from apps.dishes.models import Dish
+from apps.pdf.services import compute_page_layout, enrich_page_items, get_menu_fonts
 
 
 GROUP_RU2EN = {
@@ -76,7 +77,7 @@ def line_info(line: str, ru_ref: str | None = None) -> MenuLine:
     return MenuLine(raw=line, is_group=False, grams=str(dish.grams_default), kcal=str(kcal), missing=False)
 
 
-def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True) -> dict:
+def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto_format=True) -> dict:
     missing = []
     ru = []
     en = []
@@ -91,7 +92,17 @@ def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True) -> d
         if en_info.missing:
             missing.append(line)
         en.append(_render_line(en_info, "en", show_kcal))
-    return {"ru": ru, "en": en, "missing": sorted(set(missing))}
+
+    regular_font, bold_font = get_menu_fonts()
+    ru_layout = compute_page_layout(ru, auto_format=auto_format, regular_font=regular_font, bold_font=bold_font)
+    en_layout = compute_page_layout(en, auto_format=auto_format, regular_font=regular_font, bold_font=bold_font)
+    return {
+        "ru": enrich_page_items(ru, layout=ru_layout, regular_font=regular_font, bold_font=bold_font),
+        "en": enrich_page_items(en, layout=en_layout, regular_font=regular_font, bold_font=bold_font),
+        "missing": sorted(set(missing)),
+        "layout": {"ru": ru_layout.to_dict(), "en": en_layout.to_dict()},
+        "auto_format": bool(auto_format),
+    }
 
 
 def _render_line(info: MenuLine, lang: str, show_kcal: bool) -> dict:

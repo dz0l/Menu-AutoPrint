@@ -30,6 +30,7 @@
   {% if request.user.is_authenticated and request.user.is_admin %}
     <button id="btnUsers" type="button">Пользователи</button>
   {% endif %}
+  <label class="inline" title="Автоматически уменьшать шрифт, чтобы меню умещалось на лист A4"><input id="autoFormat" type="checkbox" checked> Автоформат</label>
   <label class="inline" title="Печатать через HTML-страницу браузера вместо PDF"><input id="alternatePrintMode" type="checkbox"> Режим альтернативной печати</label>
   <label class="inline" title="Вывод диагностических сообщений в DevTools Console"><input id="debugLogging" type="checkbox"> Логирование</label>
 </section>

@@ -424,6 +424,7 @@ body.theme-dark .editor-wrap textarea {
 
 .preview-page {
   --preview-scale: 1;
+  --preview-content-fit: 1;
   width: var(--preview-page-width, min(100%, 375px));
   height: var(--preview-page-height, auto);
   margin: 0 auto;
@@ -481,12 +482,16 @@ body.theme-dark .preview-surface {
   padding: calc(24px * var(--preview-scale)) calc(21px * var(--preview-scale)) calc(8px * var(--preview-scale));
   text-align: center;
   white-space: pre-wrap;
-  font-size: clamp(11px, calc(13.75px * var(--preview-scale)), 19px);
-  line-height: 1.36;
+  font-size: calc(var(--menu-font-pt, 20) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+  line-height: calc(var(--menu-leading-pt, 28) / var(--menu-font-pt, 20));
 }
 
+.preview-doc .group-block,
+.preview-doc .dish-block,
 .preview-doc .group,
-.preview-doc .dish {
+.preview-doc .dish,
+.preview-doc .group-line,
+.preview-doc .dish-line {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -495,16 +500,34 @@ body.theme-dark .preview-surface {
 }
 
 .preview-doc .group {
-  margin-top: calc(14px * var(--preview-scale));
+  margin-top: calc(var(--group-space-pt, 20) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
   font-weight: 700;
 }
 
+.preview-doc .group-block > .group:first-child,
 .preview-doc .group:first-child {
   margin-top: 0;
 }
 
+.preview-doc .group-line.continuation {
+  margin-top: calc(var(--menu-leading-pt, 28) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+  font-weight: 700;
+}
+
+.preview-doc .dish-block > .dish,
 .preview-doc .dish {
-  margin-top: calc(2px * var(--preview-scale));
+  margin-top: calc(var(--dish-space-pt, 2) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+}
+
+.preview-doc .group + .dish,
+.preview-doc .group + .dish-block > .dish,
+.preview-doc .group-block + .dish,
+.preview-doc .group-block + .dish-block > .dish {
+  margin-top: calc(var(--after-group-space-pt, 6) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
+}
+
+.preview-doc .dish-line.continuation {
+  margin-top: calc(var(--continuation-leading-pt, 18) * 1pt * var(--preview-scale) * var(--preview-content-fit, 1));
 }
 
 body.theme-dark .preview-doc .dish {
@@ -923,29 +946,50 @@ td select {
   justify-items: center;
   text-align: center;
   font-family: "Times New Roman", "Liberation Serif", serif;
-  font-size: 20pt;
-  line-height: 1.4;
+  font-size: var(--menu-font-size, 20pt);
+  line-height: calc(var(--menu-leading, 28pt) / var(--menu-font-size, 20pt));
+}
+
+.document-group-block,
+.document-dish-block,
+.document-group,
+.document-dish,
+.document-group-line,
+.document-dish-line {
+  display: block;
+  width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .document-group {
-  margin-top: 20pt;
+  margin-top: var(--group-space, 20pt);
   font-weight: 700;
 }
 
+.document-group-block > .document-group:first-child,
 .document-group:first-child {
   margin-top: 0;
 }
 
+.document-group-line.continuation {
+  margin-top: var(--menu-leading, 28pt);
+  font-weight: 700;
+}
+
+.document-dish-block > .document-dish,
 .document-dish {
-  margin-top: 2pt;
+  margin-top: var(--dish-space, 2pt);
 }
 
-.document-nowrap {
-  white-space: nowrap;
+.document-group + .document-dish,
+.document-group + .document-dish-block > .document-dish,
+.document-group-block + .document-dish,
+.document-group-block + .document-dish-block > .document-dish {
+  margin-top: var(--after-group-space, 6pt);
 }
 
-.document-group + .document-dish {
-  margin-top: 6pt;
+.document-dish-line.continuation {
+  margin-top: var(--continuation-leading, 18pt);
 }
 
 .document-footer {

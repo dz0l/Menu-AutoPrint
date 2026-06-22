@@ -18,10 +18,6 @@ logger = logging.getLogger(__name__)
 
 FONT_REGULAR = "MenuAutoPrintRegular"
 FONT_BOLD = "MenuAutoPrintBold"
-MENU_FONT_SIZE = 20
-MENU_LEADING = 28
-GROUP_FONT_SIZE = 20
-GROUP_LEADING = 28
 FOOTER_FONT_SIZE = 11
 FONT_CANDIDATES = [
     (
@@ -69,7 +65,63 @@ COVER_LOCATIONS = {
     "vil126.jpg": "Вилла-126",
 }
 
-FOOTER_NOTE = "Калории указаны за порцию / Calories indicated per serving"
+FOOTER_NOTE_RU = "Калорийность и вес указаны на порцию"
+FOOTER_NOTE_EN = "Calories indicated per serving"
+FOOTER_NOTE = FOOTER_NOTE_RU
+
+BASE_MENU_FONT_SIZE = 20
+BASE_MENU_LEADING = 28
+BASE_GROUP_FONT_SIZE = 20
+BASE_GROUP_LEADING = 28
+BASE_CONTINUATION_LEADING = 18
+BASE_GROUP_SPACE_BEFORE = 20
+BASE_AFTER_GROUP_SPACE_BEFORE = 6
+BASE_DISH_SPACE_BEFORE = 2
+MIN_MENU_FONT_SIZE = 12
+
+PAGE_MARGIN_LEFT = 42
+PAGE_MARGIN_RIGHT = 42
+PAGE_CONTENT_TOP_OFFSET = 48
+PAGE_CONTENT_BOTTOM = 78
+PAGE_FOOTER_Y = 28
+
+
+@dataclass
+class PageLayout:
+    menu_font_size: int
+    menu_leading: int
+    group_font_size: int
+    group_leading: int
+    continuation_leading: int
+    group_space_before: int
+    after_group_space_before: int
+    dish_space_before: int
+
+    @classmethod
+    def from_menu_font_size(cls, menu_font_size: int) -> PageLayout:
+        scale = menu_font_size / BASE_MENU_FONT_SIZE
+        return cls(
+            menu_font_size=menu_font_size,
+            menu_leading=max(1, round(BASE_MENU_LEADING * scale)),
+            group_font_size=menu_font_size,
+            group_leading=max(1, round(BASE_GROUP_LEADING * scale)),
+            continuation_leading=max(1, round(BASE_CONTINUATION_LEADING * scale)),
+            group_space_before=max(1, round(BASE_GROUP_SPACE_BEFORE * scale)),
+            after_group_space_before=max(1, round(BASE_AFTER_GROUP_SPACE_BEFORE * scale)),
+            dish_space_before=max(1, round(BASE_DISH_SPACE_BEFORE * scale)),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "menu_font_size": self.menu_font_size,
+            "menu_leading": self.menu_leading,
+            "group_font_size": self.group_font_size,
+            "group_leading": self.group_leading,
+            "continuation_leading": self.continuation_leading,
+            "group_space_before": self.group_space_before,
+            "after_group_space_before": self.after_group_space_before,
+            "dish_space_before": self.dish_space_before,
+        }
 
 
 @dataclass
@@ -78,7 +130,9 @@ class TextBlock:
     font_name: str
     font_size: int
     leading: int
+    continuation_leading: int
     space_before: int
+    is_dish: bool = False
 
 
 def build_menu_pdf(
@@ -89,10 +143,12 @@ def build_menu_pdf(
     background_name: str = "",
     background_data: str = "",
     document_title: str = "menu.pdf",
+    auto_format: bool = True,
 ) -> bytes:
     regular_font, bold_font = _ensure_fonts_registered()
     display_date = format_print_date(print_date)
     background = _decode_background(background_data)
+    layout_by_page = preview.get("layout") or {}
 
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4, pageCompression=1)
@@ -102,14 +158,28 @@ def build_menu_pdf(
     pdf.setSubject("Generated menu")
 
     for index, page_name in enumerate(("ru", "en")):
+        items = preview.get(page_name) or []
+        layout_data = layout_by_page.get(page_name)
+        if layout_data:
+            layout = PageLayout(**layout_data)
+        else:
+            layout = compute_page_layout(
+                items,
+                auto_format=auto_format,
+                regular_font=regular_font,
+                bold_font=bold_font,
+            )
+        footer_note = FOOTER_NOTE_RU if page_name == "ru" else FOOTER_NOTE_EN
         _draw_preview_page(
             pdf,
-            items=preview.get(page_name) or [],
+            items=items,
             display_date=display_date,
             show_kcal=show_kcal,
             regular_font=regular_font,
             bold_font=bold_font,
             background=background,
+            layout=layout,
+            footer_note=footer_note,
         )
         if index == 0:
             pdf.showPage()
@@ -160,6 +230,10 @@ def _parse_date(value: str | None) -> date:
     return datetime.now().date()
 
 
+def get_menu_fonts() -> tuple[str, str]:
+    return _ensure_fonts_registered()
+
+
 def _ensure_fonts_registered() -> tuple[str, str]:
     try:
         pdfmetrics.getFont(FONT_REGULAR)
@@ -201,36 +275,129 @@ def _draw_preview_page(
     regular_font: str,
     bold_font: str,
     background,
+    layout: PageLayout,
+    footer_note: str,
 ) -> None:
     width, height = A4
-    left = 42
-    right = width - 42
-    footer_y = 28
-    content_bottom = 78
-    top = height - 48
-    max_width = right - left
+    left = PAGE_MARGIN_LEFT
+    right = width - PAGE_MARGIN_RIGHT
+    footer_y = PAGE_FOOTER_Y
+    content_bottom = PAGE_CONTENT_BOTTOM
+    top = _page_content_top()
+    max_width = _page_max_width()
 
     if background is not None:
         _draw_background(pdf, background, width, height)
 
-    blocks = _build_blocks(items, max_width=max_width, regular_font=regular_font, bold_font=bold_font)
-    total_height = sum(block.space_before + len(block.lines) * block.leading for block in blocks)
+    blocks = _build_blocks(
+        items,
+        max_width=max_width,
+        regular_font=regular_font,
+        bold_font=bold_font,
+        layout=layout,
+    )
+    total_height = _total_blocks_height(blocks)
     available_height = max(top - content_bottom, 0)
     y = min(top, content_bottom + available_height / 2 + total_height / 2)
 
     for block in blocks:
         y -= block.space_before
         pdf.setFont(block.font_name, block.font_size)
-        for line in block.lines:
+        for line_index, line in enumerate(block.lines):
             if y < content_bottom:
                 break
             pdf.drawCentredString(width / 2, y, line)
-            y -= block.leading
+            if line_index < len(block.lines) - 1:
+                if block.is_dish and line_index == 0:
+                    y -= block.continuation_leading
+                else:
+                    y -= block.leading
 
     pdf.setFont(regular_font, FOOTER_FONT_SIZE)
     if show_kcal:
-        pdf.drawString(left, footer_y, FOOTER_NOTE)
+        pdf.drawString(left, footer_y, footer_note)
     pdf.drawRightString(right, footer_y, display_date)
+
+
+def _page_content_top() -> float:
+    return A4[1] - PAGE_CONTENT_TOP_OFFSET
+
+
+def _page_max_width() -> float:
+    return A4[0] - PAGE_MARGIN_LEFT - PAGE_MARGIN_RIGHT
+
+
+def _block_height(block: TextBlock) -> float:
+    height = block.space_before
+    if not block.lines:
+        return height
+    height += block.leading
+    for line_index in range(1, len(block.lines)):
+        if block.is_dish and line_index == 1:
+            height += block.continuation_leading
+        else:
+            height += block.leading
+    return height
+
+
+def _total_blocks_height(blocks: list[TextBlock]) -> float:
+    return sum(_block_height(block) for block in blocks)
+
+
+def compute_page_layout(
+    items: list[dict],
+    *,
+    auto_format: bool,
+    regular_font: str,
+    bold_font: str,
+) -> PageLayout:
+    if not auto_format:
+        return PageLayout.from_menu_font_size(BASE_MENU_FONT_SIZE)
+
+    available_height = _page_content_top() - PAGE_CONTENT_BOTTOM
+    for font_size in range(BASE_MENU_FONT_SIZE, MIN_MENU_FONT_SIZE - 1, -1):
+        layout = PageLayout.from_menu_font_size(font_size)
+        blocks = _build_blocks(
+            items,
+            max_width=_page_max_width(),
+            regular_font=regular_font,
+            bold_font=bold_font,
+            layout=layout,
+        )
+        if _total_blocks_height(blocks) <= available_height:
+            return layout
+    return PageLayout.from_menu_font_size(MIN_MENU_FONT_SIZE)
+
+
+def enrich_page_items(
+    items: list[dict],
+    *,
+    layout: PageLayout,
+    regular_font: str,
+    bold_font: str,
+) -> list[dict]:
+    max_width = _page_max_width()
+    enriched: list[dict] = []
+    for item in items:
+        copy = dict(item)
+        if item.get("type") == "group":
+            text = f"{item.get('text', '')}{item.get('suffix', '')}".strip()
+            copy["lines"] = _wrap_text(
+                text,
+                max_width=max_width,
+                font_name=bold_font,
+                font_size=layout.group_font_size,
+            )
+        else:
+            copy["lines"] = _wrap_dish_lines(
+                item.get("text", ""),
+                item.get("suffix", ""),
+                max_width=max_width,
+                font_name=regular_font,
+                font_size=layout.menu_font_size,
+            )
+        enriched.append(copy)
+    return enriched
 
 
 def _draw_background(pdf: canvas.Canvas, background, page_width: float, page_height: float) -> None:
@@ -253,49 +420,65 @@ def _draw_background(pdf: canvas.Canvas, background, page_width: float, page_hei
         logger.warning("Background draw failed: %s", exc)
 
 
-def _build_blocks(items: list[dict], *, max_width: float, regular_font: str, bold_font: str) -> list[TextBlock]:
+def _build_blocks(
+    items: list[dict],
+    *,
+    max_width: float,
+    regular_font: str,
+    bold_font: str,
+    layout: PageLayout,
+) -> list[TextBlock]:
     blocks: list[TextBlock] = []
     previous_type = None
     for index, item in enumerate(items):
         is_group = item.get("type") == "group"
-        text = f"{item.get('text', '')}{item.get('suffix', '')}".strip()
         if index == 0:
             space_before = 0
         elif is_group:
-            space_before = 20
+            space_before = layout.group_space_before
         elif previous_type == "group":
-            space_before = 6
+            space_before = layout.after_group_space_before
         else:
-            space_before = 2
+            space_before = layout.dish_space_before
 
         if is_group:
-            lines = _wrap_text(text, max_width=max_width, font_name=bold_font, font_size=GROUP_FONT_SIZE)
+            text = f"{item.get('text', '')}{item.get('suffix', '')}".strip()
+            block_lines = _wrap_text(
+                text,
+                max_width=max_width,
+                font_name=bold_font,
+                font_size=layout.group_font_size,
+            )
             blocks.append(
                 TextBlock(
-                    lines=lines,
+                    lines=block_lines,
                     font_name=bold_font,
-                    font_size=GROUP_FONT_SIZE,
-                    leading=GROUP_LEADING,
+                    font_size=layout.group_font_size,
+                    leading=layout.group_leading,
+                    continuation_leading=layout.group_leading,
                     space_before=space_before,
+                    is_dish=False,
                 )
             )
             previous_type = "group"
             continue
 
-        lines = _wrap_dish_lines(
+        block_lines = _wrap_dish_lines(
             item.get("text", ""),
             item.get("suffix", ""),
             max_width=max_width,
             font_name=regular_font,
-            font_size=MENU_FONT_SIZE,
+            font_size=layout.menu_font_size,
         )
         blocks.append(
             TextBlock(
-                lines=lines,
+                lines=block_lines,
                 font_name=regular_font,
-                font_size=MENU_FONT_SIZE,
-                leading=MENU_LEADING,
+                font_size=layout.menu_font_size,
+                leading=layout.menu_leading,
+                continuation_leading=layout.continuation_leading,
                 space_before=space_before,
+                is_dish=True,
             )
         )
         previous_type = "dish"
