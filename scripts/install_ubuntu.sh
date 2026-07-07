@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-printf '%s\n' '[menu-autoprint] Скрипт установки запущен.' >&2
+printf '%s\n' '[menu-autoprint] Installation script started.' >&2
 
 set -euo pipefail
 
@@ -36,62 +36,93 @@ record_note() {
   INSTALL_NOTES+=("$1")
 }
 
+validate_app_dir() {
+  if [[ "$APP_DIR" == /mnt/* ]]; then
+    record_error "APP_DIR must not be on a Windows mount ($APP_DIR). Use /opt/menu-autoprint or \$HOME/menu-autoprint."
+    exit 1
+  fi
+}
+
+validate_admin_password() {
+  local password="$1"
+  local message=""
+
+  if [[ ${#password} -lt 8 ]]; then
+    message="Password must be at least 8 characters."
+  elif ! [[ "$password" =~ [A-Z] ]]; then
+    message="Password must contain at least one uppercase letter."
+  elif ! [[ "$password" =~ [^A-Za-z0-9] ]]; then
+    message="Password must contain at least one special character."
+  fi
+
+  if [[ -n "$message" ]]; then
+    echo "$message"
+    return 1
+  fi
+  return 0
+}
+
 if [[ -z "$REPO_URL" ]]; then
   echo "Set REPO_URL, for example:"
   echo ""
   echo "  cd ~"
   echo "  curl -fSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/install_ubuntu.sh -o install.sh"
+  echo "  REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash install.sh"
+  echo ""
+  echo "Default APP_DIR is /opt/menu-autoprint. For WSL tests use:"
   echo "  APP_DIR=\$HOME/menu-autoprint REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash install.sh"
   echo ""
   echo "Do not run from /mnt/c/WINDOWS/system32 — curl may fail to save install.sh there."
   exit 1
 fi
 
+validate_app_dir
+
 preflight() {
-  log "Рабочая папка: $PWD"
+  log "Working directory: $PWD"
   case "$PWD" in
     /mnt/c/WINDOWS/system32* | /mnt/c/Windows/System32*)
-      log "ОШИБКА: не запускайте установку из system32."
-      log "Там curl часто не может сохранить install.sh, а bash выдаёт: No such file or directory."
-      log "Выполните: cd ~   и повторите загрузку и запуск."
+      log "ERROR: do not run the installer from system32."
+      log "curl often cannot save install.sh there, and bash may report: No such file or directory."
+      log "Run: cd ~   then download and run the installer again."
       exit 1
       ;;
   esac
   if [[ "$PWD" == /mnt/c/* ]]; then
-    record_warning "Установка из /mnt/c/... медленнее; для WSL лучше: cd ~"
+    record_warning "Running from /mnt/c/... is slower; for WSL use: cd ~"
   fi
 }
 
 check_network() {
-  log "Проверка доступа к GitHub (до 15 с)..."
+  log "Checking GitHub access (up to 15 s)..."
   if command -v timeout >/dev/null 2>&1; then
     if timeout 15 curl -fsSL -o /dev/null https://github.com; then
-      log "GitHub доступен."
+      log "GitHub is reachable."
       return 0
     fi
   elif curl -fsSL -o /dev/null https://github.com; then
-    log "GitHub доступен."
+    log "GitHub is reachable."
     return 0
   fi
-  record_error "Нет доступа к https://github.com (таймаут или DNS)."
-  record_note "После изменения .wslconfig выполните в PowerShell: wsl --shutdown"
-  record_note "Проверьте: curl -v https://github.com"
-  record_note "При проблемах с dnsTunneling=true попробуйте временно отключить его в .wslconfig."
+  record_error "Cannot reach https://github.com (timeout or DNS failure)."
+  record_note "After changing .wslconfig run in PowerShell: wsl --shutdown"
+  record_note "Check: curl -v https://github.com"
+  record_note "If dnsTunneling=true causes issues, try disabling it temporarily in .wslconfig."
   exit 1
 }
 
-log "Menu AutoPrint — установка"
-log "Каталог: $APP_DIR"
-log "Репозиторий: $REPO_URL"
+log "Menu AutoPrint installation"
+log "Target directory: $APP_DIR"
+log "Repository: $REPO_URL"
 if [[ "$VERBOSE" == "1" ]]; then
-  log "Режим VERBOSE=1: подробный вывод команд (set -x)"
+  log "VERBOSE=1: command tracing enabled (set -x)"
   set -x
 fi
 if [[ ! -r /dev/tty ]] && ! sudo -n true 2>/dev/null; then
-  log "Подсказка: при pipe в bash запрос sudo может быть неочевиден."
-  log "Надёжнее: curl ... -o install.sh && REPO_URL=... bash install.sh"
+  log "Hint: when piping into bash, sudo prompts may be hard to see."
+  log "Prefer: curl ... -o install.sh && REPO_URL=... bash install.sh"
 fi
-log "При запросе пароля sudo введите его; apt и сборка Docker могут идти несколько минут без новых строк."
+log "When sudo asks for a password, enter it; apt and Docker build may take several minutes without new output."
 
 preflight
 
@@ -118,6 +149,7 @@ print_install_summary() {
     echo "  - If Docker reports permission denied: log out/in or run: newgrp docker"
     echo "  - Then: cd $APP_DIR && docker compose up -d --build --remove-orphans"
     echo "  - Create admin manually: docker compose exec -it web python manage.py create_staff_user mAdmin --role admin"
+    echo "  - Password rules: at least 8 characters, 1 uppercase letter, 1 special character."
   else
     echo "Status: completed without recorded errors."
   fi
@@ -185,7 +217,7 @@ detect_host_ip() {
     route_output="$(ip route get 1.1.1.1 2>/dev/null || true)"
   fi
   if [[ -z "$route_output" ]]; then
-    record_warning "Не удалось определить IP хоста (ip route get 1.1.1.1). ALLOWED_HOSTS можно задать вручную в .env."
+    record_warning "Could not detect host IP (ip route get 1.1.1.1). Set ALLOWED_HOSTS manually in .env."
     return 0
   fi
   awk '{for (i=1; i<=NF; i++) if ($i=="src") {print $(i+1); exit}}' <<<"$route_output"
@@ -301,7 +333,8 @@ read_admin_credentials() {
       exit 1
     fi
 
-    local password_repeat
+    local password_repeat password_error
+    echo "Password rules: at least 8 characters, 1 uppercase letter, 1 special character." > /dev/tty
     while true; do
       printf 'Admin password (hidden): ' > /dev/tty
       read -r -s ADMIN_PASSWORD < /dev/tty
@@ -311,13 +344,18 @@ read_admin_credentials() {
       printf '\n' > /dev/tty
 
       if [[ -z "$ADMIN_PASSWORD" ]]; then
-        echo "Password must not be empty."
+        echo "Password must not be empty." > /dev/tty
       elif [[ "$ADMIN_PASSWORD" != "$password_repeat" ]]; then
-        echo "Passwords do not match."
+        echo "Passwords do not match." > /dev/tty
+      elif ! password_error="$(validate_admin_password "$ADMIN_PASSWORD")"; then
+        echo "$password_error" > /dev/tty
       else
         break
       fi
     done
+  elif ! password_error="$(validate_admin_password "$ADMIN_PASSWORD")"; then
+    record_error "$password_error"
+    exit 1
   fi
 }
 
@@ -326,6 +364,10 @@ prompt_new_install_admin_credentials() {
     return
   fi
   if [[ -n "${MENU_AUTOPRINT_NEW_USER_PASSWORD:-}" ]]; then
+    if ! password_error="$(validate_admin_password "$MENU_AUTOPRINT_NEW_USER_PASSWORD")"; then
+      record_error "$password_error"
+      exit 1
+    fi
     return
   fi
 
@@ -360,45 +402,45 @@ cleanup_inactive_profile_services() {
 
 HOST_IP="${HOST_IP:-}"
 if [[ -z "$HOST_IP" ]]; then
-  log "Определение IP сервера для ALLOWED_HOSTS..."
+  log "Detecting server IP for ALLOWED_HOSTS..."
   HOST_IP="$(detect_host_ip || true)"
 fi
-[[ -n "${HOST_IP:-}" ]] && log "IP сервера (для ALLOWED_HOSTS): $HOST_IP"
+[[ -n "${HOST_IP:-}" ]] && log "Server IP (for ALLOWED_HOSTS): $HOST_IP"
 
 check_network
 
-step "Обновление списка пакетов (apt-get update)..."
+step "Updating package lists (apt-get update)..."
 if ! sudo apt-get update; then
   record_error "apt-get update failed. Check network and package sources."
   exit 1
 fi
-log "apt-get update завершён."
+log "apt-get update finished."
 
-step "Установка git, curl, openssl..."
+step "Installing git, curl, openssl..."
 if ! sudo apt-get install -y git ca-certificates curl openssl; then
   record_error "Failed to install base packages (git, curl, openssl)."
   exit 1
 fi
-log "Базовые пакеты установлены."
+log "Base packages installed."
 
-step "Установка или проверка Docker..."
+step "Installing or verifying Docker..."
 if ! command -v docker >/dev/null 2>&1; then
-  log "Скачивание и запуск скрипта get.docker.com (обычно 2–5 минут)..."
+  log "Downloading and running get.docker.com (usually 2-5 minutes)..."
   if ! curl -fsSL https://get.docker.com | sudo sh; then
     record_error "Docker installation script from get.docker.com failed."
     record_note "Check access to https://get.docker.com and retry."
     exit 1
   fi
-  log "Docker установлен."
+  log "Docker installed."
 else
-  log "Docker уже установлен, пропуск установки."
+  log "Docker is already installed; skipping installation."
 fi
 
-step "Проверка доступа к Docker..."
+step "Checking Docker access..."
 ensure_docker_access || true
 
 if [[ ! -d "$APP_DIR/.git" ]]; then
-  step "Клонирование репозитория в $APP_DIR..."
+  step "Cloning repository into $APP_DIR..."
   sudo mkdir -p "$APP_DIR"
   sudo chown "$USER":"$USER" "$APP_DIR"
   if ! git clone "$REPO_URL" "$APP_DIR"; then
@@ -406,22 +448,22 @@ if [[ ! -d "$APP_DIR/.git" ]]; then
     record_note "Verify REPO_URL, GitHub availability, and disk space."
     exit 1
   fi
-  log "Репозиторий склонирован."
+  log "Repository cloned."
 else
-  log "Каталог $APP_DIR уже существует, пропуск git clone."
+  log "Directory $APP_DIR already exists; skipping git clone."
 fi
 
 cd "$APP_DIR"
 
-step "Обновление кода (git pull)..."
+step "Updating code (git pull)..."
 if ! git pull --ff-only; then
   record_error "git pull --ff-only failed in $APP_DIR"
   record_note "Resolve git conflicts manually or re-clone into a clean directory."
   exit 1
 fi
-log "Код обновлён."
+log "Code updated."
 
-step "Настройка .env..."
+step "Configuring .env..."
 if [[ ! -f .env ]]; then
   if [[ ! -f .env.example ]]; then
     record_error ".env.example is missing in the repository."
@@ -429,9 +471,9 @@ if [[ ! -f .env ]]; then
   fi
   cp .env.example .env
   ENV_CREATED=1
-  log "Создан .env из .env.example."
+  log "Created .env from .env.example."
 else
-  log "Файл .env уже есть."
+  log ".env already exists."
 fi
 
 prompt_new_install_admin_credentials
@@ -477,8 +519,8 @@ fi
 
 cleanup_inactive_profile_services
 
-step "Сборка образов и запуск контейнеров (docker compose up --build)..."
-log "Это самый долгий этап: первая сборка может занять 5–15 минут."
+step "Building images and starting containers (docker compose up --build)..."
+log "This is the longest step: the first build may take 5-15 minutes."
 export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
 export BUILDKIT_PROGRESS="${BUILDKIT_PROGRESS:-plain}"
 export COMPOSE_PROGRESS="${COMPOSE_PROGRESS:-plain}"
@@ -487,21 +529,21 @@ if ! compose_cmd up -d --build --remove-orphans; then
   record_note "Run manually: cd $APP_DIR && docker compose up -d --build --remove-orphans"
   exit 1
 fi
-log "Контейнеры запущены."
+log "Containers started."
 
-step "Миграции базы данных..."
+step "Running database migrations..."
 if ! compose_cmd exec -T web python manage.py migrate; then
   record_error "Database migrations failed."
   exit 1
 fi
-log "Миграции выполнены."
+log "Migrations finished."
 
-step "Создание администратора..."
+step "Creating admin user..."
 if admin_exists; then
-  log "Администратор уже есть — пропуск создания."
+  log "Admin user already exists; skipping creation."
 else
   if [[ -z "${ADMIN_PASSWORD:-}" ]]; then
-    log "Активного администратора нет — будет запрошен пароль."
+    log "No active admin found; password will be requested."
     read_admin_credentials
   fi
   if ! compose_cmd exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD="$ADMIN_PASSWORD" web python manage.py create_staff_user "$ADMIN_USERNAME" --role admin; then
@@ -514,14 +556,14 @@ else
     record_error "Admin user was not created."
     exit 1
   fi
-  log "Администратор создан: $ADMIN_USERNAME"
+  log "Admin user created: $ADMIN_USERNAME"
 fi
 
-step "Очистка кэша..."
+step "Clearing cache..."
 if ! compose_cmd exec -T web python manage.py shell -c "from django.core.cache import cache; cache.clear()"; then
   record_warning "Cache clear failed (non-critical)."
 fi
-log "Установка завершена, формируется итоговый отчёт..."
+log "Installation finished; printing summary..."
 
 if [[ -f fonts/Times\ New\ Roman.ttf && -f fonts/Times\ New\ Roman\ Bold.ttf ]]; then
   echo "Bundled Times New Roman fonts detected in the repository. The web image uses them automatically."
