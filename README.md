@@ -10,7 +10,9 @@ Repository: `https://github.com/dz0l/Menu-AutoPrint`
 curl -fsSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/install_ubuntu.sh | REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash
 ```
 
-The installer clones or updates the repository, creates `.env` if needed, generates `DJANGO_SECRET_KEY` and `POSTGRES_PASSWORD`, configures the detected server address, builds Docker services, runs migrations, creates the first admin account if none exists, and collects static files.
+The installer clones or updates the repository, creates `.env` if needed, generates `DJANGO_SECRET_KEY` and `POSTGRES_PASSWORD`, configures the detected server address, adds the current user to the `docker` group when needed, builds Docker services, runs migrations, creates the first admin account if none exists, and prints an installation summary with errors and recommendations.
+
+If Docker reports `permission denied` after installation, log out and back in, or run `newgrp docker`.
 
 During interactive installation the script asks for the admin username and password. The default username prompt is `mAdmin`, but the password is not stored in the script.
 
@@ -24,6 +26,27 @@ curl -fsSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/in
   MENU_AUTOPRINT_ADMIN_USERNAME=mAdmin \
   MENU_AUTOPRINT_NEW_USER_PASSWORD='Strong!Pass123' \
   bash
+```
+
+## Full Uninstall
+
+Stop containers, remove project volumes and images:
+
+```bash
+cd /opt/menu-autoprint
+bash scripts/uninstall_ubuntu.sh --yes
+```
+
+Also delete the application directory:
+
+```bash
+bash scripts/uninstall_ubuntu.sh --remove-app-dir --yes
+```
+
+Remove Docker Engine from the host (destructive; affects all containers on the server):
+
+```bash
+bash scripts/uninstall_ubuntu.sh --remove-app-dir --remove-docker --yes
 ```
 
 ## Users
