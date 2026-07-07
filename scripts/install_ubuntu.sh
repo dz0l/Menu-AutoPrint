@@ -3,6 +3,9 @@ set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/menu-autoprint}"
 REPO_URL="${REPO_URL:-}"
+VERBOSE="${VERBOSE:-0}"
+INSTALL_STEP=0
+TOTAL_STEPS=11
 
 INSTALL_ERRORS=()
 INSTALL_WARNINGS=()
@@ -10,11 +13,33 @@ INSTALL_NOTES=()
 ENV_CREATED=0
 DOCKER_GROUP_ADDED=0
 
+log() {
+  printf '[%s] %s\n' "$(date '+%H:%M:%S')" "$*" >&2
+}
+
+step() {
+  INSTALL_STEP=$((INSTALL_STEP + 1))
+  log "[$INSTALL_STEP/$TOTAL_STEPS] $*"
+}
+
 if [[ -z "$REPO_URL" ]]; then
   echo "Set REPO_URL, for example:"
   echo "curl -fsSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/install_ubuntu.sh | REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash"
   exit 1
 fi
+
+log "Menu AutoPrint — установка"
+log "Каталог: $APP_DIR"
+log "Репозиторий: $REPO_URL"
+if [[ "$VERBOSE" == "1" ]]; then
+  log "Режим VERBOSE=1: подробный вывод команд (set -x)"
+  set -x
+fi
+if [[ ! -r /dev/tty ]] && ! sudo -n true 2>/dev/null; then
+  log "Подсказка: при pipe в bash запрос sudo может быть неочевиден."
+  log "Надёжнее: curl ... -o install.sh && REPO_URL=... bash install.sh"
+fi
+log "При запросе пароля sudo введите его; apt и сборка Docker могут идти несколько минут без новых строк."
 
 record_error() {
   INSTALL_ERRORS+=("$1")
@@ -282,29 +307,40 @@ cleanup_inactive_profile_services() {
 }
 
 HOST_IP="${HOST_IP:-$(detect_host_ip)}"
+[[ -n "${HOST_IP:-}" ]] && log "IP сервера (для ALLOWED_HOSTS): $HOST_IP"
 
+step "Обновление списка пакетов (apt-get update)..."
 if ! sudo apt-get update; then
   record_error "apt-get update failed. Check network and package sources."
   exit 1
 fi
+log "apt-get update завершён."
 
+step "Установка git, curl, openssl..."
 if ! sudo apt-get install -y git ca-certificates curl openssl; then
   record_error "Failed to install base packages (git, curl, openssl)."
   exit 1
 fi
+log "Базовые пакеты установлены."
 
+step "Установка или проверка Docker..."
 if ! command -v docker >/dev/null 2>&1; then
-  echo "Installing Docker..."
+  log "Скачивание и запуск скрипта get.docker.com (обычно 2–5 минут)..."
   if ! curl -fsSL https://get.docker.com | sudo sh; then
     record_error "Docker installation script from get.docker.com failed."
     record_note "Check access to https://get.docker.com and retry."
     exit 1
   fi
+  log "Docker установлен."
+else
+  log "Docker уже установлен, пропуск установки."
 fi
 
+step "Проверка доступа к Docker..."
 ensure_docker_access || true
 
 if [[ ! -d "$APP_DIR/.git" ]]; then
+  step "Клонирование репозитория в $APP_DIR..."
   sudo mkdir -p "$APP_DIR"
   sudo chown "$USER":"$USER" "$APP_DIR"
   if ! git clone "$REPO_URL" "$APP_DIR"; then
@@ -312,16 +348,22 @@ if [[ ! -d "$APP_DIR/.git" ]]; then
     record_note "Verify REPO_URL, GitHub availability, and disk space."
     exit 1
   fi
+  log "Репозиторий склонирован."
+else
+  log "Каталог $APP_DIR уже существует, пропуск git clone."
 fi
 
 cd "$APP_DIR"
 
+step "Обновление кода (git pull)..."
 if ! git pull --ff-only; then
   record_error "git pull --ff-only failed in $APP_DIR"
   record_note "Resolve git conflicts manually or re-clone into a clean directory."
   exit 1
 fi
+log "Код обновлён."
 
+step "Настройка .env..."
 if [[ ! -f .env ]]; then
   if [[ ! -f .env.example ]]; then
     record_error ".env.example is missing in the repository."
@@ -329,6 +371,9 @@ if [[ ! -f .env ]]; then
   fi
   cp .env.example .env
   ENV_CREATED=1
+  log "Создан .env из .env.example."
+else
+  log "Файл .env уже есть."
 fi
 
 prompt_new_install_admin_credentials
@@ -374,22 +419,31 @@ fi
 
 cleanup_inactive_profile_services
 
+step "Сборка образов и запуск контейнеров (docker compose up --build)..."
+log "Это самый долгий этап: первая сборка может занять 5–15 минут."
+export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
+export BUILDKIT_PROGRESS="${BUILDKIT_PROGRESS:-plain}"
+export COMPOSE_PROGRESS="${COMPOSE_PROGRESS:-plain}"
 if ! compose_cmd up -d --build --remove-orphans; then
   record_error "docker compose up failed."
   record_note "Run manually: cd $APP_DIR && docker compose up -d --build --remove-orphans"
   exit 1
 fi
+log "Контейнеры запущены."
 
+step "Миграции базы данных..."
 if ! compose_cmd exec -T web python manage.py migrate; then
   record_error "Database migrations failed."
   exit 1
 fi
+log "Миграции выполнены."
 
+step "Создание администратора..."
 if admin_exists; then
-  echo "Admin user already exists; skipping admin creation."
+  log "Администратор уже есть — пропуск создания."
 else
   if [[ -z "${ADMIN_PASSWORD:-}" ]]; then
-    echo "No active admin user found. Creating the first admin account."
+    log "Активного администратора нет — будет запрошен пароль."
     read_admin_credentials
   fi
   if ! compose_cmd exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD="$ADMIN_PASSWORD" web python manage.py create_staff_user "$ADMIN_USERNAME" --role admin; then
@@ -402,12 +456,14 @@ else
     record_error "Admin user was not created."
     exit 1
   fi
-  echo "Admin user created: $ADMIN_USERNAME"
+  log "Администратор создан: $ADMIN_USERNAME"
 fi
 
+step "Очистка кэша..."
 if ! compose_cmd exec -T web python manage.py shell -c "from django.core.cache import cache; cache.clear()"; then
   record_warning "Cache clear failed (non-critical)."
 fi
+log "Установка завершена, формируется итоговый отчёт..."
 
 if [[ -f fonts/Times\ New\ Roman.ttf && -f fonts/Times\ New\ Roman\ Bold.ttf ]]; then
   echo "Bundled Times New Roman fonts detected in the repository. The web image uses them automatically."
