@@ -317,9 +317,11 @@ compose_up_quiet_args() {
   if [[ "$VERBOSE" == "1" ]]; then
     export BUILDKIT_PROGRESS=plain
     COMPOSE_UP_ARGS=(--progress plain)
+    COMPOSE_UP_EXTRA=()
   else
     export BUILDKIT_PROGRESS=quiet
-    COMPOSE_UP_ARGS=(--progress quiet --quiet-pull)
+    COMPOSE_UP_ARGS=(--progress quiet)
+    COMPOSE_UP_EXTRA=(--quiet-pull --quiet-build)
   fi
 }
 
@@ -552,9 +554,10 @@ step "Building images and starting containers (docker compose up --build)..."
 log "This is the longest step: the first build may take 5-15 minutes."
 export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
 compose_up_quiet_args
-if ! compose_cmd "${COMPOSE_UP_ARGS[@]}" up -d --build --remove-orphans; then
+if ! compose_cmd "${COMPOSE_UP_ARGS[@]}" up -d --build --remove-orphans "${COMPOSE_UP_EXTRA[@]}"; then
   record_error "docker compose up failed."
   record_note "Run manually: cd $APP_DIR && docker compose up -d --build --remove-orphans"
+  record_note "For full Docker output: VERBOSE=1 bash install.sh"
   exit 1
 fi
 log "Containers started."
