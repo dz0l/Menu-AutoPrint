@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+printf '%s\n' '[menu-autoprint] Скрипт установки запущен.' >&2
+
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/opt/menu-autoprint}"
@@ -22,11 +24,61 @@ step() {
   log "[$INSTALL_STEP/$TOTAL_STEPS] $*"
 }
 
+record_error() {
+  INSTALL_ERRORS+=("$1")
+}
+
+record_warning() {
+  INSTALL_WARNINGS+=("$1")
+}
+
+record_note() {
+  INSTALL_NOTES+=("$1")
+}
+
 if [[ -z "$REPO_URL" ]]; then
   echo "Set REPO_URL, for example:"
-  echo "curl -fsSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/install_ubuntu.sh | REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash"
+  echo ""
+  echo "  cd ~"
+  echo "  curl -fSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/install_ubuntu.sh -o install.sh"
+  echo "  APP_DIR=\$HOME/menu-autoprint REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash install.sh"
+  echo ""
+  echo "Do not run from /mnt/c/WINDOWS/system32 — curl may fail to save install.sh there."
   exit 1
 fi
+
+preflight() {
+  log "Рабочая папка: $PWD"
+  case "$PWD" in
+    /mnt/c/WINDOWS/system32* | /mnt/c/Windows/System32*)
+      log "ОШИБКА: не запускайте установку из system32."
+      log "Там curl часто не может сохранить install.sh, а bash выдаёт: No such file or directory."
+      log "Выполните: cd ~   и повторите загрузку и запуск."
+      exit 1
+      ;;
+  esac
+  if [[ "$PWD" == /mnt/c/* ]]; then
+    record_warning "Установка из /mnt/c/... медленнее; для WSL лучше: cd ~"
+  fi
+}
+
+check_network() {
+  log "Проверка доступа к GitHub (до 15 с)..."
+  if command -v timeout >/dev/null 2>&1; then
+    if timeout 15 curl -fsSL -o /dev/null https://github.com; then
+      log "GitHub доступен."
+      return 0
+    fi
+  elif curl -fsSL -o /dev/null https://github.com; then
+    log "GitHub доступен."
+    return 0
+  fi
+  record_error "Нет доступа к https://github.com (таймаут или DNS)."
+  record_note "После изменения .wslconfig выполните в PowerShell: wsl --shutdown"
+  record_note "Проверьте: curl -v https://github.com"
+  record_note "При проблемах с dnsTunneling=true попробуйте временно отключить его в .wslconfig."
+  exit 1
+}
 
 log "Menu AutoPrint — установка"
 log "Каталог: $APP_DIR"
@@ -41,17 +93,7 @@ if [[ ! -r /dev/tty ]] && ! sudo -n true 2>/dev/null; then
 fi
 log "При запросе пароля sudo введите его; apt и сборка Docker могут идти несколько минут без новых строк."
 
-record_error() {
-  INSTALL_ERRORS+=("$1")
-}
-
-record_warning() {
-  INSTALL_WARNINGS+=("$1")
-}
-
-record_note() {
-  INSTALL_NOTES+=("$1")
-}
+preflight
 
 on_err() {
   record_error "Command failed at line $1 (exit code $?)."
@@ -136,7 +178,17 @@ trap 'on_err $LINENO' ERR
 trap print_install_summary EXIT
 
 detect_host_ip() {
-  ip route get 1.1.1.1 2>/dev/null | awk '{for (i=1; i<=NF; i++) if ($i=="src") {print $(i+1); exit}}'
+  local route_output=""
+  if command -v timeout >/dev/null 2>&1; then
+    route_output="$(timeout 5 ip route get 1.1.1.1 2>/dev/null || true)"
+  else
+    route_output="$(ip route get 1.1.1.1 2>/dev/null || true)"
+  fi
+  if [[ -z "$route_output" ]]; then
+    record_warning "Не удалось определить IP хоста (ip route get 1.1.1.1). ALLOWED_HOSTS можно задать вручную в .env."
+    return 0
+  fi
+  awk '{for (i=1; i<=NF; i++) if ($i=="src") {print $(i+1); exit}}' <<<"$route_output"
 }
 
 set_env_value() {
@@ -306,8 +358,14 @@ cleanup_inactive_profile_services() {
   fi
 }
 
-HOST_IP="${HOST_IP:-$(detect_host_ip)}"
+HOST_IP="${HOST_IP:-}"
+if [[ -z "$HOST_IP" ]]; then
+  log "Определение IP сервера для ALLOWED_HOSTS..."
+  HOST_IP="$(detect_host_ip || true)"
+fi
 [[ -n "${HOST_IP:-}" ]] && log "IP сервера (для ALLOWED_HOSTS): $HOST_IP"
+
+check_network
 
 step "Обновление списка пакетов (apt-get update)..."
 if ! sudo apt-get update; then
