@@ -122,7 +122,7 @@ if [[ ! -r /dev/tty ]] && ! sudo -n true 2>/dev/null; then
   log "Hint: when piping into bash, sudo prompts may be hard to see."
   log "Prefer: curl ... -o install.sh && REPO_URL=... bash install.sh"
 fi
-log "When sudo asks for a password, enter it; apt and Docker build may take several minutes without new output."
+log "When sudo asks for a password, enter it; long steps may run several minutes with little output."
 
 preflight
 
@@ -305,6 +305,24 @@ compose_cmd() {
   docker_cmd compose "$@"
 }
 
+run_apt_get() {
+  if [[ "$VERBOSE" == "1" ]]; then
+    sudo apt-get "$@"
+  else
+    sudo apt-get -qq "$@"
+  fi
+}
+
+compose_up_quiet_args() {
+  if [[ "$VERBOSE" == "1" ]]; then
+    export BUILDKIT_PROGRESS=plain
+    COMPOSE_UP_ARGS=(--progress plain)
+  else
+    export BUILDKIT_PROGRESS=quiet
+    COMPOSE_UP_ARGS=(--progress quiet --quiet-pull)
+  fi
+}
+
 admin_exists() {
   local result
   result="$(compose_cmd exec -T web python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); print('1' if User.objects.filter(role='admin', is_active=True).exists() else '0')" | tr -d '\r')"
@@ -410,14 +428,14 @@ fi
 check_network
 
 step "Updating package lists (apt-get update)..."
-if ! sudo apt-get update; then
+if ! run_apt_get update; then
   record_error "apt-get update failed. Check network and package sources."
   exit 1
 fi
 log "apt-get update finished."
 
 step "Installing git, curl, openssl..."
-if ! sudo apt-get install -y git ca-certificates curl openssl; then
+if ! run_apt_get install -y git ca-certificates curl openssl; then
   record_error "Failed to install base packages (git, curl, openssl)."
   exit 1
 fi
@@ -426,7 +444,14 @@ log "Base packages installed."
 step "Installing or verifying Docker..."
 if ! command -v docker >/dev/null 2>&1; then
   log "Downloading and running get.docker.com (usually 2-5 minutes)..."
-  if ! curl -fsSL https://get.docker.com | sudo sh; then
+  if [[ "$VERBOSE" == "1" ]]; then
+    docker_install_ok=0
+    curl -fsSL https://get.docker.com | sudo sh || docker_install_ok=$?
+  else
+    docker_install_ok=0
+    curl -fsSL https://get.docker.com | sudo sh >/dev/null || docker_install_ok=$?
+  fi
+  if [[ "$docker_install_ok" -ne 0 ]]; then
     record_error "Docker installation script from get.docker.com failed."
     record_note "Check access to https://get.docker.com and retry."
     exit 1
@@ -443,7 +468,11 @@ if [[ ! -d "$APP_DIR/.git" ]]; then
   step "Cloning repository into $APP_DIR..."
   sudo mkdir -p "$APP_DIR"
   sudo chown "$USER":"$USER" "$APP_DIR"
-  if ! git clone "$REPO_URL" "$APP_DIR"; then
+  git_clone_args=()
+  if [[ "$VERBOSE" != "1" ]]; then
+    git_clone_args=(-q)
+  fi
+  if ! git clone "${git_clone_args[@]}" "$REPO_URL" "$APP_DIR"; then
     record_error "git clone failed for $REPO_URL"
     record_note "Verify REPO_URL, GitHub availability, and disk space."
     exit 1
@@ -522,9 +551,8 @@ cleanup_inactive_profile_services
 step "Building images and starting containers (docker compose up --build)..."
 log "This is the longest step: the first build may take 5-15 minutes."
 export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
-export BUILDKIT_PROGRESS="${BUILDKIT_PROGRESS:-plain}"
-export COMPOSE_PROGRESS="${COMPOSE_PROGRESS:-plain}"
-if ! compose_cmd up -d --build --remove-orphans; then
+compose_up_quiet_args
+if ! compose_cmd "${COMPOSE_UP_ARGS[@]}" up -d --build --remove-orphans; then
   record_error "docker compose up failed."
   record_note "Run manually: cd $APP_DIR && docker compose up -d --build --remove-orphans"
   exit 1
@@ -532,7 +560,11 @@ fi
 log "Containers started."
 
 step "Running database migrations..."
-if ! compose_cmd exec -T web python manage.py migrate; then
+migrate_verbosity=0
+if [[ "$VERBOSE" == "1" ]]; then
+  migrate_verbosity=1
+fi
+if ! compose_cmd exec -T web python manage.py migrate --verbosity "$migrate_verbosity"; then
   record_error "Database migrations failed."
   exit 1
 fi
