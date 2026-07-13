@@ -1,8 +1,9 @@
 ﻿from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 
-from apps.dishes.services import import_dishes_csv_safely, replace_dishes_csv, review_dishes_csv_import
+from apps.dishes.services import replace_dishes_csv, review_dishes_csv_import, upsert_dish
 
 
 class Command(BaseCommand):
@@ -25,11 +26,15 @@ class Command(BaseCommand):
             raise CommandError(f"File not found: {path}")
 
         text = path.read_text(encoding="utf-8-sig")
+        progress = self._progress_printer()
+        self.stdout.write(f"Reading {path} ({len(text)} bytes)...")
+
         if options["replace_all"]:
             show_limit = max(int(options["show"]), 1)
             outcome = replace_dishes_csv(
                 text,
                 dry_run=options["dry_run"],
+                progress=progress,
             )
             self._print_errors(outcome["errors"][:show_limit])
             if outcome["errors"]:
@@ -49,7 +54,8 @@ class Command(BaseCommand):
             )
             return
 
-        review = review_dishes_csv_import(text)
+        # One review pass with progress, then apply without re-running the expensive review.
+        review = review_dishes_csv_import(text, progress=progress)
         show_limit = max(int(options["show"]), 1)
 
         self.stdout.write(
@@ -66,10 +72,11 @@ class Command(BaseCommand):
         self._print_similar(review.similar_matches[:show_limit])
         self._print_errors(review.errors[:show_limit])
 
-        outcome = import_dishes_csv_safely(
-            text,
+        outcome = self._apply_reviewed(
+            review,
             dry_run=options["dry_run"],
             apply_updates=options["apply_updates"],
+            progress=progress,
         )
         prefix = "DRY RUN (no changes committed): " if options["dry_run"] else ""
         mode = "create+update" if options["apply_updates"] else "create-only"
@@ -89,9 +96,69 @@ class Command(BaseCommand):
             )
             self.stdout.write(
                 self.style.WARNING(
-                    f"Use --apply-updates to accept exact-name field updates after review. Similar-name rows should be merged manually."
+                    "Use --apply-updates to accept exact-name field updates after review. Similar-name rows should be merged manually."
                 )
             )
+
+    def _apply_reviewed(self, review, dry_run=False, apply_updates=False, progress=None) -> dict:
+        outcome = {
+            "created": 0,
+            "updated": 0,
+            "skipped": len(review.skipped) + len(review.exact_matches),
+            "changed_matches": review.changed_matches,
+            "similar_matches": review.similar_matches,
+            "errors": list(review.errors),
+        }
+        create_total = len(review.create_candidates)
+        update_total = len(review.changed_matches) if apply_updates else 0
+        apply_total = create_total + update_total
+        applied = 0
+
+        with transaction.atomic():
+            for item in review.create_candidates:
+                try:
+                    upsert_dish(item["incoming"], None)
+                    outcome["created"] += 1
+                except Exception as exc:
+                    outcome["errors"].append({"row": item["row"], "error": str(exc)})
+                applied += 1
+                if progress and apply_total:
+                    progress(applied, apply_total, "import")
+
+            if apply_updates:
+                for item in review.changed_matches:
+                    try:
+                        upsert_dish(item["incoming"], None)
+                        outcome["updated"] += 1
+                    except Exception as exc:
+                        outcome["errors"].append({"row": item["row"], "error": str(exc)})
+                    applied += 1
+                    if progress and apply_total:
+                        progress(applied, apply_total, "import")
+
+            if dry_run:
+                transaction.set_rollback(True)
+
+        if progress and apply_total:
+            progress(apply_total, apply_total, "import")
+        return outcome
+
+    def _progress_printer(self):
+        last_bucket = {}
+
+        def progress(current, total, phase):
+            if total <= 0:
+                return
+            # About 10 lines max per phase: 0/10/.../100.
+            bucket = 10 if current >= total else (10 * current) // total
+            if last_bucket.get(phase) == bucket and current < total:
+                return
+            last_bucket[phase] = bucket
+            pct = 100 if current >= total else (100 * current) // total
+            self.stdout.write(f"[{phase}] {pct}% ({current}/{total})")
+            self.stdout.flush()
+
+        return progress
 
     def _print_changed(self, rows):
         for item in rows:

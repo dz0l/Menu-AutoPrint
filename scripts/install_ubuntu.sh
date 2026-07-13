@@ -325,10 +325,73 @@ compose_up_quiet_args() {
   fi
 }
 
-admin_exists() {
+compose_python() {
+  compose_cmd exec -T web python "$@"
+}
+
+wait_for_web() {
+  local attempt
+  log "Waiting for the web container to accept commands..."
+  for attempt in $(seq 1 60); do
+    if compose_python -c "import django" >/dev/null 2>&1; then
+      log "Web container is ready."
+      return 0
+    fi
+    sleep 2
+  done
+  record_error "Web container did not become ready in time."
+  return 1
+}
+
+_shell_bool() {
+  local code="$1"
   local result
-  result="$(compose_cmd exec -T web python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); print('1' if User.objects.filter(role='admin', is_active=True).exists() else '0')" | tr -d '\r')"
+  result="$(compose_python manage.py shell -c "$code" 2>/dev/null | tr -d '\r' | tail -n 1 | tr -d '[:space:]')"
   [[ "$result" == "1" ]]
+}
+
+admin_exists() {
+  _shell_bool "from django.contrib.auth import get_user_model; User = get_user_model(); print('1' if User.objects.filter(role='admin', is_active=True).exists() else '0')"
+}
+
+username_exists() {
+  local username="$1"
+  local result
+  if docker info >/dev/null 2>&1; then
+    result="$(
+      env MENU_AUTOPRINT_CHECK_USERNAME="$username" \
+        docker compose exec -T -e MENU_AUTOPRINT_CHECK_USERNAME \
+        web python manage.py shell -c "import os; from django.contrib.auth import get_user_model; User = get_user_model(); print('1' if User.objects.filter(username=os.environ['MENU_AUTOPRINT_CHECK_USERNAME']).exists() else '0')" \
+        2>/dev/null | tr -d '\r' | tail -n 1 | tr -d '[:space:]'
+    )"
+  else
+    result="$(
+      sudo env MENU_AUTOPRINT_CHECK_USERNAME="$username" \
+        docker compose exec -T -e MENU_AUTOPRINT_CHECK_USERNAME \
+        web python manage.py shell -c "import os; from django.contrib.auth import get_user_model; User = get_user_model(); print('1' if User.objects.filter(username=os.environ['MENU_AUTOPRINT_CHECK_USERNAME']).exists() else '0')" \
+        2>/dev/null | tr -d '\r' | tail -n 1 | tr -d '[:space:]'
+    )"
+  fi
+  [[ "$result" == "1" ]]
+}
+
+create_admin_user() {
+  local username="$1"
+  local password="$2"
+  if [[ -z "$username" || -z "$password" ]]; then
+    record_error "Admin username/password missing; cannot create admin user."
+    return 1
+  fi
+  # Pass password via inherited env so special characters stay intact (incl. sudo path).
+  if docker info >/dev/null 2>&1; then
+    env MENU_AUTOPRINT_NEW_USER_PASSWORD="$password" \
+      docker compose exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD \
+      web python manage.py create_staff_user "$username" --role admin
+  else
+    sudo env MENU_AUTOPRINT_NEW_USER_PASSWORD="$password" \
+      docker compose exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD \
+      web python manage.py create_staff_user "$username" --role admin
+  fi
 }
 
 read_admin_credentials() {
@@ -388,6 +451,8 @@ prompt_new_install_admin_credentials() {
       record_error "$password_error"
       exit 1
     fi
+    ADMIN_USERNAME="${MENU_AUTOPRINT_ADMIN_USERNAME:-mAdmin}"
+    ADMIN_PASSWORD="$MENU_AUTOPRINT_NEW_USER_PASSWORD"
     return
   fi
 
@@ -563,39 +628,54 @@ fi
 log "Containers started."
 
 step "Running database migrations..."
-migrate_verbosity=0
-if [[ "$VERBOSE" == "1" ]]; then
-  migrate_verbosity=1
-fi
-if ! compose_cmd exec -T web python manage.py migrate --verbosity "$migrate_verbosity"; then
+wait_for_web || exit 1
+# Verbosity 1 shows one line per migration — useful progress, not Docker layer spam.
+if ! compose_python manage.py migrate --verbosity 1; then
   record_error "Database migrations failed."
   exit 1
 fi
 log "Migrations finished."
 
 step "Creating admin user..."
-if admin_exists; then
-  log "Admin user already exists; skipping creation."
-else
-  if [[ -z "${ADMIN_PASSWORD:-}" ]]; then
-    log "No active admin found; password will be requested."
-    read_admin_credentials
+ADMIN_USERNAME="${ADMIN_USERNAME:-${MENU_AUTOPRINT_ADMIN_USERNAME:-mAdmin}}"
+if [[ -n "${ADMIN_PASSWORD:-}" ]]; then
+  # Credentials were collected earlier for this username — create it even if
+  # another admin already exists in a reused Postgres volume.
+  if username_exists "$ADMIN_USERNAME"; then
+    log "User '$ADMIN_USERNAME' already exists; skipping creation."
+  else
+    log "Creating admin user '$ADMIN_USERNAME'..."
+    if ! create_admin_user "$ADMIN_USERNAME" "$ADMIN_PASSWORD"; then
+      record_error "Admin user creation failed for '$ADMIN_USERNAME'."
+      record_note "Run: cd $APP_DIR && docker compose exec -it web python manage.py create_staff_user $ADMIN_USERNAME --role admin"
+      unset ADMIN_PASSWORD MENU_AUTOPRINT_NEW_USER_PASSWORD
+      exit 1
+    fi
+    log "Admin user created: $ADMIN_USERNAME"
   fi
-  if ! compose_cmd exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD="$ADMIN_PASSWORD" web python manage.py create_staff_user "$ADMIN_USERNAME" --role admin; then
-    record_error "Admin user creation failed."
-    record_note "Run: cd $APP_DIR && docker compose exec -it web python manage.py create_staff_user mAdmin --role admin"
+  unset ADMIN_PASSWORD MENU_AUTOPRINT_NEW_USER_PASSWORD
+elif admin_exists; then
+  log "An admin user already exists; skipping creation."
+else
+  log "No active admin found; password will be requested."
+  read_admin_credentials
+  log "Creating admin user '$ADMIN_USERNAME'..."
+  if ! create_admin_user "$ADMIN_USERNAME" "$ADMIN_PASSWORD"; then
+    record_error "Admin user creation failed for '$ADMIN_USERNAME'."
+    record_note "Run: cd $APP_DIR && docker compose exec -it web python manage.py create_staff_user $ADMIN_USERNAME --role admin"
+    unset ADMIN_PASSWORD MENU_AUTOPRINT_NEW_USER_PASSWORD
     exit 1
   fi
-  unset ADMIN_PASSWORD
-  if ! admin_exists; then
-    record_error "Admin user was not created."
+  unset ADMIN_PASSWORD MENU_AUTOPRINT_NEW_USER_PASSWORD
+  if ! username_exists "$ADMIN_USERNAME"; then
+    record_error "Admin user '$ADMIN_USERNAME' was not created."
     exit 1
   fi
   log "Admin user created: $ADMIN_USERNAME"
 fi
 
 step "Clearing cache..."
-if ! compose_cmd exec -T web python manage.py shell -c "from django.core.cache import cache; cache.clear()"; then
+if ! compose_python manage.py shell -c "from django.core.cache import cache; cache.clear()"; then
   record_warning "Cache clear failed (non-critical)."
 fi
 log "Installation finished; printing summary..."

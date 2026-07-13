@@ -223,10 +223,11 @@ def import_dishes_csv(text: str, actor=None, dry_run=False) -> ImportResult:
     return result
 
 
-def review_dishes_csv_import(text: str) -> ImportReviewResult:
+def review_dishes_csv_import(text: str, progress=None) -> ImportReviewResult:
     rows = parse_csv_semicolon(text)
     dishes = list(Dish.objects.all())
     by_norm = {normalize_ru(dish.name_ru): dish for dish in dishes}
+    total = len(rows)
 
     result = ImportReviewResult(
         create_candidates=[],
@@ -238,6 +239,8 @@ def review_dishes_csv_import(text: str) -> ImportReviewResult:
     )
 
     for index, row in enumerate(rows, start=1):
+        if progress:
+            progress(index, total, "review")
         try:
             incoming = _csv_row_to_payload(row)
         except Exception as exc:
@@ -271,11 +274,13 @@ def review_dishes_csv_import(text: str) -> ImportReviewResult:
         else:
             result.create_candidates.append(payload)
 
+    if progress and total:
+        progress(total, total, "review")
     return result
 
 
-def import_dishes_csv_safely(text: str, actor=None, dry_run=False, apply_updates=False) -> dict:
-    review = review_dishes_csv_import(text)
+def import_dishes_csv_safely(text: str, actor=None, dry_run=False, apply_updates=False, progress=None) -> dict:
+    review = review_dishes_csv_import(text, progress=progress)
     outcome = {
         "created": 0,
         "updated": 0,
@@ -285,6 +290,11 @@ def import_dishes_csv_safely(text: str, actor=None, dry_run=False, apply_updates
         "errors": list(review.errors),
     }
 
+    create_total = len(review.create_candidates)
+    update_total = len(review.changed_matches) if apply_updates else 0
+    apply_total = create_total + update_total
+    applied = 0
+
     with transaction.atomic():
         for item in review.create_candidates:
             try:
@@ -292,6 +302,9 @@ def import_dishes_csv_safely(text: str, actor=None, dry_run=False, apply_updates
                 outcome["created"] += 1
             except Exception as exc:
                 outcome["errors"].append({"row": item["row"], "error": str(exc)})
+            applied += 1
+            if progress and apply_total:
+                progress(applied, apply_total, "import")
 
         if apply_updates:
             for item in review.changed_matches:
@@ -300,21 +313,29 @@ def import_dishes_csv_safely(text: str, actor=None, dry_run=False, apply_updates
                     outcome["updated"] += 1
                 except Exception as exc:
                     outcome["errors"].append({"row": item["row"], "error": str(exc)})
+                applied += 1
+                if progress and apply_total:
+                    progress(applied, apply_total, "import")
 
         if dry_run:
             transaction.set_rollback(True)
 
+    if progress and apply_total:
+        progress(apply_total, apply_total, "import")
     return outcome
 
 
-def replace_dishes_csv(text: str, actor=None, dry_run=False) -> dict:
+def replace_dishes_csv(text: str, actor=None, dry_run=False, progress=None) -> dict:
     rows = parse_csv_semicolon(text)
     parsed_rows = []
     errors = []
     skipped = 0
     seen_norms: dict[str, int] = {}
+    total = len(rows)
 
     for index, row in enumerate(rows, start=1):
+        if progress:
+            progress(index, total, "parse")
         try:
             incoming = _csv_row_to_payload(row)
         except Exception as exc:
@@ -373,13 +394,18 @@ def replace_dishes_csv(text: str, actor=None, dry_run=False) -> dict:
             Dish.objects.all().delete()
 
         created = 0
+        create_total = len(parsed_rows)
         for item in parsed_rows:
             upsert_dish(item["incoming"], actor)
             created += 1
+            if progress and create_total:
+                progress(created, create_total, "import")
 
         if dry_run:
             transaction.set_rollback(True)
 
+    if progress and parsed_rows:
+        progress(len(parsed_rows), len(parsed_rows), "import")
     return {
         "deleted": deleted,
         "created": created,

@@ -143,7 +143,7 @@ docker compose up -d --build --remove-orphans
 
 ## CSV Import From Server Path
 
-If `calories.csv` was uploaded to the server after the container was started, copy it into the running `web` container first:
+By default place the CSV on the host under `/opt/menu-autoprint/path/` (for example `/opt/menu-autoprint/path/calories.csv`), then copy it into the running `web` container:
 
 ```bash
 cd /opt/menu-autoprint
@@ -153,6 +153,7 @@ docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --d
 docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv
 ```
 
+Import can take 1–3 minutes on large files.
 ```bash
 docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --apply-updates
 ```
