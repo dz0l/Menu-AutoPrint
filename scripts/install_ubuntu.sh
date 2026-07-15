@@ -65,14 +65,11 @@ validate_admin_password() {
 if [[ -z "$REPO_URL" ]]; then
   echo "Set REPO_URL, for example:"
   echo ""
-  echo "  cd ~"
-  echo "  curl -fSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/install_ubuntu.sh -o install.sh"
-  echo "  REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash install.sh"
+  echo "  curl -fsSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/install_ubuntu.sh | \\"
+  echo "    REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash"
   echo ""
-  echo "Default APP_DIR is /opt/menu-autoprint. For WSL tests use:"
-  echo "  APP_DIR=\$HOME/menu-autoprint REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash install.sh"
-  echo ""
-  echo "Do not run from /mnt/c/WINDOWS/system32 — curl may fail to save install.sh there."
+  echo "Default APP_DIR is /opt/menu-autoprint. For WSL tests use APP_DIR=\$HOME/menu-autoprint."
+  echo "Do not run from /mnt/c/WINDOWS/system32."
   exit 1
 fi
 
@@ -305,11 +302,18 @@ compose_cmd() {
   docker_cmd compose "$@"
 }
 
+# All `compose exec` must ignore caller stdin. When install is started as
+# `curl ... | bash`, an attached stdin would consume the rest of the script
+# and bash would exit "successfully" before migrate/admin steps.
+compose_exec() {
+  compose_cmd exec -T "$@" </dev/null
+}
+
 run_apt_get() {
   if [[ "$VERBOSE" == "1" ]]; then
-    sudo apt-get "$@"
+    sudo DEBIAN_FRONTEND=noninteractive apt-get "$@"
   else
-    sudo apt-get -qq "$@"
+    sudo DEBIAN_FRONTEND=noninteractive apt-get -qq "$@"
   fi
 }
 
@@ -326,7 +330,7 @@ compose_up_quiet_args() {
 }
 
 compose_python() {
-  compose_cmd exec -T web python "$@"
+  compose_exec web python "$@"
 }
 
 wait_for_web() {
@@ -362,14 +366,14 @@ username_exists() {
       env MENU_AUTOPRINT_CHECK_USERNAME="$username" \
         docker compose exec -T -e MENU_AUTOPRINT_CHECK_USERNAME \
         web python manage.py shell -c "import os; from django.contrib.auth import get_user_model; User = get_user_model(); print('1' if User.objects.filter(username=os.environ['MENU_AUTOPRINT_CHECK_USERNAME']).exists() else '0')" \
-        2>/dev/null | tr -d '\r' | tail -n 1 | tr -d '[:space:]'
+        </dev/null 2>/dev/null | tr -d '\r' | tail -n 1 | tr -d '[:space:]'
     )"
   else
     result="$(
       sudo env MENU_AUTOPRINT_CHECK_USERNAME="$username" \
         docker compose exec -T -e MENU_AUTOPRINT_CHECK_USERNAME \
         web python manage.py shell -c "import os; from django.contrib.auth import get_user_model; User = get_user_model(); print('1' if User.objects.filter(username=os.environ['MENU_AUTOPRINT_CHECK_USERNAME']).exists() else '0')" \
-        2>/dev/null | tr -d '\r' | tail -n 1 | tr -d '[:space:]'
+        </dev/null 2>/dev/null | tr -d '\r' | tail -n 1 | tr -d '[:space:]'
     )"
   fi
   [[ "$result" == "1" ]]
@@ -386,11 +390,13 @@ create_admin_user() {
   if docker info >/dev/null 2>&1; then
     env MENU_AUTOPRINT_NEW_USER_PASSWORD="$password" \
       docker compose exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD \
-      web python manage.py create_staff_user "$username" --role admin
+      web python manage.py create_staff_user "$username" --role admin \
+      </dev/null
   else
     sudo env MENU_AUTOPRINT_NEW_USER_PASSWORD="$password" \
       docker compose exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD \
-      web python manage.py create_staff_user "$username" --role admin
+      web python manage.py create_staff_user "$username" --role admin \
+      </dev/null
   fi
 }
 
@@ -531,10 +537,17 @@ fi
 step "Checking Docker access..."
 ensure_docker_access || true
 
-if [[ ! -d "$APP_DIR/.git" ]]; then
+if [[ -d "$APP_DIR/.git" ]]; then
+  log "Directory $APP_DIR already exists; skipping git clone."
+else
   step "Cloning repository into $APP_DIR..."
   sudo mkdir -p "$APP_DIR"
   sudo chown "$USER":"$USER" "$APP_DIR"
+  if [[ -n "$(ls -A "$APP_DIR" 2>/dev/null || true)" ]]; then
+    record_error "Directory $APP_DIR exists, is not empty, and is not a git checkout."
+    record_note "Remove it (or use uninstall), or set APP_DIR to another path, then re-run the installer."
+    exit 1
+  fi
   git_clone_args=()
   if [[ "$VERBOSE" != "1" ]]; then
     git_clone_args=(-q)
@@ -545,8 +558,6 @@ if [[ ! -d "$APP_DIR/.git" ]]; then
     exit 1
   fi
   log "Repository cloned."
-else
-  log "Directory $APP_DIR already exists; skipping git clone."
 fi
 
 cd "$APP_DIR"
