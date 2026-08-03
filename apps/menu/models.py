@@ -10,6 +10,7 @@ class MenuArchiveEntry(models.Model):
 
     menu_date = models.DateField(db_index=True)
     menu_type = models.CharField(max_length=16, choices=MenuType.choices, db_index=True)
+    location_key = models.CharField(max_length=64, db_index=True, default="unknown_location")
     display_name = models.CharField(max_length=255, blank=True, default="")
     relative_path = models.CharField(max_length=255)
     file_size = models.PositiveBigIntegerField(default=0)
@@ -25,9 +26,12 @@ class MenuArchiveEntry(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["menu_date", "menu_type"], name="uniq_menu_archive_date_type"),
+            models.UniqueConstraint(
+                fields=["menu_date", "menu_type", "location_key"],
+                name="uniq_menu_archive_date_type_location",
+            ),
         ]
-        ordering = ["-menu_date", "menu_type"]
+        ordering = ["-menu_date", "location_key", "menu_type"]
 
     def __str__(self) -> str:
-        return f"{self.menu_date.isoformat()}_{self.menu_type}"
+        return f"{self.menu_date.isoformat()}_{self.menu_type}_{self.location_key}"

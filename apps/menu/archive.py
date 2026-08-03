@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import shutil
 from datetime import date, timedelta
 from pathlib import Path
@@ -9,17 +10,23 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from apps.pdf.services import _parse_date, build_download_filename
+from apps.pdf.services import COVER_LOCATIONS, _parse_date, build_download_filename, resolve_cover_location
 
 from .models import MenuArchiveEntry
 
 logger = logging.getLogger(__name__)
 
 ARCHIVE_SUBDIR = "menu_archive"
+UNKNOWN_LOCATION_KEY = "unknown_location"
 MENU_TYPE_LABELS = {
     MenuArchiveEntry.MenuType.BREAKFAST: "Завтрак",
     MenuArchiveEntry.MenuType.MAIN: "Основное",
     MenuArchiveEntry.MenuType.BANQUET: "Банкет",
+}
+
+_LOCATION_LABEL_TO_KEY = {
+    label: Path(filename).stem
+    for filename, label in COVER_LOCATIONS.items()
 }
 
 
@@ -49,12 +56,44 @@ def detect_menu_type(ru_lines: list[str] | None) -> str:
     return MenuArchiveEntry.MenuType.MAIN
 
 
-def archive_relative_path(menu_date: date, menu_type: str) -> str:
-    return f"{ARCHIVE_SUBDIR}/{menu_date.isoformat()}_{menu_type}.pdf"
+def archive_location_key(background_name: str = "") -> str:
+    """Stable filesystem/DB key for cover location (stem of background filename)."""
+    name = Path(background_name or "").name.strip().lower()
+    if not name:
+        return UNKNOWN_LOCATION_KEY
+    stem = Path(name).stem.strip()
+    safe = re.sub(r"[^a-z0-9._-]+", "_", stem).strip("._-")
+    return safe or UNKNOWN_LOCATION_KEY
 
 
-def archive_absolute_path(menu_date: date, menu_type: str) -> Path:
-    return Path(settings.MEDIA_ROOT) / archive_relative_path(menu_date, menu_type)
+def location_key_from_display_name(display_name: str = "") -> str:
+    """Best-effort reverse of archive display title → location_key (for migrations)."""
+    raw = (display_name or "").strip()
+    if not raw:
+        return UNKNOWN_LOCATION_KEY
+    cleaned = raw.replace(" (завтрак)", "").replace(" (банкет)", "").strip()
+    if " - " in cleaned:
+        label = cleaned.split(" - ", 1)[1].strip()
+    else:
+        label = cleaned
+    if not label or label == UNKNOWN_LOCATION_KEY:
+        return UNKNOWN_LOCATION_KEY
+    if label in _LOCATION_LABEL_TO_KEY:
+        return _LOCATION_LABEL_TO_KEY[label]
+    # Already a key-like value
+    safe = re.sub(r"[^a-z0-9._-]+", "_", label.lower()).strip("._-")
+    return safe or UNKNOWN_LOCATION_KEY
+
+
+def archive_relative_path(menu_date: date, menu_type: str, location_key: str) -> str:
+    safe = re.sub(r"[^a-z0-9._-]+", "_", (location_key or "").strip().lower()).strip("._-")
+    if not safe:
+        safe = UNKNOWN_LOCATION_KEY
+    return f"{ARCHIVE_SUBDIR}/{menu_date.isoformat()}_{menu_type}_{safe}.pdf"
+
+
+def archive_absolute_path(menu_date: date, menu_type: str, location_key: str) -> Path:
+    return Path(settings.MEDIA_ROOT) / archive_relative_path(menu_date, menu_type, location_key)
 
 
 def archive_display_name(print_date: str, background_name: str = "", ru_lines: list[str] | None = None) -> str:
@@ -64,7 +103,7 @@ def archive_display_name(print_date: str, background_name: str = "", ru_lines: l
     return filename
 
 
-def archive_row_title(types: dict, menu_date: date) -> str:
+def archive_row_title(types: dict, menu_date: date, *, location_key: str = "") -> str:
     for key in (
         MenuArchiveEntry.MenuType.MAIN,
         MenuArchiveEntry.MenuType.BREAKFAST,
@@ -74,6 +113,9 @@ def archive_row_title(types: dict, menu_date: date) -> str:
         name = (item.get("display_name") or "").strip()
         if name:
             return name.replace(" (завтрак)", "").replace(" (банкет)", "")
+    location_label = resolve_cover_location(f"{location_key}.jpg") if location_key else UNKNOWN_LOCATION_KEY
+    if location_key and location_key != UNKNOWN_LOCATION_KEY and location_label != UNKNOWN_LOCATION_KEY:
+        return f"{menu_date.strftime('%d%m%Y')} - {location_label}"
     return menu_date.strftime("%d%m%Y")
 
 
@@ -90,18 +132,25 @@ def save_menu_pdf_to_archive(
     resolved_type = menu_type or detect_menu_type(ru_lines)
     if resolved_type not in MenuArchiveEntry.MenuType.values:
         resolved_type = MenuArchiveEntry.MenuType.MAIN
+    location_key = archive_location_key(background_name)
 
-    relative = archive_relative_path(menu_date, resolved_type)
+    relative = archive_relative_path(menu_date, resolved_type, location_key)
     absolute = Path(settings.MEDIA_ROOT) / relative
     absolute.parent.mkdir(parents=True, exist_ok=True)
     absolute.write_bytes(pdf_bytes)
     title = archive_display_name(print_date, background_name, ru_lines=ru_lines)
 
     actor = user if getattr(user, "is_authenticated", False) else None
+    lookup = {
+        "menu_date": menu_date,
+        "menu_type": resolved_type,
+        "location_key": location_key,
+    }
     with transaction.atomic():
+        existing = MenuArchiveEntry.objects.filter(**lookup).first()
+        old_relative = (existing.relative_path or "").replace("\\", "/") if existing else ""
         entry, _created = MenuArchiveEntry.objects.update_or_create(
-            menu_date=menu_date,
-            menu_type=resolved_type,
+            **lookup,
             defaults={
                 "display_name": title,
                 "relative_path": relative.replace("\\", "/"),
@@ -109,6 +158,8 @@ def save_menu_pdf_to_archive(
                 "created_by": actor,
             },
         )
+    if old_relative and old_relative != relative.replace("\\", "/"):
+        delete_archive_file(old_relative)
     try:
         purge_old_archives()
     except Exception:
@@ -137,13 +188,16 @@ def purge_old_archives(days: int | None = None) -> int:
 
 
 def list_archive_rows() -> list[dict]:
-    """Group entries by date for the archive table."""
-    by_date: dict[date, dict] = {}
+    """Group entries by date + location for the archive table."""
+    by_row: dict[tuple[date, str], dict] = {}
     for entry in MenuArchiveEntry.objects.all().iterator():
-        row = by_date.setdefault(
-            entry.menu_date,
+        location_key = entry.location_key or UNKNOWN_LOCATION_KEY
+        row_key = (entry.menu_date, location_key)
+        row = by_row.setdefault(
+            row_key,
             {
                 "menu_date": entry.menu_date,
+                "location_key": location_key,
                 "types": {},
             },
         )
@@ -156,15 +210,16 @@ def list_archive_rows() -> list[dict]:
             "updated_at": entry.updated_at,
         }
     rows = []
-    for menu_date, raw in by_date.items():
+    for (menu_date, location_key), raw in by_row.items():
         rows.append(
             {
                 "menu_date": menu_date,
-                "display_name": archive_row_title(raw["types"], menu_date),
+                "location_key": location_key,
+                "display_name": archive_row_title(raw["types"], menu_date, location_key=location_key),
                 "types": raw["types"],
             }
         )
-    rows.sort(key=lambda item: item["menu_date"], reverse=True)
+    rows.sort(key=lambda item: (item["menu_date"], item["location_key"]), reverse=True)
     return rows
 
 
