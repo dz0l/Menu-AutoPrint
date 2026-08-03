@@ -15,6 +15,16 @@ from django.views.decorators.http import require_http_methods
 
 from apps.dishes.services import analyze_pasted
 from apps.dishes.translation import is_translation_configured
+from .archive import (
+    MENU_TYPE_LABELS,
+    disk_status,
+    format_bytes,
+    get_entry_for_download,
+    list_archive_rows,
+    purge_old_archives,
+    save_menu_pdf_to_archive,
+)
+from .models import MenuArchiveEntry
 from apps.pdf.services import FOOTER_NOTE_EN, FOOTER_NOTE_RU, build_download_filename, build_menu_pdf, format_print_date
 
 from .services import build_preview, normalize_lines, translate_lines
@@ -68,6 +78,7 @@ def _build_document_payload(data: dict) -> dict:
         "background_name": background_name,
         "background_data": background_data,
         "filename": filename,
+        "ru_lines": ru_lines,
     }
 
 
@@ -111,23 +122,50 @@ def _build_pdf_from_payload(payload: dict) -> bytes:
     )
 
 
+def _archive_pdf(request, pdf: bytes, payload: dict) -> None:
+    """Persist PDF for archive. Failures are logged and do not block download."""
+    try:
+        save_menu_pdf_to_archive(
+            pdf,
+            print_date=payload.get("print_date") or "",
+            ru_lines=payload.get("ru_lines"),
+            user=getattr(request, "user", None),
+        )
+    except Exception:
+        logger.exception("Failed to save menu PDF to archive")
+
+
 def _document_pages(payload: dict) -> list[dict]:
     preview = payload.get("preview") or {}
-    layout = preview.get("layout") or {}
-    return [
-        {
-            "label": "RU",
-            "items": preview.get("ru") or [],
-            "layout": layout.get("ru") or {},
-            "footer_note": FOOTER_NOTE_RU,
-        },
-        {
-            "label": "EN",
-            "items": preview.get("en") or [],
-            "layout": layout.get("en") or {},
-            "footer_note": FOOTER_NOTE_EN,
-        },
-    ]
+    segments = preview.get("segments")
+    if not segments:
+        segments = [
+            {
+                "ru": preview.get("ru") or [],
+                "en": preview.get("en") or [],
+                "layout": preview.get("layout") or {},
+            }
+        ]
+    pages = []
+    for segment in segments:
+        layout = segment.get("layout") or {}
+        pages.append(
+            {
+                "label": "RU",
+                "items": segment.get("ru") or [],
+                "layout": layout.get("ru") or {},
+                "footer_note": FOOTER_NOTE_RU,
+            }
+        )
+        pages.append(
+            {
+                "label": "EN",
+                "items": segment.get("en") or [],
+                "layout": layout.get("en") or {},
+                "footer_note": FOOTER_NOTE_EN,
+            }
+        )
+    return pages
 
 
 @ensure_csrf_cookie
@@ -139,6 +177,75 @@ def index(request):
 @login_required
 def editor(request):
     return render(request, "menu/editor.html", {"editor_config": {"translationEnabled": is_translation_configured()}})
+
+
+@ensure_csrf_cookie
+@login_required
+def archive_page(request):
+    try:
+        purge_old_archives()
+    except Exception:
+        logger.exception("Archive purge on page load failed")
+    status = disk_status()
+    raw_rows = list_archive_rows()
+    type_columns = [
+        {"key": MenuArchiveEntry.MenuType.BREAKFAST, "label": MENU_TYPE_LABELS[MenuArchiveEntry.MenuType.BREAKFAST]},
+        {"key": MenuArchiveEntry.MenuType.MAIN, "label": MENU_TYPE_LABELS[MenuArchiveEntry.MenuType.MAIN]},
+        {"key": MenuArchiveEntry.MenuType.BANQUET, "label": MENU_TYPE_LABELS[MenuArchiveEntry.MenuType.BANQUET]},
+    ]
+    rows = []
+    for raw in raw_rows:
+        cells = []
+        for col in type_columns:
+            item = raw["types"].get(col["key"])
+            cells.append(
+                {
+                    "key": col["key"],
+                    "label": col["label"],
+                    "entry_id": item["id"] if item else None,
+                }
+            )
+        rows.append(
+            {
+                "display_date": raw["display_date"],
+                "cells": cells,
+            }
+        )
+    return render(
+        request,
+        "menu/archive.html",
+        {
+            "disk": {
+                **status,
+                "total_label": format_bytes(status["total_bytes"]),
+                "used_label": format_bytes(status["used_bytes"]),
+                "free_label": format_bytes(status["free_bytes"]),
+                "archive_label": format_bytes(status["archive_bytes"]),
+                "threshold_label": format_bytes(status["low_space_threshold_bytes"]),
+                "used_percent": round((status["used_bytes"] / status["total_bytes"]) * 100, 1)
+                if status["total_bytes"]
+                else 0,
+                "archive_percent": round((status["archive_bytes"] / status["total_bytes"]) * 100, 1)
+                if status["total_bytes"]
+                else 0,
+            },
+            "rows": rows,
+            "type_columns": type_columns,
+        },
+    )
+
+
+@login_required
+@require_http_methods(["GET"])
+def archive_download(request, entry_id: int):
+    try:
+        entry, path = get_entry_for_download(entry_id)
+    except FileNotFoundError:
+        raise Http404("archive file not found") from None
+    label = MENU_TYPE_LABELS.get(entry.menu_type, entry.menu_type)
+    filename = f"{entry.menu_date.strftime('%d.%m.%Y')} - {label}.pdf"
+    pdf = path.read_bytes()
+    return _pdf_response(pdf, filename, download=True)
 
 
 @require_http_methods(["POST"])
@@ -210,6 +317,7 @@ def document_pdf_page(request, token: str):
     except Exception as exc:
         logger.exception("Token PDF generation failed hard: %s", exc)
         return JsonResponse({"error": "pdf_generation_failed"}, status=500)
+    _archive_pdf(request, pdf, payload)
     return _pdf_response(pdf, payload["filename"], download=_to_bool(request.GET.get("download")))
 
 
@@ -221,4 +329,5 @@ def pdf_api(request):
     except Exception as exc:
         logger.exception("PDF generation failed hard: %s", exc)
         return JsonResponse({"error": "pdf_generation_failed"}, status=500)
+    _archive_pdf(request, pdf, payload)
     return _pdf_response(pdf, payload["filename"])

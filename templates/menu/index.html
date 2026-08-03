@@ -20,6 +20,7 @@
 </div>
 {% endblock %}
 {% block header_controls %}
+<a class="icon-button" href="{% url 'menu:archive' %}" title="Архив" aria-label="Архив"><span class="ui-icon" data-ui-icon="archive"></span></a>
 <a class="icon-button" href="{% url 'menu:editor' %}" title="База" aria-label="База"><span class="ui-icon" data-ui-icon="database"></span></a>
 <button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon" data-ui-icon="moon-star"></span></button>
 <button id="btnSettings" class="icon-button" type="button" aria-expanded="false" aria-controls="settingsBar" aria-label="Настройки" title="Настройки"><span class="ui-icon" data-ui-icon="settings"></span></button>
@@ -80,6 +81,11 @@
           </div>
         </div>
       </article>
+      <div id="previewPager" class="preview-pager" hidden>
+        <button id="btnPreviewPrev" class="icon-button" type="button" title="Предыдущая часть" aria-label="Предыдущая часть"><span class="ui-icon" data-ui-icon="chevron-left"></span></button>
+        <span id="previewPagerLabel" class="preview-pager-label">1 / 1</span>
+        <button id="btnPreviewNext" class="icon-button" type="button" title="Следующая часть" aria-label="Следующая часть"><span class="ui-icon" data-ui-icon="chevron-right"></span></button>
+      </div>
     </div>
   </div>
 </section>

@@ -165,6 +165,15 @@ docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --r
 docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --replace-all
 ```
 
+## Menu PDF archive
+
+Generated PDFs (normal print mode, not alternate HTML print) are stored under `media/menu_archive/` as `YYYY-MM-DD_main.pdf` / `_breakfast.pdf` (and `_banquet` when used). Opening **Архив** in the app lists downloads for editors. Files older than 730 days are removed automatically; you can also run:
+
+```bash
+cd /opt/menu-autoprint
+docker compose exec web python manage.py purge_menu_archive
+```
+
 ## Maintenance
 
 ```bash

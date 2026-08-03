@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Архив меню{% endblock %}
+{% block header_controls %}
+<a class="icon-button" href="{% url 'menu:index' %}" title="Меню" aria-label="Меню"><span class="ui-icon" data-ui-icon="printer"></span></a>
+<a class="icon-button" href="{% url 'menu:editor' %}" title="База" aria-label="База"><span class="ui-icon" data-ui-icon="database"></span></a>
+<button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon" data-ui-icon="moon-star"></span></button>
+{% endblock %}
+{% block content %}
+<section class="archive-page">
+  {% if disk.low_space %}
+  <div class="archive-alert warn" role="alert">
+    Мало места на диске: свободно {{ disk.free_label }} (порог {{ disk.threshold_label }}).
+    Освободите место на сервере, иначе сохранение новых PDF может завершиться ошибкой.
+  </div>
+  {% endif %}
+
+  <div class="surface archive-disk">
+    <div class="panel-head">
+      <div class="panel-title">
+        <h1>Архив меню</h1>
+        <span class="counter">хранение {{ disk.archive_label }} · свободно {{ disk.free_label }}</span>
+      </div>
+    </div>
+    <div class="disk-meter" aria-label="Использование диска">
+      <div class="disk-meter-track">
+        <div class="disk-meter-fill" style="width: {{ disk.used_percent }}%"></div>
+      </div>
+      <div class="disk-meter-legend">
+        <span>Диск: {{ disk.used_label }} / {{ disk.total_label }}</span>
+        <span>Архив PDF: {{ disk.archive_label }}</span>
+        <span>Свободно: {{ disk.free_label }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="surface archive-table-wrap">
+    {% if rows %}
+    <table class="archive-table">
+      <thead>
+        <tr>
+          <th>Дата</th>
+          {% for col in type_columns %}
+          <th>{{ col.label }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ row.display_date }}</td>
+          {% for cell in row.cells %}
+          <td>
+            {% if cell.entry_id %}
+              <a class="button-link" href="{% url 'menu:archive_download' cell.entry_id %}">Скачать</a>
+            {% else %}
+              <span class="muted">—</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="archive-empty">Пока нет сохранённых меню. PDF попадает в архив при обычной печати (не в режиме альтернативной печати).</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  (function () {
+    var btn = document.getElementById("btnTheme");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var dark = document.body.classList.toggle("theme-dark");
+      document.documentElement.classList.toggle("theme-dark-root", dark);
+      try {
+        localStorage.setItem("menu_theme_mode", dark ? "dark" : "light");
+      } catch (e) {}
+    });
+  })();
+</script>
+{% endblock %}

@@ -15,7 +15,10 @@ GROUP_RU2EN = {
     "гарнир": "Side Dishes:",
     "завтрак": "Breakfast:",
     "шашлык": "BBQ:",
+    "банкет": "Banquet:",
 }
+
+PAGE_BREAK_MARKER = "---"
 
 
 @dataclass
@@ -35,8 +38,35 @@ def normalize_lines(value: str | list[str] | None) -> list[str]:
     return [line.strip() for line in source if line and line.strip()]
 
 
+def is_page_break_line(value: str) -> bool:
+    return (value or "").strip() == PAGE_BREAK_MARKER
+
+
 def is_group_line(value: str) -> bool:
-    return (value or "").strip().endswith(":")
+    text = (value or "").strip()
+    return text.endswith(":") and not is_page_break_line(text)
+
+
+def split_paired_segments(ru_lines: list[str], en_lines: list[str]) -> list[tuple[list[str], list[str]]]:
+    """Split RU/EN by RU `---` markers; EN is mirrored by the same indices."""
+    break_indices = [index for index, line in enumerate(ru_lines) if is_page_break_line(line)]
+    if not break_indices:
+        return [(list(ru_lines), list(en_lines))]
+
+    def split_at(lines: list[str], indices: list[int]) -> list[list[str]]:
+        parts: list[list[str]] = []
+        start = 0
+        for index in indices:
+            parts.append(lines[start:index])
+            start = index + 1
+        parts.append(lines[start:])
+        return parts
+
+    ru_parts = split_at(ru_lines, break_indices)
+    en_parts = split_at(en_lines, break_indices)
+    while len(en_parts) < len(ru_parts):
+        en_parts.append([])
+    return list(zip(ru_parts, en_parts[: len(ru_parts)]))
 
 
 def dish_maps() -> dict[str, Dish]:
@@ -52,6 +82,9 @@ def translate_lines(ru_lines: list[str], current_en: list[str] | None = None) ->
     dishes = dish_maps()
     translated = []
     for ru in ru_lines:
+        if is_page_break_line(ru):
+            translated.append(PAGE_BREAK_MARKER)
+            continue
         if is_group_line(ru):
             translated.append(translate_group_line(ru))
             continue
@@ -62,6 +95,8 @@ def translate_lines(ru_lines: list[str], current_en: list[str] | None = None) ->
 
 def line_info(line: str, ru_ref: str | None = None) -> MenuLine:
     ref = ru_ref or line
+    if is_page_break_line(ref) or is_page_break_line(line):
+        return MenuLine(raw=PAGE_BREAK_MARKER, is_group=False, missing=False)
     if is_group_line(ref):
         return MenuLine(raw=line, is_group=True)
     dish = dish_maps().get(clean_name(ref))
@@ -77,17 +112,21 @@ def line_info(line: str, ru_ref: str | None = None) -> MenuLine:
     return MenuLine(raw=line, is_group=False, grams=str(dish.grams_default), kcal=str(kcal), missing=False)
 
 
-def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto_format=False) -> dict:
+def _build_segment_items(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto_format=False) -> tuple[list, list, dict, list]:
     missing = []
     ru = []
     en = []
     for index, line in enumerate(ru_lines):
+        if is_page_break_line(line):
+            continue
         info = line_info(line)
         if info.missing:
             missing.append(line)
         ru.append(_render_line(info, "ru", show_kcal))
 
         en_line = en_lines[index] if index < len(en_lines) else "???"
+        if is_page_break_line(en_line):
+            en_line = "???"
         en_info = line_info(en_line, ru_ref=line)
         if en_info.missing:
             missing.append(line)
@@ -96,11 +135,40 @@ def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto
     regular_font, bold_font = get_menu_fonts()
     ru_layout = compute_page_layout(ru, auto_format=auto_format, regular_font=regular_font, bold_font=bold_font)
     en_layout = compute_page_layout(en, auto_format=auto_format, regular_font=regular_font, bold_font=bold_font)
+    return (
+        enrich_page_items(ru, layout=ru_layout, regular_font=regular_font, bold_font=bold_font),
+        enrich_page_items(en, layout=en_layout, regular_font=regular_font, bold_font=bold_font),
+        {"ru": ru_layout.to_dict(), "en": en_layout.to_dict()},
+        missing,
+    )
+
+
+def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto_format=False) -> dict:
+    paired = split_paired_segments(ru_lines, en_lines)
+    segments = []
+    missing: list[str] = []
+    for ru_seg, en_seg in paired:
+        ru_items, en_items, layout, seg_missing = _build_segment_items(
+            ru_seg,
+            en_seg,
+            show_kcal=show_kcal,
+            auto_format=auto_format,
+        )
+        missing.extend(seg_missing)
+        segments.append({"ru": ru_items, "en": en_items, "layout": layout})
+
+    if not segments:
+        empty_layout = {"ru": {}, "en": {}}
+        segments = [{"ru": [], "en": [], "layout": empty_layout}]
+
+    first = segments[0]
     return {
-        "ru": enrich_page_items(ru, layout=ru_layout, regular_font=regular_font, bold_font=bold_font),
-        "en": enrich_page_items(en, layout=en_layout, regular_font=regular_font, bold_font=bold_font),
+        "segments": segments,
+        "segment_count": len(segments),
+        "ru": first["ru"],
+        "en": first["en"],
         "missing": sorted(set(missing)),
-        "layout": {"ru": ru_layout.to_dict(), "en": en_layout.to_dict()},
+        "layout": first["layout"],
         "auto_format": bool(auto_format),
     }
 

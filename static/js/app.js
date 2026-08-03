@@ -26,6 +26,8 @@ let actionTimer = null;
 let analyzeInFlight = false;
 let usersLoading = false;
 let lastPreviewData = null;
+let previewSegmentIndex = 0;
+let previewLang = "ru";
 let pdfInFlight = false;
 let previewController = null;
 let actionsController = null;
@@ -485,8 +487,77 @@ function updateLineCounter() {
   counter.textContent = `${count} ${pluralRu(count, "строка", "строки", "строк")}`;
 }
 
+function previewSegments(data) {
+  if (!data) {
+    return [];
+  }
+  if (Array.isArray(data.segments) && data.segments.length) {
+    return data.segments;
+  }
+  return [
+    {
+      ru: data.ru || [],
+      en: data.en || [],
+      layout: data.layout || {},
+    },
+  ];
+}
+
+function enTextFromPreview(data) {
+  const segments = previewSegments(data);
+  return segments
+    .map((segment) => (segment.en || []).map((item) => item.text).join("\n"))
+    .join("\n---\n");
+}
+
+function applyPreviewSegment() {
+  const segments = previewSegments(lastPreviewData);
+  if (!segments.length) {
+    renderPreview($("previewRu"), [], {});
+    renderPreview($("previewEn"), [], {});
+    updatePreviewPager();
+    updatePreviewMeta();
+    return;
+  }
+  if (previewSegmentIndex >= segments.length) {
+    previewSegmentIndex = segments.length - 1;
+  }
+  if (previewSegmentIndex < 0) {
+    previewSegmentIndex = 0;
+  }
+  const segment = segments[previewSegmentIndex];
+  const layout = segment.layout || {};
+  renderPreview($("previewRu"), segment.ru, layout.ru);
+  renderPreview($("previewEn"), segment.en, layout.en);
+  updatePreviewPager();
+  updatePreviewMeta();
+  fitPreviewPage();
+}
+
+function updatePreviewPager() {
+  const pager = $("previewPager");
+  const label = $("previewPagerLabel");
+  const prev = $("btnPreviewPrev");
+  const next = $("btnPreviewNext");
+  if (!pager || !label) {
+    return;
+  }
+  const count = previewSegments(lastPreviewData).length;
+  const show = count > 1;
+  pager.hidden = !show;
+  pager.classList.toggle("visible", show);
+  label.textContent = `${previewSegmentIndex + 1} / ${count || 1}`;
+  if (prev) {
+    prev.disabled = previewSegmentIndex <= 0;
+  }
+  if (next) {
+    next.disabled = previewSegmentIndex >= count - 1;
+  }
+}
+
 function setPreviewLang(lang) {
-  const isEn = lang === "en";
+  previewLang = lang === "en" ? "en" : "ru";
+  const isEn = previewLang === "en";
   $("previewRu").hidden = isEn;
   $("previewEn").hidden = !isEn;
   $("previewRu").classList.toggle("active", !isEn);
@@ -667,11 +738,9 @@ async function preview(reason = "manual") {
     return;
   }
   lastPreviewData = data;
-  const layout = data.layout || {};
-  renderPreview($("previewRu"), data.ru, layout.ru);
-  renderPreview($("previewEn"), data.en, layout.en);
-  $("enText").value = (data.en || []).map((item) => item.text).join("\n");
-  updatePreviewMeta();
+  previewSegmentIndex = 0;
+  $("enText").value = enTextFromPreview(data);
+  applyPreviewSegment();
   previewRenderedSignature = signature;
   debugLog("preview:rendered", {
     seq,
@@ -1311,14 +1380,13 @@ async function collectPdfValidation() {
     {log: {name: "pdf-validation-preview", reason: "pdf-button"}},
   );
   lastPreviewData = data;
-  const layout = data.layout || {};
-  renderPreview($("previewRu"), data.ru, layout.ru);
-  renderPreview($("previewEn"), data.en, layout.en);
-  $("enText").value = (data.en || []).map((item) => item.text).join("\n");
-  updatePreviewMeta();
+  previewSegmentIndex = 0;
+  $("enText").value = enTextFromPreview(data);
+  applyPreviewSegment();
 
-  const ruPreview = data.ru || [];
-  const enPreview = data.en || [];
+  const segments = previewSegments(data);
+  const ruPreview = segments.flatMap((segment) => segment.ru || []);
+  const enPreview = segments.flatMap((segment) => segment.en || []);
   const enLines = lines($("enText").value);
   const issues = [];
 
@@ -1733,6 +1801,23 @@ $("btnRedo")?.addEventListener("click", () => {
 
 document.querySelectorAll("[data-preview-lang]").forEach((button) => {
   button.addEventListener("click", () => setPreviewLang(button.dataset.previewLang));
+});
+
+$("btnPreviewPrev")?.addEventListener("click", () => {
+  if (previewSegmentIndex <= 0) {
+    return;
+  }
+  previewSegmentIndex -= 1;
+  applyPreviewSegment();
+});
+
+$("btnPreviewNext")?.addEventListener("click", () => {
+  const count = previewSegments(lastPreviewData).length;
+  if (previewSegmentIndex >= count - 1) {
+    return;
+  }
+  previewSegmentIndex += 1;
+  applyPreviewSegment();
 });
 
 $("btnBackground").addEventListener("click", () => {

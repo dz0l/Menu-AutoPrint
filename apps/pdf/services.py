@@ -171,32 +171,58 @@ def build_menu_pdf(
     pdf.setCreator("Menu AutoPrint")
     pdf.setSubject("Generated menu")
 
-    for index, page_name in enumerate(("ru", "en")):
-        items = preview.get(page_name) or []
-        layout_data = layout_by_page.get(page_name)
-        if layout_data:
-            layout = PageLayout(**layout_data)
-        else:
-            layout = compute_page_layout(
-                items,
-                auto_format=auto_format,
+    segments = preview.get("segments")
+    if not segments:
+        segments = [
+            {
+                "ru": preview.get("ru") or [],
+                "en": preview.get("en") or [],
+                "layout": layout_by_page,
+            }
+        ]
+
+    page_drawn = False
+    for segment in segments:
+        seg_layout = segment.get("layout") or {}
+        for page_name in ("ru", "en"):
+            if page_drawn:
+                pdf.showPage()
+            items = segment.get(page_name) or []
+            layout_data = seg_layout.get(page_name)
+            if layout_data and all(
+                key in layout_data
+                for key in (
+                    "menu_font_size",
+                    "menu_leading",
+                    "group_font_size",
+                    "group_leading",
+                    "continuation_leading",
+                    "group_space_before",
+                    "after_group_space_before",
+                    "dish_space_before",
+                )
+            ):
+                layout = PageLayout(**layout_data)
+            else:
+                layout = compute_page_layout(
+                    items,
+                    auto_format=auto_format,
+                    regular_font=regular_font,
+                    bold_font=bold_font,
+                )
+            footer_note = FOOTER_NOTE_RU if page_name == "ru" else FOOTER_NOTE_EN
+            _draw_preview_page(
+                pdf,
+                items=items,
+                display_date=display_date,
+                show_kcal=show_kcal,
                 regular_font=regular_font,
                 bold_font=bold_font,
+                background=background,
+                layout=layout,
+                footer_note=footer_note,
             )
-        footer_note = FOOTER_NOTE_RU if page_name == "ru" else FOOTER_NOTE_EN
-        _draw_preview_page(
-            pdf,
-            items=items,
-            display_date=display_date,
-            show_kcal=show_kcal,
-            regular_font=regular_font,
-            bold_font=bold_font,
-            background=background,
-            layout=layout,
-            footer_note=footer_note,
-        )
-        if index == 0:
-            pdf.showPage()
+            page_drawn = True
 
     pdf.save()
     return buffer.getvalue()
