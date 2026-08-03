@@ -191,7 +191,7 @@ def archive_page(request):
     type_columns = [
         {"key": MenuArchiveEntry.MenuType.BREAKFAST, "label": MENU_TYPE_LABELS[MenuArchiveEntry.MenuType.BREAKFAST]},
         {"key": MenuArchiveEntry.MenuType.MAIN, "label": MENU_TYPE_LABELS[MenuArchiveEntry.MenuType.MAIN]},
-        {"key": MenuArchiveEntry.MenuType.BANQUET, "label": MENU_TYPE_LABELS[MenuArchiveEntry.MenuType.BANQUET]},
+        # Banquet column hidden until menu-type trigger is decided.
     ]
     rows = []
     for raw in raw_rows:
