@@ -1,4 +1,4 @@
-﻿const STORAGE_KEYS = {
+const STORAGE_KEYS = {
   editorRows: "menu_editor_rows",
   lastRu: "menu_last_ru",
   lastEn: "menu_last_en",
