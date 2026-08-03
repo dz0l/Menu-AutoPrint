@@ -1417,9 +1417,53 @@ function buildDocumentPayload() {
   };
 }
 
-async function openDocumentFlow() {
-  const data = await postJson("/api/menu/render", buildDocumentPayload());
-  location.href = data.preview_url;
+async function downloadPdfFlow() {
+  const payload = buildDocumentPayload();
+  const res = await fetch("/api/menu/pdf", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrfToken(),
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    let message = "Ошибка формирования PDF";
+    try {
+      const parsed = JSON.parse(body);
+      message = parsed.error || message;
+    } catch (error) {
+      if (body) {
+        message = body.slice(0, 200);
+      }
+    }
+    throw new Error(message);
+  }
+
+  const blob = await res.blob();
+  let filename = "menu.pdf";
+  const disposition = res.headers.get("Content-Disposition") || "";
+  const utfMatch = /filename\*=UTF-8''([^;]+)/i.exec(disposition);
+  const plainMatch = /filename="([^"]+)"/i.exec(disposition);
+  if (utfMatch) {
+    try {
+      filename = decodeURIComponent(utfMatch[1]);
+    } catch (error) {
+      filename = utfMatch[1];
+    }
+  } else if (plainMatch) {
+    filename = plainMatch[1];
+  }
+
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(objectUrl);
 }
 
 async function openAlternativePrintFlow(printWindow = null) {
@@ -1916,7 +1960,7 @@ $("btnPdf").addEventListener("click", async () => {
     if (useAlternativePrint) {
       await openAlternativePrintFlow(printWindow);
     } else {
-      await openDocumentFlow();
+      await downloadPdfFlow();
     }
     setTimeout(() => setPdfBusy(false), 1800);
   } catch (err) {

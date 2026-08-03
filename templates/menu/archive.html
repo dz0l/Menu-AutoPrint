@@ -39,7 +39,7 @@
     <table class="archive-table">
       <thead>
         <tr>
-          <th>Дата</th>
+          <th>Имя</th>
           {% for col in type_columns %}
           <th>{{ col.label }}</th>
           {% endfor %}
@@ -48,7 +48,7 @@
       <tbody>
         {% for row in rows %}
         <tr>
-          <td>{{ row.display_date }}</td>
+          <td>{{ row.display_name }}</td>
           {% for cell in row.cells %}
           <td>
             {% if cell.entry_id %}

@@ -10,7 +10,5 @@ urlpatterns = [
     path("editor/", views.editor, name="editor"),
     path("archive/", views.archive_page, name="archive"),
     path("archive/<int:entry_id>/download/", views.archive_download, name="archive_download"),
-    path("document/<str:token>/", views.document_preview_page, name="document_preview"),
     path("document/<str:token>/print/", views.document_print_page, name="document_print"),
-    path("document/<str:token>/pdf/", views.document_pdf_page, name="document_pdf"),
 ]

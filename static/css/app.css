@@ -1153,12 +1153,6 @@ td select {
   }
 }
 
-@media (pointer: coarse) and (max-width: 900px) {
-  .document-open-desktop {
-    display: none;
-  }
-}
-
 .archive-page {
   display: grid;
   gap: 14px;

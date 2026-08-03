@@ -10,6 +10,7 @@ class MenuArchiveEntry(models.Model):
 
     menu_date = models.DateField(db_index=True)
     menu_type = models.CharField(max_length=16, choices=MenuType.choices, db_index=True)
+    display_name = models.CharField(max_length=255, blank=True, default="")
     relative_path = models.CharField(max_length=255)
     file_size = models.PositiveBigIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)

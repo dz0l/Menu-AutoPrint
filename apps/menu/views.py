@@ -129,6 +129,7 @@ def _archive_pdf(request, pdf: bytes, payload: dict) -> None:
             pdf,
             print_date=payload.get("print_date") or "",
             ru_lines=payload.get("ru_lines"),
+            background_name=payload.get("background_name") or "",
             user=getattr(request, "user", None),
         )
     except Exception:
@@ -207,7 +208,7 @@ def archive_page(request):
             )
         rows.append(
             {
-                "display_date": raw["display_date"],
+                "display_name": raw["display_name"],
                 "cells": cells,
             }
         )
@@ -242,8 +243,8 @@ def archive_download(request, entry_id: int):
         entry, path = get_entry_for_download(entry_id)
     except FileNotFoundError:
         raise Http404("archive file not found") from None
-    label = MENU_TYPE_LABELS.get(entry.menu_type, entry.menu_type)
-    filename = f"{entry.menu_date.strftime('%d.%m.%Y')} - {label}.pdf"
+    label = entry.display_name or f"{entry.menu_date.strftime('%d%m%Y')} - {MENU_TYPE_LABELS.get(entry.menu_type, entry.menu_type)}"
+    filename = label if label.lower().endswith(".pdf") else f"{label}.pdf"
     pdf = path.read_bytes()
     return _pdf_response(pdf, filename, download=True)
 
@@ -268,29 +269,8 @@ def render_document_api(request):
         {
             "token": token,
             "filename": payload["filename"],
-            "preview_url": reverse("menu:document_preview", args=[token]),
             "print_url": reverse("menu:document_print", args=[token]),
-            "pdf_url": reverse("menu:document_pdf", args=[token]),
-            "pdf_download_url": f"{reverse('menu:document_pdf', args=[token])}?download=1",
         }
-    )
-
-
-def document_preview_page(request, token: str):
-    payload = _get_document(request, token)
-    return render(
-        request,
-        "menu/document_preview.html",
-        {
-            "token": token,
-            "filename": payload["filename"],
-            "display_date": payload["display_date"],
-            "show_kcal": payload["show_kcal"],
-            "background_data": payload.get("background_data") or "",
-            "pdf_url": reverse("menu:document_pdf", args=[token]),
-            "pdf_download_url": f"{reverse('menu:document_pdf', args=[token])}?download=1",
-            "pages": _document_pages(payload),
-        },
     )
 
 
@@ -310,17 +290,6 @@ def document_print_page(request, token: str):
     )
 
 
-def document_pdf_page(request, token: str):
-    payload = _get_document(request, token)
-    try:
-        pdf = _build_pdf_from_payload(payload)
-    except Exception as exc:
-        logger.exception("Token PDF generation failed hard: %s", exc)
-        return JsonResponse({"error": "pdf_generation_failed"}, status=500)
-    _archive_pdf(request, pdf, payload)
-    return _pdf_response(pdf, payload["filename"], download=_to_bool(request.GET.get("download")))
-
-
 @require_http_methods(["POST"])
 def pdf_api(request):
     payload = _build_document_payload(_request_payload(request))
@@ -330,4 +299,4 @@ def pdf_api(request):
         logger.exception("PDF generation failed hard: %s", exc)
         return JsonResponse({"error": "pdf_generation_failed"}, status=500)
     _archive_pdf(request, pdf, payload)
-    return _pdf_response(pdf, payload["filename"])
+    return _pdf_response(pdf, payload["filename"], download=True)

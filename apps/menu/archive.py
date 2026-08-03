@@ -9,7 +9,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from apps.pdf.services import _parse_date
+from apps.pdf.services import _parse_date, build_download_filename
 
 from .models import MenuArchiveEntry
 
@@ -57,12 +57,33 @@ def archive_absolute_path(menu_date: date, menu_type: str) -> Path:
     return Path(settings.MEDIA_ROOT) / archive_relative_path(menu_date, menu_type)
 
 
+def archive_display_name(print_date: str, background_name: str = "", ru_lines: list[str] | None = None) -> str:
+    filename = build_download_filename(print_date, background_name, ru_lines=ru_lines)
+    if filename.lower().endswith(".pdf"):
+        return filename[:-4]
+    return filename
+
+
+def archive_row_title(types: dict, menu_date: date) -> str:
+    for key in (
+        MenuArchiveEntry.MenuType.MAIN,
+        MenuArchiveEntry.MenuType.BREAKFAST,
+        MenuArchiveEntry.MenuType.BANQUET,
+    ):
+        item = types.get(key) or {}
+        name = (item.get("display_name") or "").strip()
+        if name:
+            return name.replace(" (завтрак)", "").replace(" (банкет)", "")
+    return menu_date.strftime("%d%m%Y")
+
+
 def save_menu_pdf_to_archive(
     pdf_bytes: bytes,
     *,
     print_date: str,
     ru_lines: list[str] | None = None,
     menu_type: str | None = None,
+    background_name: str = "",
     user=None,
 ) -> MenuArchiveEntry:
     menu_date = _parse_date(print_date)
@@ -74,6 +95,7 @@ def save_menu_pdf_to_archive(
     absolute = Path(settings.MEDIA_ROOT) / relative
     absolute.parent.mkdir(parents=True, exist_ok=True)
     absolute.write_bytes(pdf_bytes)
+    title = archive_display_name(print_date, background_name, ru_lines=ru_lines)
 
     actor = user if getattr(user, "is_authenticated", False) else None
     with transaction.atomic():
@@ -81,6 +103,7 @@ def save_menu_pdf_to_archive(
             menu_date=menu_date,
             menu_type=resolved_type,
             defaults={
+                "display_name": title,
                 "relative_path": relative.replace("\\", "/"),
                 "file_size": len(pdf_bytes),
                 "created_by": actor,
@@ -121,7 +144,6 @@ def list_archive_rows() -> list[dict]:
             entry.menu_date,
             {
                 "menu_date": entry.menu_date,
-                "display_date": entry.menu_date.strftime("%d.%m.%Y"),
                 "types": {},
             },
         )
@@ -129,10 +151,19 @@ def list_archive_rows() -> list[dict]:
             "id": entry.id,
             "menu_type": entry.menu_type,
             "label": MENU_TYPE_LABELS.get(entry.menu_type, entry.menu_type),
+            "display_name": entry.display_name or "",
             "file_size": entry.file_size,
             "updated_at": entry.updated_at,
         }
-    rows = list(by_date.values())
+    rows = []
+    for menu_date, raw in by_date.items():
+        rows.append(
+            {
+                "menu_date": menu_date,
+                "display_name": archive_row_title(raw["types"], menu_date),
+                "types": raw["types"],
+            }
+        )
     rows.sort(key=lambda item: item["menu_date"], reverse=True)
     return rows
 
