@@ -413,11 +413,10 @@ body.theme-dark .editor-wrap textarea {
 }
 
 .page-area {
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   min-height: 0;
   padding: 10px;
   overflow: hidden;
@@ -1247,24 +1246,64 @@ body.theme-dark .disk-meter-fill {
 
 .preview-pager {
   display: none;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  margin: 0;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
 }
 
 .preview-pager.visible {
-  display: flex;
+  display: block;
+}
+
+.preview-pager-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: auto;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  color: var(--ink);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.preview-pager-btn:disabled {
+  opacity: 0.35;
+}
+
+.preview-pager-prev {
+  left: 8px;
+}
+
+.preview-pager-next {
+  right: 8px;
 }
 
 .preview-pager-label {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
   min-width: 3.5rem;
-  text-align: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
   color: var(--ink);
-  opacity: 0.85;
+  text-align: center;
   font-variant-numeric: tabular-nums;
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+body.theme-dark .preview-pager-btn,
+body.theme-dark .preview-pager-label {
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
 }
 
 @media print {
