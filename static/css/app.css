@@ -414,8 +414,10 @@ body.theme-dark .editor-wrap textarea {
 
 .page-area {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   min-height: 0;
   padding: 10px;
   overflow: hidden;
@@ -1245,10 +1247,12 @@ body.theme-dark .disk-meter-fill {
 
 .preview-pager {
   display: none;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: 8px;
+  width: 100%;
+  margin: 0;
 }
 
 .preview-pager.visible {

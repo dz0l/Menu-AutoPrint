@@ -541,7 +541,7 @@ def analyze_pasted(text: str) -> list[dict]:
     for index, raw in enumerate((text or "").splitlines()):
         stripped = re.sub(r"^[•\-*\d.)\s]+", "", raw).strip()
         norm = clean_name(stripped)
-        if not norm or stripped.endswith(":"):
+        if not norm or stripped.endswith(":") or stripped == "---":
             result.append({"i": index, "raw": raw, "norm": norm, "status": "skip"})
             continue
 
@@ -633,7 +633,7 @@ def check_missing_fixables(ru_lines: list[str], *, show_kcal: bool = True) -> di
     dishes = {normalize_ru(dish.name_ru): dish for dish in Dish.objects.all()}
     for raw in ru_lines:
         text = (raw or "").strip()
-        if not text or text.endswith(":"):
+        if not text or text.endswith(":") or text == "---":
             continue
         key = normalize_ru(text)
         if not key or key in seen:

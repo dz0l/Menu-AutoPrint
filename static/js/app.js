@@ -1451,7 +1451,7 @@ function buildEditorRowsFromActions() {
 
   function addItem(ru, mode) {
     const key = normalizeSuggestValue(ru);
-    if (!key || seen.has(key)) {
+    if (!key || key === "---" || seen.has(key)) {
       return;
     }
     seen.add(key);
@@ -1459,6 +1459,9 @@ function buildEditorRowsFromActions() {
   }
 
   lines($("ruText").value).forEach((line) => {
+    if (line.trim() === "---") {
+      return;
+    }
     const key = normalizeSuggestValue(line);
     if (missingByKey.has(key)) {
       addItem(line, "missing");
