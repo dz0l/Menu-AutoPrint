@@ -49,12 +49,12 @@ def _editor_required(request):
 
 @require_http_methods(["GET", "POST"])
 def dishes(request):
+    if not _editor_required(request):
+        return JsonResponse({"error": "forbidden"}, status=403)
     if request.method == "GET":
         items = [dish_to_dict(dish) for dish in list_dishes(request.GET)]
         return JsonResponse({"revision": base_revision(), "dishes": items})
 
-    if not _editor_required(request):
-        return JsonResponse({"error": "forbidden"}, status=403)
     try:
         dish, created = upsert_dish(_json_body(request), request.user)
     except ValueError as exc:
@@ -80,11 +80,15 @@ def dish_detail(request, dish_id):
 
 @require_http_methods(["GET"])
 def suggest_view(request):
+    if not _editor_required(request):
+        return JsonResponse({"error": "forbidden"}, status=403)
     return JsonResponse({"items": suggest(request.GET.get("q", ""), request.GET.get("lang", "ru"))})
 
 
 @require_http_methods(["GET"])
 def names_view(request):
+    if not _editor_required(request):
+        return JsonResponse({"error": "forbidden"}, status=403)
     lang = request.GET.get("lang", "ru")
     field = "name_en" if lang == "en" else "name_ru"
     items = list(
@@ -107,6 +111,8 @@ def _rate_limited(request) -> bool:
 
 @require_http_methods(["GET"])
 def export_csv(request):
+    if not _editor_required(request):
+        return JsonResponse({"error": "forbidden"}, status=403)
     if _rate_limited(request):
         return JsonResponse({"error": "rate limit"}, status=429)
     response = HttpResponse(export_dishes_csv(), content_type="text/csv; charset=utf-8")
@@ -162,6 +168,8 @@ def bulk_upsert(request):
 
 @require_http_methods(["POST"])
 def check_missing_fixables_view(request):
+    if not _editor_required(request):
+        return JsonResponse({"error": "forbidden"}, status=403)
     payload = _json_body(request)
     lines = payload.get("ru_lines") or payload.get("lines") or []
     show_kcal = _to_bool(payload.get("show_kcal", True))

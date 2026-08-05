@@ -170,6 +170,7 @@ def _document_pages(payload: dict) -> list[dict]:
 
 
 @ensure_csrf_cookie
+@login_required
 def index(request):
     return render(request, "menu/index.html")
 
@@ -249,18 +250,21 @@ def archive_download(request, entry_id: int):
     return _pdf_response(pdf, filename, download=True)
 
 
+@login_required
 @require_http_methods(["POST"])
 def preview_api(request):
     data = _request_payload(request)
     return JsonResponse(_build_document_payload(data)["preview"])
 
 
+@login_required
 @require_http_methods(["POST"])
 def analyze_api(request):
     data = _request_payload(request)
     return JsonResponse({"decisions": analyze_pasted(data.get("text") or "")})
 
 
+@login_required
 @require_http_methods(["POST"])
 def render_document_api(request):
     payload = _build_document_payload(_request_payload(request))
@@ -274,6 +278,7 @@ def render_document_api(request):
     )
 
 
+@login_required
 def document_print_page(request, token: str):
     payload = _get_document(request, token)
     return render(
@@ -290,6 +295,7 @@ def document_print_page(request, token: str):
     )
 
 
+@login_required
 @require_http_methods(["POST"])
 def pdf_api(request):
     payload = _build_document_payload(_request_payload(request))
