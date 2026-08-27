@@ -920,20 +920,19 @@ td select {
 }
 
 .covers-actions-col {
-  width: 220px;
+  width: 200px;
 }
 
-.covers-file-col,
-.cover-file-cell {
-  width: 140px;
-}
-
-.cover-file-cell {
-  max-width: 160px;
+.cover-info-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
 .cover-file-line {
-  display: block;
+  flex: 0 0 120px;
+  max-width: 140px;
   font-size: 13px;
   color: var(--muted, #6b7280);
   white-space: nowrap;
@@ -941,13 +940,10 @@ td select {
   text-overflow: ellipsis;
 }
 
-.cover-name-cell {
-  min-width: 0;
-}
-
 .cover-name-input {
-  width: 100%;
-  min-width: 0;
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 120px;
   height: 34px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -958,6 +954,7 @@ td select {
 
 .covers-actions-cell {
   white-space: nowrap;
+  vertical-align: middle;
 }
 
 .covers-actions {
@@ -1263,9 +1260,13 @@ td select {
     width: 148px;
   }
 
-  .covers-file-col,
-  .cover-file-cell {
-    width: 110px;
+  .cover-info-cell {
+    flex-wrap: wrap;
+  }
+
+  .cover-file-line {
+    flex: 0 1 auto;
+    max-width: 100%;
   }
 
   .covers-actions {

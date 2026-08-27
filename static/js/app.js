@@ -1798,7 +1798,7 @@ function renderCoversAdminList(covers) {
     .sort((left, right) => String(left.location_name || "").localeCompare(String(right.location_name || ""), "ru"));
 
   if (!sorted.length) {
-    list.innerHTML = '<tr><td colspan="3" class="muted">Пока нет загруженных подложек.</td></tr>';
+    list.innerHTML = '<tr><td colspan="2" class="muted">Пока нет загруженных подложек.</td></tr>';
     return;
   }
 
@@ -1806,17 +1806,14 @@ function renderCoversAdminList(covers) {
     const row = document.createElement("tr");
     row.dataset.coverId = String(cover.id);
 
-    const fileCell = document.createElement("td");
-    fileCell.className = "cover-file-cell";
+    const coverCell = document.createElement("td");
+    coverCell.className = "cover-info-cell";
+
     const fileLine = document.createElement("span");
     fileLine.className = "cover-file-line";
     fileLine.textContent = cover.original_filename || "—";
     fileLine.title = cover.original_filename || "";
-    fileCell.appendChild(fileLine);
-    row.appendChild(fileCell);
 
-    const nameCell = document.createElement("td");
-    nameCell.className = "cover-name-cell";
     const nameInput = document.createElement("input");
     nameInput.type = "text";
     nameInput.className = "cover-name-input";
@@ -1824,13 +1821,17 @@ function renderCoversAdminList(covers) {
     nameInput.maxLength = 128;
     nameInput.dataset.original = cover.location_name || "";
     nameInput.setAttribute("aria-label", "Название локации");
-    nameCell.appendChild(nameInput);
-    row.appendChild(nameCell);
+    nameInput.placeholder = "Локация";
+
+    coverCell.appendChild(fileLine);
+    coverCell.appendChild(nameInput);
+    row.appendChild(coverCell);
 
     const actionCell = document.createElement("td");
     actionCell.className = "covers-actions-cell";
     const actions = document.createElement("div");
     actions.className = "covers-actions";
+
     const applyBtn = document.createElement("button");
     applyBtn.type = "button";
     applyBtn.className = "button";
