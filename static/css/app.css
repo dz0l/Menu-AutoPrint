@@ -857,6 +857,61 @@ td select {
   width: min(980px, calc(100% - 32px));
 }
 
+.cover-select-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.cover-select {
+  min-width: 150px;
+  max-width: 220px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 10px;
+}
+
+.cover-select.active {
+  border-color: var(--accent, #3b82f6);
+}
+
+.covers-table-shell {
+  overflow: auto;
+}
+
+.covers-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.covers-table th,
+.covers-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.cover-name-input {
+  width: 100%;
+  min-width: 140px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 8px;
+}
+
+.covers-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
 .modal-header {
   display: flex;
   align-items: center;

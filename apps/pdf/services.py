@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import base64
 import logging
@@ -50,22 +50,7 @@ FONT_CANDIDATES = [
     ),
 ]
 
-COVER_LOCATIONS = {
-    "3k.jpg": "3й корпус",
-    "airlines.jpg": "Самолёт",
-    "banket.jpg": "Банкет",
-    "board.jpg": "Лодка",
-    "dd.jpg": "ДД",
-    "dubai.jpg": "Дубай",
-    "kd.jpg": "КД",
-    "kd-ng.jpg": "КД НГ",
-    "mandarin.jpg": "Mandarin",
-    "max.jpg": "MaxxRoyal",
-    "spa.jpg": "СПА",
-    "tash.jpg": "Ташкент",
-    "train.jpg": "Поезд",
-    "vil126.jpg": "Вилла-126",
-}
+UNKNOWN_LOCATION_LABEL = "unknown_location"
 
 FOOTER_NOTE_RU = "Калорийность и вес указаны на порцию"
 FOOTER_NOTE_EN = "Calories indicated per serving"
@@ -156,12 +141,13 @@ def build_menu_pdf(
     show_kcal: bool,
     background_name: str = "",
     background_data: str = "",
+    background_bytes: bytes | None = None,
     document_title: str = "menu.pdf",
     auto_format: bool = False,
 ) -> bytes:
     regular_font, bold_font = _ensure_fonts_registered()
     display_date = format_print_date(print_date)
-    background = _decode_background(background_data)
+    background = _load_background(background_data=background_data, background_bytes=background_bytes)
     layout_by_page = preview.get("layout") or {}
 
     buffer = BytesIO()
@@ -228,16 +214,22 @@ def build_menu_pdf(
     return buffer.getvalue()
 
 
-def build_download_filename(print_date: str, background_name: str = "", ru_lines: list[str] | None = None) -> str:
+def build_download_filename(
+    print_date: str,
+    background_name: str = "",
+    ru_lines: list[str] | None = None,
+    *,
+    location_label: str | None = None,
+) -> str:
     breakfast_suffix = " (завтрак)" if _has_breakfast_first_group(ru_lines) else ""
-    return f"{format_print_stamp(print_date)} - {resolve_cover_location(background_name)}{breakfast_suffix}.pdf"
+    label = (location_label or "").strip() or resolve_cover_location(background_name)
+    return f"{format_print_stamp(print_date)} - {label}{breakfast_suffix}.pdf"
 
 
 def resolve_cover_location(background_name: str | None) -> str:
-    normalized = Path(background_name or "").name.strip().lower()
-    if not normalized:
-        return "unknown_location"
-    return COVER_LOCATIONS.get(normalized, "unknown_location")
+    """Custom uploaded backgrounds are treated as an unknown location."""
+    _ = Path(background_name or "").name.strip().lower()
+    return UNKNOWN_LOCATION_LABEL
 
 
 def format_print_date(value: str | None) -> str:
@@ -290,6 +282,16 @@ def _ensure_fonts_registered() -> tuple[str, str]:
 
     logger.warning("No Cyrillic-capable serif font found, falling back to Helvetica")
     return "Helvetica", "Helvetica-Bold"
+
+
+def _load_background(*, background_data: str | None = None, background_bytes: bytes | None = None):
+    if background_bytes:
+        try:
+            return ImageReader(BytesIO(background_bytes))
+        except Exception as exc:
+            logger.warning("Background bytes load failed: %s", exc)
+            return None
+    return _decode_background(background_data)
 
 
 def _decode_background(background_data: str | None):

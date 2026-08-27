@@ -35,3 +35,31 @@ class MenuArchiveEntry(models.Model):
 
     def __str__(self) -> str:
         return f"{self.menu_date.isoformat()}_{self.menu_type}_{self.location_key}"
+
+
+class MenuCover(models.Model):
+    """Server-stored PDF background image with a display location name."""
+
+    location_name = models.CharField(max_length=128)
+    original_filename = models.CharField(max_length=255)
+    relative_path = models.CharField(max_length=255)
+    file_size = models.PositiveBigIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="menu_covers",
+    )
+
+    class Meta:
+        ordering = ["location_name", "id"]
+
+    def __str__(self) -> str:
+        return self.location_name
+
+    @property
+    def location_key(self) -> str:
+        return f"c{self.id}"

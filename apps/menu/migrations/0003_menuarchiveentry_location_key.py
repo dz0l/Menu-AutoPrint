@@ -3,7 +3,7 @@ from pathlib import Path
 
 from django.db import migrations, models
 
-# Keep in sync with apps.pdf.services.COVER_LOCATIONS (migration must not import app code).
+# Historical data migration helper (do not import app modules here).
 _COVER_LOCATIONS = {
     "3k.jpg": "3й корпус",
     "airlines.jpg": "Самолёт",

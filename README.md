@@ -167,7 +167,7 @@ docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --r
 
 ## Menu PDF archive
 
-Generated PDFs (normal print mode, not alternate HTML print) are stored under `media/menu_archive/` as `YYYY-MM-DD_{main|breakfast}_{location}.pdf` (and `_banquet` when used). The same calendar day can keep separate rows per location; reprinting the same date + location + menu type overwrites that file. Opening **Архив** lists downloads for editors. Files older than 730 days are removed automatically; you can also run:
+Generated PDFs (normal print mode, not alternate HTML print) are stored under `media/menu_archive/`. The same calendar day can keep separate rows per location; reprinting the same date + location + menu type overwrites that file. Server-managed cover images live under `media/menu_covers/` (Docker volume, not in git). Opening **Архив** lists downloads for editors. Files older than 730 days are removed automatically; you can also run:
 
 ```bash
 cd /opt/menu-autoprint

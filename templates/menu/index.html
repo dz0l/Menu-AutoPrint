@@ -13,8 +13,14 @@
     <button id="btnDateTomorrow" class="segment-option" type="button" data-date-mode="tomorrow">Завтра</button>
   </div>
   <input id="printDateCustom" class="date-input" type="date" aria-label="Дата печати">
-  <input id="backgroundFile" type="file" accept="image/*" hidden>
-  <button id="btnBackground" class="icon-button" type="button" title="Подложка" aria-label="Подложка"><span class="ui-icon" data-ui-icon="image-plus"></span></button>
+  <input id="backgroundFile" type="file" accept="image/jpeg,image/png,image/jpg" hidden>
+  <label class="cover-select-wrap" title="Подложка">
+    <span class="visually-hidden">Подложка</span>
+    <select id="coverSelect" class="cover-select" aria-label="Подложка">
+      <option value="">Не выбрана</option>
+      <option value="__custom__">Своя</option>
+    </select>
+  </label>
   <input id="showKcal" class="visually-hidden" type="checkbox" checked>
   <button id="btnKcalToggle" class="button toggle-button active" type="button" aria-pressed="true" title="Печатать калории и граммовки"><span class="ui-icon" data-ui-icon="scale"></span> Калл/Гр</button>
 </div>
@@ -30,6 +36,7 @@
 <section id="settingsBar" class="settings-bar shell" hidden>
   {% if request.user.is_authenticated and request.user.is_admin %}
     <button id="btnUsers" type="button">Пользователи</button>
+    <button id="btnCovers" type="button">Подложки</button>
   {% endif %}
   <label class="inline" title="Сначала уменьшать отступы, затем шрифт, чтобы меню умещалось на лист A4"><input id="autoFormat" type="checkbox"> Автоформат</label>
   <label class="inline" title="Печатать через HTML-страницу браузера вместо PDF"><input id="alternatePrintMode" type="checkbox"> Режим альтернативной печати</label>
@@ -138,6 +145,54 @@
       <section class="users-list-wrap">
         <h3>Список пользователей</h3>
         <div id="usersList" class="users-list"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div id="coversModal" class="modal" hidden>
+  <div class="modal-backdrop" data-close-covers="1"></div>
+  <div class="modal-dialog users-dialog covers-dialog" role="dialog" aria-modal="true" aria-labelledby="coversTitle">
+    <div class="modal-header">
+      <h2 id="coversTitle">Подложки</h2>
+      <div class="review-actions">
+        <button id="btnRefreshCovers" type="button">Обновить</button>
+        <button id="btnCloseCovers" class="icon-button" type="button">×</button>
+      </div>
+    </div>
+    <div class="modal-body users-body">
+      <section class="users-create">
+        <h3>Добавить подложку</h3>
+        <div class="users-form-row">
+          <label class="stack form-field compact-field">
+            <span>Файл (JPG/PNG)</span>
+            <input id="coverUploadFile" type="file" accept="image/jpeg,image/png,image/jpg">
+          </label>
+          <label class="stack form-field compact-field">
+            <span>Название</span>
+            <input id="coverUploadName" type="text" maxlength="128" autocomplete="off" placeholder="Название локации">
+          </label>
+        </div>
+        <div class="review-actions">
+          <button id="btnUploadCover" class="primary" type="button">Загрузить</button>
+        </div>
+        <p class="muted">Нужны и файл, и название. Файл хранится на сервере.</p>
+        <div id="coversResult" class="users-result" hidden></div>
+      </section>
+      <section class="users-list-wrap">
+        <h3>Список подложек</h3>
+        <div class="table-shell covers-table-shell">
+          <table class="covers-table">
+            <thead>
+              <tr>
+                <th>JPG</th>
+                <th>Локация</th>
+                <th>Действие</th>
+              </tr>
+            </thead>
+            <tbody id="coversList"></tbody>
+          </table>
+        </div>
       </section>
     </div>
   </div>

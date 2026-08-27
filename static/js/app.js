@@ -5,6 +5,8 @@ const STORAGE_KEYS = {
   editorSavedChanges: "menu_editor_saved_changes",
   pdfBackgroundName: "menu_pdf_background_name",
   pdfBackgroundData: "menu_pdf_background_data",
+  coverMode: "menu_cover_mode",
+  coverId: "menu_cover_id",
   alternatePrintMode: "menu_alt_print_mode",
   themeMode: "menu_theme_mode",
   debugLogging: "menu_debug_logging",
@@ -29,6 +31,15 @@ let lastPreviewData = null;
 let previewSegmentIndex = 0;
 let previewLang = "ru";
 let pdfInFlight = false;
+let coversCatalog = [];
+let coversLoading = false;
+let coverSelectQuiet = false;
+let previousCoverSelectValue = "__custom__";
+const COVER_MODE = {
+  none: "none",
+  custom: "custom",
+  cover: "cover",
+};
 let previewController = null;
 let actionsController = null;
 let previewSeq = 0;
@@ -595,16 +606,25 @@ function updatePreviewBackground() {
     return;
   }
 
+  const selection = getCoverSelection();
+  if (selection.mode === COVER_MODE.cover && selection.coverId) {
+    image.src = `/api/menu/covers/${selection.coverId}/image`;
+    image.hidden = false;
+    overlay.hidden = false;
+    return;
+  }
+
   const data = loadStorage(STORAGE_KEYS.pdfBackgroundData, "");
-  if (data) {
+  if (selection.mode === COVER_MODE.custom && data) {
     image.src = data;
     image.hidden = false;
     overlay.hidden = false;
-  } else {
-    image.removeAttribute("src");
-    image.hidden = true;
-    overlay.hidden = true;
+    return;
   }
+
+  image.removeAttribute("src");
+  image.hidden = true;
+  overlay.hidden = true;
 }
 
 function fitPreviewPage() {
@@ -1110,18 +1130,123 @@ function setUsersOpen(open) {
   modal.hidden = !open;
 }
 
+function setCoversOpen(open) {
+  const modal = $("coversModal");
+  if (!modal) {
+    return;
+  }
+  modal.hidden = !open;
+}
+
+function getCoverSelection() {
+  const mode = loadStorage(STORAGE_KEYS.coverMode, COVER_MODE.none);
+  const coverIdRaw = loadStorage(STORAGE_KEYS.coverId, "");
+  const coverId = Number.parseInt(coverIdRaw, 10);
+  return {
+    mode: mode === COVER_MODE.custom || mode === COVER_MODE.cover ? mode : COVER_MODE.none,
+    coverId: Number.isFinite(coverId) && coverId > 0 ? coverId : null,
+  };
+}
+
+function saveCoverSelection(mode, coverId = null) {
+  saveStorage(STORAGE_KEYS.coverMode, mode || COVER_MODE.none);
+  if (mode === COVER_MODE.cover && coverId) {
+    saveStorage(STORAGE_KEYS.coverId, String(coverId));
+  } else {
+    removeStorage(STORAGE_KEYS.coverId);
+  }
+}
+
 function restoreBackgroundState() {
-  const hasBackground = Boolean(loadStorage(STORAGE_KEYS.pdfBackgroundData, ""));
+  const selection = getCoverSelection();
+  const hasBackground =
+    (selection.mode === COVER_MODE.cover && Boolean(selection.coverId)) ||
+    (selection.mode === COVER_MODE.custom && Boolean(loadStorage(STORAGE_KEYS.pdfBackgroundData, "")));
   const clearButton = $("btnClearBackground");
   if (clearButton) {
     clearButton.hidden = !hasBackground;
     clearButton.disabled = !hasBackground;
   }
-  $("btnBackground")?.classList.toggle("active", hasBackground);
+  const select = $("coverSelect");
+  if (select) {
+    select.classList.toggle("active", hasBackground);
+  }
+}
+
+function syncCoverSelectValue() {
+  const select = $("coverSelect");
+  if (!select) {
+    return;
+  }
+  const selection = getCoverSelection();
+  let value = "";
+  if (selection.mode === COVER_MODE.custom) {
+    value = "__custom__";
+  } else if (selection.mode === COVER_MODE.cover && selection.coverId) {
+    value = String(selection.coverId);
+  }
+  coverSelectQuiet = true;
+  select.value = value;
+  if (select.value !== value) {
+    select.value = "__custom__";
+  }
+  previousCoverSelectValue = select.value || "__custom__";
+  coverSelectQuiet = false;
+}
+
+function renderCoverSelectOptions() {
+  const select = $("coverSelect");
+  if (!select) {
+    return;
+  }
+  const current = select.value;
+  select.innerHTML = "";
+  const empty = document.createElement("option");
+  empty.value = "";
+  empty.textContent = "Не выбрана";
+  select.appendChild(empty);
+
+  const custom = document.createElement("option");
+  custom.value = "__custom__";
+  custom.textContent = "Своя";
+  select.appendChild(custom);
+
+  coversCatalog
+    .slice()
+    .sort((left, right) => String(left.location_name || "").localeCompare(String(right.location_name || ""), "ru"))
+    .forEach((cover) => {
+      const option = document.createElement("option");
+      option.value = String(cover.id);
+      option.textContent = cover.location_name;
+      select.appendChild(option);
+    });
+
+  coverSelectQuiet = true;
+  if ([...select.options].some((item) => item.value === current)) {
+    select.value = current;
+  } else {
+    syncCoverSelectValue();
+  }
+  previousCoverSelectValue = select.value || "__custom__";
+  coverSelectQuiet = false;
+}
+
+async function loadCoversCatalog() {
+  try {
+    const data = await requestJson("/api/menu/covers");
+    coversCatalog = data.covers || [];
+  } catch (error) {
+    coversCatalog = [];
+    debugWarn("covers:list:error", {error: error.message});
+  }
+  renderCoverSelectOptions();
+  restoreBackgroundState();
+  updatePreviewBackground();
 }
 
 function storeBackground(file) {
   if (!file) {
+    syncCoverSelectValue();
     return;
   }
 
@@ -1129,19 +1254,24 @@ function storeBackground(file) {
   reader.onload = () => {
     if (typeof reader.result !== "string") {
       toast("Не удалось прочитать файл подложки.");
+      syncCoverSelectValue();
       return;
     }
     if (reader.result.length > 4_500_000) {
       toast("Подложка слишком большая. Выберите изображение меньше 3 МБ.");
+      syncCoverSelectValue();
       return;
     }
     saveStorage(STORAGE_KEYS.pdfBackgroundName, file.name);
     if (!saveStorage(STORAGE_KEYS.pdfBackgroundData, reader.result)) {
       toast("Не удалось сохранить подложку в браузере. Уменьшите файл или отключите режим приватного просмотра.");
+      syncCoverSelectValue();
       return;
     }
+    saveCoverSelection(COVER_MODE.custom);
     restoreBackgroundState();
     updatePreviewBackground();
+    syncCoverSelectValue();
     toast(`Подложка выбрана: ${file.name}`);
   };
   reader.readAsDataURL(file);
@@ -1150,13 +1280,47 @@ function storeBackground(file) {
 function clearBackground() {
   removeStorage(STORAGE_KEYS.pdfBackgroundName);
   removeStorage(STORAGE_KEYS.pdfBackgroundData);
+  saveCoverSelection(COVER_MODE.none);
   const input = $("backgroundFile");
   if (input) {
     input.value = "";
   }
   restoreBackgroundState();
   updatePreviewBackground();
+  syncCoverSelectValue();
   toast("Подложка очищена");
+}
+
+function handleCoverSelectChange() {
+  if (coverSelectQuiet) {
+    return;
+  }
+  const select = $("coverSelect");
+  if (!select) {
+    return;
+  }
+  const value = select.value;
+  if (value === "__custom__") {
+    previousCoverSelectValue = value;
+    $("backgroundFile")?.click();
+    return;
+  }
+  if (!value) {
+    clearBackground();
+    return;
+  }
+  const coverId = Number.parseInt(value, 10);
+  if (!Number.isFinite(coverId)) {
+    syncCoverSelectValue();
+    return;
+  }
+  removeStorage(STORAGE_KEYS.pdfBackgroundName);
+  removeStorage(STORAGE_KEYS.pdfBackgroundData);
+  saveCoverSelection(COVER_MODE.cover, coverId);
+  previousCoverSelectValue = value;
+  restoreBackgroundState();
+  updatePreviewBackground();
+  toast("Подложка выбрана");
 }
 
 function replaceMenuLine(source, target) {
@@ -1407,14 +1571,20 @@ async function collectPdfValidation() {
 }
 
 function buildDocumentPayload() {
-  return {
+  const payload = {
     ru: $("ruText").value,
     show_kcal: $("showKcal").checked,
     auto_format: $("autoFormat")?.checked ?? false,
     print_date: resolvedPrintDate(),
-    background_name: loadStorage(STORAGE_KEYS.pdfBackgroundName, ""),
-    background_data: loadStorage(STORAGE_KEYS.pdfBackgroundData, ""),
   };
+  const selection = getCoverSelection();
+  if (selection.mode === COVER_MODE.cover && selection.coverId) {
+    payload.cover_id = selection.coverId;
+  } else if (selection.mode === COVER_MODE.custom) {
+    payload.background_name = loadStorage(STORAGE_KEYS.pdfBackgroundName, "");
+    payload.background_data = loadStorage(STORAGE_KEYS.pdfBackgroundData, "");
+  }
+  return payload;
 }
 
 async function downloadPdfFlow() {
@@ -1599,6 +1769,175 @@ function showUserResult(message) {
   }
   box.textContent = message;
   box.hidden = false;
+}
+
+function showCoversResult(message) {
+  const box = $("coversResult");
+  if (!box) {
+    return;
+  }
+  box.textContent = message;
+  box.hidden = !message;
+}
+
+function renderCoversAdminList(covers) {
+  const list = $("coversList");
+  if (!list) {
+    return;
+  }
+  list.innerHTML = "";
+  const sorted = (covers || [])
+    .slice()
+    .sort((left, right) => String(left.location_name || "").localeCompare(String(right.location_name || ""), "ru"));
+
+  if (!sorted.length) {
+    list.innerHTML = '<tr><td colspan="3" class="muted">Пока нет загруженных подложек.</td></tr>';
+    return;
+  }
+
+  sorted.forEach((cover) => {
+    const row = document.createElement("tr");
+    row.dataset.coverId = String(cover.id);
+
+    const fileCell = document.createElement("td");
+    fileCell.textContent = cover.original_filename || "—";
+    row.appendChild(fileCell);
+
+    const nameCell = document.createElement("td");
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.className = "cover-name-input";
+    nameInput.value = cover.location_name || "";
+    nameInput.maxLength = 128;
+    nameInput.dataset.original = cover.location_name || "";
+    nameCell.appendChild(nameInput);
+    row.appendChild(nameCell);
+
+    const actionCell = document.createElement("td");
+    actionCell.className = "covers-actions";
+    const applyBtn = document.createElement("button");
+    applyBtn.type = "button";
+    applyBtn.className = "button";
+    applyBtn.textContent = "Применить";
+    applyBtn.hidden = true;
+    applyBtn.addEventListener("click", async () => {
+      applyBtn.disabled = true;
+      try {
+        await requestJson(`/api/menu/covers/${cover.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken(),
+          },
+          body: JSON.stringify({location_name: nameInput.value}),
+        });
+        toast("Название подложки обновлено.");
+        await loadCoversAdmin();
+        await loadCoversCatalog();
+      } catch (error) {
+        toast(error.message);
+      } finally {
+        applyBtn.disabled = false;
+      }
+    });
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "danger-button";
+    deleteBtn.textContent = "Удалить";
+    deleteBtn.addEventListener("click", async () => {
+      if (!window.confirm(`Удалить подложку «${cover.location_name}»?`)) {
+        return;
+      }
+      deleteBtn.disabled = true;
+      try {
+        await requestJson(`/api/menu/covers/${cover.id}`, {
+          method: "DELETE",
+          headers: {"X-CSRFToken": csrfToken()},
+        });
+        const selection = getCoverSelection();
+        if (selection.mode === COVER_MODE.cover && selection.coverId === cover.id) {
+          clearBackground();
+        }
+        toast("Подложка удалена.");
+        await loadCoversAdmin();
+        await loadCoversCatalog();
+      } catch (error) {
+        toast(error.message);
+      } finally {
+        deleteBtn.disabled = false;
+      }
+    });
+
+    nameInput.addEventListener("input", () => {
+      const changed = nameInput.value.trim() !== String(nameInput.dataset.original || "").trim();
+      applyBtn.hidden = !changed;
+    });
+
+    actionCell.appendChild(applyBtn);
+    actionCell.appendChild(deleteBtn);
+    row.appendChild(actionCell);
+    list.appendChild(row);
+  });
+}
+
+async function loadCoversAdmin() {
+  const list = $("coversList");
+  if (!list || coversLoading) {
+    return;
+  }
+  coversLoading = true;
+  list.innerHTML = '<tr><td colspan="3" class="muted">Загрузка...</td></tr>';
+  try {
+    const data = await requestJson("/api/menu/covers");
+    renderCoversAdminList(data.covers || []);
+  } catch (error) {
+    list.innerHTML = `<tr><td colspan="3" class="danger">${error.message}</td></tr>`;
+  } finally {
+    coversLoading = false;
+  }
+}
+
+async function uploadCover() {
+  const fileInput = $("coverUploadFile");
+  const nameInput = $("coverUploadName");
+  const file = fileInput?.files?.[0];
+  const locationName = nameInput?.value.trim() || "";
+  if (!file || !locationName) {
+    toast("Нужны файл подложки и название.");
+    return;
+  }
+  if (file.size > 3 * 1024 * 1024) {
+    toast("Подложка слишком большая. Выберите изображение меньше 3 МБ.");
+    return;
+  }
+
+  const btn = $("btnUploadCover");
+  btn.disabled = true;
+  const body = new FormData();
+  body.append("file", file);
+  body.append("location_name", locationName);
+  try {
+    await requestJson("/api/menu/covers", {
+      method: "POST",
+      headers: {"X-CSRFToken": csrfToken()},
+      body,
+    });
+    if (fileInput) {
+      fileInput.value = "";
+    }
+    if (nameInput) {
+      nameInput.value = "";
+    }
+    showCoversResult(`Подложка «${locationName}» загружена.`);
+    toast("Подложка загружена.");
+    await loadCoversAdmin();
+    await loadCoversCatalog();
+  } catch (error) {
+    toast(error.message);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 function renderUsers(users) {
@@ -1867,12 +2206,15 @@ $("btnPreviewNext")?.addEventListener("click", () => {
   applyPreviewSegment();
 });
 
-$("btnBackground").addEventListener("click", () => {
-  $("backgroundFile").click();
-});
+$("coverSelect")?.addEventListener("change", handleCoverSelectChange);
 
 $("backgroundFile").addEventListener("change", (event) => {
-  storeBackground(event.target.files?.[0]);
+  const file = event.target.files?.[0];
+  if (!file) {
+    syncCoverSelectValue();
+    return;
+  }
+  storeBackground(file);
 });
 
 $("btnClearBackground")?.addEventListener("click", clearBackground);
@@ -1921,6 +2263,32 @@ if ($("btnUsers")) {
 
   $("btnCreateUser").addEventListener("click", () => {
     createUser().catch((error) => toast(error.message));
+  });
+}
+
+if ($("btnCovers")) {
+  $("btnCovers").addEventListener("click", async () => {
+    showCoversResult("");
+    setCoversOpen(true);
+    await loadCoversAdmin();
+  });
+
+  $("btnCloseCovers")?.addEventListener("click", () => {
+    setCoversOpen(false);
+  });
+
+  $("coversModal")?.addEventListener("click", (event) => {
+    if (event.target.dataset.closeCovers === "1") {
+      setCoversOpen(false);
+    }
+  });
+
+  $("btnRefreshCovers")?.addEventListener("click", () => {
+    loadCoversAdmin().catch(() => {});
+  });
+
+  $("btnUploadCover")?.addEventListener("click", () => {
+    uploadCover().catch((error) => toast(error.message));
   });
 }
 
@@ -1994,6 +2362,9 @@ window.addEventListener("load", () => {
   updateDateUi();
   updateLineCounter();
   updateKcalToggleUi();
+  if (!loadStorage(STORAGE_KEYS.coverMode, "") && loadStorage(STORAGE_KEYS.pdfBackgroundData, "")) {
+    saveCoverSelection(COVER_MODE.custom);
+  }
   restoreBackgroundState();
   updatePreviewBackground();
   initPreviewPageFit();
@@ -2003,12 +2374,14 @@ window.addEventListener("load", () => {
   setSettingsOpen(false);
   setReviewOpen(false);
   setUsersOpen(false);
+  setCoversOpen(false);
   setPreviewLang("ru");
   resetRuHistory($("ruText").value);
 
   preview("page-load").catch(() => {});
   refreshActions("page-load").catch(() => {});
   preloadSuggestCatalog().catch(() => {});
+  loadCoversCatalog().catch(() => {});
   if (runEditorSaveCheck) {
     setTimeout(() => refreshAfterEditorSave().catch((error) => toast(error.message)), 0);
   }
