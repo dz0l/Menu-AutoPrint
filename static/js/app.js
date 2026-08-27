@@ -1808,6 +1808,8 @@ function renderCoversAdminList(covers) {
 
     const coverCell = document.createElement("td");
     coverCell.className = "cover-info-cell";
+    const coverWrap = document.createElement("div");
+    coverWrap.className = "cover-info-wrap";
 
     const fileLine = document.createElement("span");
     fileLine.className = "cover-file-line";
@@ -1823,8 +1825,9 @@ function renderCoversAdminList(covers) {
     nameInput.setAttribute("aria-label", "Название локации");
     nameInput.placeholder = "Локация";
 
-    coverCell.appendChild(fileLine);
-    coverCell.appendChild(nameInput);
+    coverWrap.appendChild(fileLine);
+    coverWrap.appendChild(nameInput);
+    coverCell.appendChild(coverWrap);
     row.appendChild(coverCell);
 
     const actionCell = document.createElement("td");

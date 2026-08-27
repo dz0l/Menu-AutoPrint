@@ -872,13 +872,24 @@ td select {
 
 .covers-dialog {
   width: min(900px, calc(100% - 32px));
+  max-width: calc(100vw - 32px);
   max-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+.covers-dialog > .modal-header,
+.covers-dialog > .covers-body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .covers-body {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -893,6 +904,8 @@ td select {
 .covers-list-wrap {
   display: grid;
   gap: 10px;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
 }
 
@@ -906,16 +919,20 @@ td select {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
   gap: 10px;
   align-items: end;
+  width: 100%;
+  max-width: 100%;
   min-width: 0;
 }
 
 .covers-upload-field {
   min-width: 0;
   max-width: 100%;
+  overflow: hidden;
 }
 
 .covers-upload-field input[type="file"],
 .covers-upload-field input[type="text"] {
+  display: block;
   width: 100%;
   max-width: 100%;
   min-width: 0;
@@ -955,11 +972,14 @@ td select {
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-sizing: border-box;
 }
 
+/* Global `table { min-width: 980px }` must not apply inside the modal. */
 .covers-table {
-  width: 100%;
-  max-width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -977,18 +997,26 @@ td select {
   border-bottom: none;
 }
 
-.covers-actions-col,
-.covers-actions-cell {
-  width: 168px;
+.covers-table th:first-child,
+.covers-table td.cover-info-cell {
+  width: auto;
+  max-width: 0;
 }
 
-.cover-info-cell {
+.covers-actions-col,
+.covers-actions-cell {
+  width: 140px;
+  max-width: 140px;
+}
+
+.cover-info-wrap {
   display: grid;
-  grid-template-columns: minmax(0, 28%) minmax(0, 72%);
+  grid-template-columns: minmax(0, 30%) minmax(0, 70%);
   gap: 10px;
   align-items: center;
-  min-width: 0;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .cover-file-line {
@@ -1324,9 +1352,10 @@ td select {
   .covers-actions-col,
   .covers-actions-cell {
     width: 120px;
+    max-width: 120px;
   }
 
-  .cover-info-cell {
+  .cover-info-wrap {
     grid-template-columns: minmax(0, 34%) minmax(0, 66%);
     gap: 8px;
   }
