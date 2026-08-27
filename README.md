@@ -1,24 +1,26 @@
 ﻿# Menu AutoPrint
 
-Django/PostgreSQL version of Menu AutoPrint for building bilingual menus, maintaining the dish database, and generating print-ready PDF files.
+Django/PostgreSQL-приложение для сборки двуязычных меню, ведения базы блюд и формирования PDF для печати.
 
-Repository: `https://github.com/dz0l/Menu-AutoPrint`
+Репозиторий: `https://github.com/dz0l/Menu-AutoPrint`
 
-## Ubuntu Installation
+English version: [README.EN.MD](README.EN.MD)
+
+## Установка на Ubuntu
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/install_ubuntu.sh | REPO_URL=https://github.com/dz0l/Menu-AutoPrint.git bash
 ```
 
-The installer clones or updates the repository, creates `.env` if needed, generates `DJANGO_SECRET_KEY` and `POSTGRES_PASSWORD`, configures the detected server address, adds the current user to the `docker` group when needed, builds Docker services, runs migrations, creates the first admin account if none exists, and prints an installation summary with errors and recommendations.
+Скрипт клонирует или обновляет репозиторий, при необходимости создаёт `.env`, генерирует `DJANGO_SECRET_KEY` и `POSTGRES_PASSWORD`, подставляет адрес сервера, при необходимости добавляет текущего пользователя в группу `docker`, собирает Docker-сервисы, выполняет миграции, создаёт первого администратора (если его ещё нет) и выводит сводку установки с ошибками и рекомендациями.
 
-If Docker reports `permission denied` after installation, log out and back in, or run `newgrp docker`.
 
-During interactive installation the script asks for the admin username and password. The default username prompt is `mAdmin`, but the password is not stored in the script.
 
-New passwords must include at least 8 characters, one uppercase letter, and one special character.
+В интерактивном режиме скрипт запрашивает логин и пароль администратора. 
 
-For non-interactive installation, pass the first admin credentials through environment variables:
+Новый пароль: не менее 8 символов, одна заглавная буква и один спецсимвол.
+
+Для неинтерактивной установки передайте учётные данные первого администратора через переменные окружения:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/install_ubuntu.sh | \
@@ -28,44 +30,48 @@ curl -fsSL https://raw.githubusercontent.com/dz0l/Menu-AutoPrint/main/scripts/in
   bash
 ```
 
-## Full Uninstall
 
-Stop containers, remove project volumes and images:
+
+## Полное удаление
+
+Остановить контейнеры, удалить тома и образы проекта:
 
 ```bash
 cd /opt/menu-autoprint
 bash scripts/uninstall_ubuntu.sh --yes
 ```
 
-Also delete the application directory:
+Также удалить каталог приложения:
 
 ```bash
 bash scripts/uninstall_ubuntu.sh --remove-app-dir --yes
 ```
 
-Remove Docker Engine from the host (destructive; affects all containers on the server):
+Удалить Docker Engine с хоста (разрушительно; затрагивает все контейнеры на сервере):
 
 ```bash
 bash scripts/uninstall_ubuntu.sh --remove-app-dir --remove-docker --yes
 ```
 
-## Users
 
-Create an admin:
+
+## Пользователи
+
+Создать администратора:
 
 ```bash
 cd /opt/menu-autoprint
 docker compose exec -it web python manage.py create_staff_user mAdmin --role admin
 ```
 
-Create an editor user:
+Создать пользователя:
 
 ```bash
 cd /opt/menu-autoprint
 docker compose exec -it web python manage.py create_staff_user editor1 --role user
 ```
 
-For non-interactive runs:
+Неинтерактивный запуск:
 
 ```bash
 cd /opt/menu-autoprint
@@ -74,7 +80,7 @@ MENU_AUTOPRINT_NEW_USER_PASSWORD='Strong!Pass123' \
   web python manage.py create_staff_user mAdmin --role admin
 ```
 
-Reset an existing user's password and role:
+Сбросить пароль и роль существующего пользователя:
 
 ```bash
 cd /opt/menu-autoprint
@@ -82,9 +88,11 @@ docker compose exec -it web python manage.py create_staff_user mAdmin --role adm
 docker compose exec web python manage.py shell -c "from django.core.cache import cache; cache.clear()"
 ```
 
-## Network And HTTPS
+Администраторов создают при установке или через SSH. В веб-интерфейсе «Пользователи» создаются только пользователи (роль `user`); повысить до администратора через GUI нельзя.
 
-Default deployment runs through the `caddy` Docker Compose profile in LAN/HTTP mode:
+## Сеть и HTTPS
+
+По умолчанию развёртывание идёт через профиль `caddy` в режиме LAN/HTTP:
 
 ```bash
 .env:
@@ -96,9 +104,9 @@ CADDY_HTTPS_PORT=443
 DJANGO_ENABLE_HTTPS=0
 ```
 
-Open the app at `http://server-ip/`.
+Открывайте приложение по адресу `http://ip-сервера/`.
 
-For public HTTPS managed by Caddy, Caddy must be allowed to bind host ports `80` and `443`:
+Для публичного HTTPS через Caddy порты хоста `80` и `443` должны быть свободны для Caddy:
 
 ```bash
 .env:
@@ -112,7 +120,7 @@ DJANGO_ALLOWED_HOSTS=your-domain.tld,...
 DJANGO_CSRF_TRUSTED_ORIGINS=https://your-domain.tld
 ```
 
-For external certbot or a host-level reverse proxy, disable Caddy and publish the internal nginx only on a local port. Docker will not occupy host ports `80` or `443`:
+Если HTTPS закрывает внешний certbot или reverse proxy на хосте, отключите Caddy и опубликуйте внутренний nginx только на локальном порту. Docker не займёт порты хоста `80` и `443`:
 
 ```bash
 .env:
@@ -124,16 +132,16 @@ DJANGO_ALLOWED_HOSTS=your-domain.tld
 DJANGO_CSRF_TRUSTED_ORIGINS=https://your-domain.tld
 ```
 
-Configure the host reverse proxy to send traffic to `http://127.0.0.1:8080/` and pass `X-Forwarded-Proto: https`.
-This mode does not serve public HTTPS by itself; a host-level proxy must listen on `80` and `443`.
+Настройте reverse proxy хоста на `http://127.0.0.1:8080/` и передавайте `X-Forwarded-Proto: https`.  
+Этот режим сам по себе не отдаёт публичный HTTPS: на `80`/`443` должен слушать proxy на хосте.
 
-If you publish plain HTTP on a non-standard port, open the app as `http://server-ip:port/`.
+Если публикуете обычный HTTP на нестандартном порту, открывайте `http://ip-сервера:порт/`.
 
 ```bash
 docker compose up -d --build --remove-orphans
 ```
 
-When switching between `COMPOSE_PROFILES=caddy` and `COMPOSE_PROFILES=external-proxy`, remove the previously active profile service:
+При смене `COMPOSE_PROFILES=caddy` ↔ `COMPOSE_PROFILES=external-proxy` удалите сервис предыдущего профиля:
 
 ```bash
 docker compose --profile caddy rm -sf caddy
@@ -141,9 +149,11 @@ docker compose --profile external-proxy rm -sf nginx-public
 docker compose up -d --build --remove-orphans
 ```
 
-## CSV Import From Server Path
 
-By default place the CSV on the host under `/opt/menu-autoprint/path/` (for example `/opt/menu-autoprint/path/calories.csv`), then copy it into the running `web` container:
+
+## Импорт CSV с пути на сервере
+
+По умолчанию положите CSV на хост в `/opt/menu-autoprint/path/` (например `/opt/menu-autoprint/path/calories.csv`), затем скопируйте в контейнер `web`:
 
 ```bash
 cd /opt/menu-autoprint
@@ -153,28 +163,41 @@ docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --d
 docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv
 ```
 
-Import can take 1–3 minutes on large files.
+Импорт больших файлов может занять 1–3 минуты.
+
 ```bash
 docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --apply-updates
 ```
 
-To fully replace the current dishes table with the CSV contents:
+Полная замена текущей таблицы блюд содержимым CSV:
 
 ```bash
 docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --replace-all --dry-run
 docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --replace-all
 ```
 
-## Menu PDF archive
 
-Generated PDFs (normal print mode, not alternate HTML print) are stored under `media/menu_archive/`. The same calendar day can keep separate rows per location; reprinting the same date + location + menu type overwrites that file. Server-managed cover images live under `media/menu_covers/` (Docker volume, not in git). Opening **Архив** lists downloads for editors. Files older than 730 days are removed automatically; you can also run:
+
+## Архив PDF меню
+
+Сформированные PDF (обычная печать, не альтернативная HTML; только учётные записи администратора) хранятся в `media/menu_archive/`. 
+
+В один календарный день могут быть отдельные строки по локациям; повторная печать с той же датой + локацией + типом меню перезаписывает файл. 
+
+Серверные подложки лежат в `media/menu_covers/` 
+
+Раздел **Архив** показывает список для скачивания пользователям и администраторам. Файлы старше 730 дней удаляются автоматически; 
+
+вручную:
 
 ```bash
 cd /opt/menu-autoprint
 docker compose exec web python manage.py purge_menu_archive
 ```
 
-## Maintenance
+
+
+## Обслуживание
 
 ```bash
 cd /opt/menu-autoprint
@@ -182,11 +205,11 @@ git pull
 docker compose up -d --build web
 ```
 
-Create a manual PostgreSQL backup:
+Ручной бэкап PostgreSQL:
 
 ```bash
 cd /opt/menu-autoprint
 docker compose run --rm backup sh /scripts/backup_postgres.sh once
 ```
 
-Enable editor auto-translation by filling `AZURE_TRANSLATOR_KEY` in `.env`; use `AZURE_TRANSLATOR_REGION=westeurope` for a West Europe Azure Translator resource and keep `AZURE_TRANSLATOR_ENDPOINT=https://api.cognitive.microsofttranslator.com` for text translation. Restart `web` after changing `.env`.
+Автоперевод в редакторе базы включается заполнением `AZURE_TRANSLATOR_KEY` в `.env`; для ресурса Azure Translator в West Europe используйте `AZURE_TRANSLATOR_REGION=westeurope` и оставьте `AZURE_TRANSLATOR_ENDPOINT=https://api.cognitive.microsofttranslator.com`. После изменения `.env` перезапустите `web`.
