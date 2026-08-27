@@ -923,16 +923,17 @@ td select {
   width: 220px;
 }
 
-.cover-info-cell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
+.covers-file-col,
+.cover-file-cell {
+  width: 140px;
+}
+
+.cover-file-cell {
+  max-width: 160px;
 }
 
 .cover-file-line {
-  flex: 0 1 42%;
-  max-width: 42%;
+  display: block;
   font-size: 13px;
   color: var(--muted, #6b7280);
   white-space: nowrap;
@@ -940,16 +941,23 @@ td select {
   text-overflow: ellipsis;
 }
 
+.cover-name-cell {
+  min-width: 0;
+}
+
 .cover-name-input {
-  flex: 1 1 auto;
-  min-width: 140px;
-  width: auto;
+  width: 100%;
+  min-width: 0;
   height: 34px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
   padding: 0 10px;
+}
+
+.covers-actions-cell {
+  white-space: nowrap;
 }
 
 .covers-actions {
@@ -959,7 +967,6 @@ td select {
   gap: 8px;
   align-items: center;
   justify-content: flex-end;
-  min-width: 0;
 }
 
 .covers-actions .button,
@@ -1256,17 +1263,12 @@ td select {
     width: 148px;
   }
 
-  .cover-info-cell {
-    flex-wrap: wrap;
-  }
-
-  .cover-file-line {
-    flex: 1 1 100%;
-    max-width: 100%;
+  .covers-file-col,
+  .cover-file-cell {
+    width: 110px;
   }
 
   .covers-actions {
-    flex-wrap: wrap;
     justify-content: flex-start;
   }
 
