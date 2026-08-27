@@ -156,7 +156,7 @@
 
 <div id="coversModal" class="modal" hidden>
   <div class="modal-backdrop" data-close-covers="1"></div>
-  <div class="modal-dialog users-dialog covers-dialog" role="dialog" aria-modal="true" aria-labelledby="coversTitle">
+  <div class="modal-dialog covers-dialog" role="dialog" aria-modal="true" aria-labelledby="coversTitle">
     <div class="modal-header">
       <h2 id="coversTitle">Подложки</h2>
       <div class="review-actions">
@@ -164,28 +164,25 @@
         <button id="btnCloseCovers" class="icon-button" type="button">×</button>
       </div>
     </div>
-    <div class="modal-body users-body">
-      <section class="users-create">
+    <div class="modal-body covers-body">
+      <section class="covers-create">
         <h3>Добавить подложку</h3>
-        <div class="users-form-row">
-          <label class="stack form-field compact-field">
+        <div class="covers-upload-row">
+          <label class="stack form-field covers-upload-field">
             <span>Файл (JPG/PNG)</span>
             <input id="coverUploadFile" type="file" accept="image/jpeg,image/png,image/jpg">
           </label>
-          <label class="stack form-field compact-field">
+          <label class="stack form-field covers-upload-field">
             <span>Название</span>
             <input id="coverUploadName" type="text" maxlength="128" autocomplete="off" placeholder="Название локации">
           </label>
+          <button id="btnUploadCover" class="primary covers-upload-btn" type="button">Загрузить</button>
         </div>
-        <div class="review-actions">
-          <button id="btnUploadCover" class="primary" type="button">Загрузить</button>
-        </div>
-        <p class="muted">Нужны и файл, и название. Файл хранится на сервере.</p>
         <div id="coversResult" class="users-result" hidden></div>
       </section>
-      <section class="users-list-wrap">
+      <section class="covers-list-wrap">
         <h3>Список подложек</h3>
-        <div class="table-shell covers-table-shell">
+        <div class="covers-table-shell">
           <table class="covers-table">
             <thead>
               <tr>
