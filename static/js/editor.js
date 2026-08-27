@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
 
 const EDITOR_CONFIG = JSON.parse(document.getElementById("editorConfig")?.textContent || "{}");
 const TRANSLATION_ENABLED = Boolean(EDITOR_CONFIG.translationEnabled);
+const CAN_EDIT_DATABASE = Boolean(EDITOR_CONFIG.canEditDatabase);
 const GROUP_OPTIONS = [
   "",
   "Салаты",
@@ -250,10 +251,21 @@ function updateSearchVisibility() {
   if (!input) {
     return;
   }
+  if (!CAN_EDIT_DATABASE) {
+    input.hidden = false;
+    return;
+  }
   input.hidden = $("onlyNew").checked;
   if (input.hidden) {
     input.value = "";
   }
+}
+
+function buildReadOnlyCell(text) {
+  const span = document.createElement("span");
+  span.className = "readonly-cell";
+  span.textContent = text ?? "";
+  return span;
 }
 
 function buildGroupSelect(row, onManualEdit = null) {
@@ -417,6 +429,33 @@ function render() {
     tr.classList.toggle("dirty-row", !row._isNew && Boolean(row._dirty));
     tr.classList.toggle("error-row", !String(row.ru || "").trim());
     tr.classList.toggle("auto-translated-row", Boolean(row._autoTranslated));
+
+    if (!CAN_EDIT_DATABASE) {
+      const ruTd = document.createElement("td");
+      ruTd.appendChild(buildReadOnlyCell(row.ru));
+      tr.appendChild(ruTd);
+
+      const enTd = document.createElement("td");
+      enTd.appendChild(buildReadOnlyCell(row.en));
+      tr.appendChild(enTd);
+
+      const numberTd = document.createElement("td");
+      numberTd.className = "number-cell";
+      const numberGrid = document.createElement("div");
+      numberGrid.className = "number-grid";
+      ["kcal", "gr"].forEach((key) => {
+        numberGrid.appendChild(buildReadOnlyCell(row[key] ?? ""));
+      });
+      numberTd.appendChild(numberGrid);
+      tr.appendChild(numberTd);
+
+      const groupTd = document.createElement("td");
+      groupTd.appendChild(buildReadOnlyCell(row.catRu || "Без группы"));
+      tr.appendChild(groupTd);
+
+      tbody.appendChild(tr);
+      return;
+    }
 
     let translateButton = null;
     const updateRowButtons = () => updateTranslateButton(translateButton, row);
@@ -582,7 +621,7 @@ function setFocusedRows(items) {
   });
 }
 
-$("onlyNew").addEventListener("change", async () => {
+$("onlyNew")?.addEventListener("change", async () => {
   if (!$("onlyNew").checked) {
     await ensureFullDatabaseLoaded();
   }
@@ -590,13 +629,16 @@ $("onlyNew").addEventListener("change", async () => {
   render();
 });
 
-$("btnAddRow").addEventListener("click", () => {
+$("btnAddRow")?.addEventListener("click", () => {
+  if (!CAN_EDIT_DATABASE) {
+    return;
+  }
   addBlankRow();
 });
 
-$("searchRu").addEventListener("input", render);
+$("searchRu")?.addEventListener("input", render);
 
-$("btnResetFilters").addEventListener("click", () => {
+$("btnResetFilters")?.addEventListener("click", () => {
   $("searchRu").value = "";
   sortState = {key: "", direction: "asc"};
   updateSortButtons();
@@ -613,8 +655,8 @@ if ($("btnTranslateAll")) {
   });
 }
 
-$("btnSave").addEventListener("click", async () => {
-  if (saveInFlight) {
+$("btnSave")?.addEventListener("click", async () => {
+  if (!CAN_EDIT_DATABASE || saveInFlight) {
     return;
   }
 
@@ -676,6 +718,17 @@ $("btnSave").addEventListener("click", async () => {
 });
 
 window.addEventListener("load", async () => {
+  if (!CAN_EDIT_DATABASE) {
+    $("onlyNew").checked = false;
+    updateSearchVisibility();
+    updateSortButtons();
+    focusedRuSet = null;
+    focusedOrder = new Map();
+    await loadRows();
+    status("Просмотр базы. Редактирование доступно только администратору. Можно экспортировать CSV.");
+    return;
+  }
+
   const incomingRaw = loadStorageJson(STORAGE_KEYS.editorRows);
   const incoming = Array.isArray(incomingRaw) ? incomingRaw.filter((item) => item && item.ru) : [];
   removeStorage(STORAGE_KEYS.editorRows);

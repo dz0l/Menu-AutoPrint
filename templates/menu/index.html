@@ -17,7 +17,7 @@
   <label class="cover-select-wrap" title="Подложка">
     <span class="visually-hidden">Подложка</span>
     <select id="coverSelect" class="cover-select" aria-label="Подложка">
-      <option value="">Не выбрана</option>
+      <option value="">Подложка:</option>
       <option value="__custom__">Своя</option>
     </select>
   </label>
@@ -40,7 +40,9 @@
   {% endif %}
   <label class="inline" title="Сначала уменьшать отступы, затем шрифт, чтобы меню умещалось на лист A4"><input id="autoFormat" type="checkbox"> Автоформат</label>
   <label class="inline" title="Печатать через HTML-страницу браузера вместо PDF"><input id="alternatePrintMode" type="checkbox"> Режим альтернативной печати</label>
+  {% if request.user.is_authenticated and request.user.is_admin %}
   <label class="inline" title="Вывод диагностических сообщений в DevTools Console"><input id="debugLogging" type="checkbox"> Логирование</label>
+  {% endif %}
 </section>
 {% endblock %}
 {% block content %}
@@ -54,7 +56,9 @@
       <div class="field-tools">
         <button id="btnUndo" class="icon-button" type="button" title="Отменить" aria-label="Отменить"><span class="ui-icon" data-ui-icon="undo-2"></span></button>
         <button id="btnRedo" class="icon-button" type="button" title="Повторить" aria-label="Повторить"><span class="ui-icon" data-ui-icon="redo-2"></span></button>
+        {% if request.user.is_authenticated and request.user.is_admin %}
         <button id="btnMissing" class="button" type="button"><span class="ui-icon" data-ui-icon="database-zap"></span> Проверить и открыть редактор</button>
+        {% endif %}
       </div>
     </div>
     <div class="editor-wrap">
@@ -185,9 +189,8 @@
           <table class="covers-table">
             <thead>
               <tr>
-                <th>JPG</th>
-                <th>Локация</th>
-                <th>Действие</th>
+                <th>Подложка</th>
+                <th class="covers-actions-col">Действие</th>
               </tr>
             </thead>
             <tbody id="coversList"></tbody>
@@ -200,5 +203,6 @@
 {% endif %}
 {% endblock %}
 {% block scripts %}
+{{ app_config|json_script:"appConfig" }}
 <script src="{% static 'js/app.js' %}" defer></script>
 {% endblock %}

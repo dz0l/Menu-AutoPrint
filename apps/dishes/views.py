@@ -47,6 +47,10 @@ def _editor_required(request):
     return request.user.is_authenticated and request.user.is_active
 
 
+def _admin_required(request):
+    return _editor_required(request) and bool(getattr(request.user, "is_admin", False))
+
+
 @require_http_methods(["GET", "POST"])
 def dishes(request):
     if not _editor_required(request):
@@ -55,6 +59,8 @@ def dishes(request):
         items = [dish_to_dict(dish) for dish in list_dishes(request.GET)]
         return JsonResponse({"revision": base_revision(), "dishes": items})
 
+    if not _admin_required(request):
+        return JsonResponse({"error": "forbidden"}, status=403)
     try:
         dish, created = upsert_dish(_json_body(request), request.user)
     except ValueError as exc:
@@ -64,7 +70,7 @@ def dishes(request):
 
 @require_http_methods(["PATCH", "DELETE"])
 def dish_detail(request, dish_id):
-    if not _editor_required(request):
+    if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
     dish = get_object_or_404(Dish, id=dish_id)
     if request.method == "DELETE":
@@ -122,7 +128,7 @@ def export_csv(request):
 
 @require_http_methods(["POST"])
 def import_csv(request):
-    if not _editor_required(request):
+    if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
     uploaded = request.FILES.get("file")
     text = uploaded.read().decode("utf-8-sig") if uploaded else request.body.decode("utf-8-sig")
@@ -132,7 +138,7 @@ def import_csv(request):
 
 @require_http_methods(["POST"])
 def bulk_upsert(request):
-    if not _editor_required(request):
+    if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
     payload = _json_body(request)
     rows = payload.get("rows", [])
@@ -168,7 +174,7 @@ def bulk_upsert(request):
 
 @require_http_methods(["POST"])
 def check_missing_fixables_view(request):
-    if not _editor_required(request):
+    if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
     payload = _json_body(request)
     lines = payload.get("ru_lines") or payload.get("lines") or []
@@ -178,14 +184,14 @@ def check_missing_fixables_view(request):
 
 @require_http_methods(["GET"])
 def translation_status_view(request):
-    if not _editor_required(request):
+    if not _admin_required(request):
         return JsonResponse({"enabled": False})
     return JsonResponse({"enabled": is_translation_configured()})
 
 
 @require_http_methods(["POST"])
 def translate_view(request):
-    if not _editor_required(request):
+    if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
     payload = _json_body(request)
     texts = payload.get("texts") or []

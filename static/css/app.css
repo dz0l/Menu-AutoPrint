@@ -775,6 +775,19 @@ td select {
   -webkit-appearance: none;
 }
 
+.readonly-cell {
+  display: block;
+  padding: 6px 8px;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.editor-readonly .number-grid .readonly-cell {
+  padding-inline: 6px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .translate-col,
 .translate-cell {
   text-align: center;
@@ -857,6 +870,10 @@ td select {
   width: min(980px, calc(100% - 32px));
 }
 
+.covers-dialog {
+  width: min(640px, calc(100% - 32px));
+}
+
 .cover-select-wrap {
   display: inline-flex;
   align-items: center;
@@ -878,12 +895,13 @@ td select {
 }
 
 .covers-table-shell {
-  overflow: auto;
+  overflow: visible;
 }
 
 .covers-table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .covers-table th,
@@ -894,9 +912,24 @@ td select {
   vertical-align: middle;
 }
 
+.covers-actions-col {
+  width: 128px;
+}
+
+.cover-info-cell {
+  display: grid;
+  gap: 6px;
+}
+
+.cover-file-line {
+  font-size: 12px;
+  color: var(--muted, #6b7280);
+  word-break: break-all;
+}
+
 .cover-name-input {
   width: 100%;
-  min-width: 140px;
+  min-width: 0;
   height: 34px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -907,9 +940,14 @@ td select {
 
 .covers-actions {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  align-items: center;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.covers-actions .button,
+.covers-actions .danger-button {
+  width: 100%;
 }
 
 .modal-header {

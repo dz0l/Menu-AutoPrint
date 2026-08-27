@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Редактор базы{% endblock %}
+{% block title %}{% if editor_config.canEditDatabase %}Редактор базы{% else %}База блюд{% endif %}{% endblock %}
 {% block topbar_actions %}
 <div class="page-actions editor-actions">
+  {% if editor_config.canEditDatabase %}
   <button id="btnAddRow" class="icon-button" type="button" title="Добавить блюдо" aria-label="Добавить блюдо">+</button>
+  {% endif %}
   <a class="button-link" href="{% url 'dishes:export_csv' %}">Экспорт CSV</a>
+  {% if editor_config.canEditDatabase %}
   <button id="btnSave" class="primary" type="button">Сохранить</button>
+  {% endif %}
   <span id="status" class="muted"></span>
 </div>
 {% endblock %}
@@ -15,39 +19,45 @@
 <button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon" data-ui-icon="moon-star"></span></button>
 {% endblock %}
 {% block content %}
-<div class="editor-workspace">
+<div class="editor-workspace{% if not editor_config.canEditDatabase %} editor-readonly{% endif %}">
   <aside class="surface editor-sidebar">
     <section class="filter-section">
       <h1>Фильтры и режимы</h1>
+      {% if editor_config.canEditDatabase %}
       <div class="segment-row" aria-label="Режим отображения">
         <label class="toggle-pill mode-toggle"><input id="onlyNew" type="checkbox" checked><span>Только новые</span></label>
       </div>
-      <input id="searchRu" class="editor-search" type="search" placeholder="Поиск RU" autocomplete="off" hidden>
+      {% else %}
+      <input id="onlyNew" class="visually-hidden" type="checkbox">
+      {% endif %}
+      <input id="searchRu" class="editor-search" type="search" placeholder="Поиск RU" autocomplete="off" {% if editor_config.canEditDatabase %}hidden{% endif %}>
       <button id="btnResetFilters" class="button" type="button">Сбросить</button>
     </section>
   </aside>
 
   <section class="surface table-panel desk-panel">
     <div class="editor-table-head">
-      <h1>Рабочая таблица</h1>
+      <h1>{% if editor_config.canEditDatabase %}Рабочая таблица{% else %}Просмотр базы{% endif %}</h1>
     </div>
     <div class="table-shell">
       <table>
         <thead>
           <tr>
-            <th style="width: 29%;"><button class="table-sort" type="button" data-sort="ru">RU</button></th>
+            <th style="width: {% if editor_config.canEditDatabase %}29{% else %}34{% endif %}%;"><button class="table-sort" type="button" data-sort="ru">RU</button></th>
             {% if editor_config.translationEnabled %}
             <th class="translate-col" style="width: 6%;"><button id="btnTranslateAll" class="icon-button" type="button" title="Перевести пустые EN" aria-label="Перевести пустые EN"><span class="ui-icon" data-ui-icon="spell-check"></span></button></th>
             {% endif %}
-            <th style="width: 29%;"><button class="table-sort" type="button" data-sort="en">EN</button></th>
+            <th style="width: {% if editor_config.canEditDatabase %}29{% else %}34{% endif %}%;"><button class="table-sort" type="button" data-sort="en">EN</button></th>
             <th style="width: 10%;">
               <div class="number-head">
                 <span>Калл</span>
                 <span>Гр</span>
               </div>
             </th>
-            <th style="width: 18%;"><button class="table-sort" type="button" data-sort="catRu">Группа RU</button></th>
+            <th style="width: {% if editor_config.canEditDatabase %}18{% else %}22{% endif %}%;"><button class="table-sort" type="button" data-sort="catRu">Группа RU</button></th>
+            {% if editor_config.canEditDatabase %}
             <th class="action-col" style="width: 8%;">Действие</th>
+            {% endif %}
           </tr>
         </thead>
         <tbody id="rows"></tbody>

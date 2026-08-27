@@ -195,7 +195,10 @@ def _build_pdf_from_payload(payload: dict) -> bytes:
 
 
 def _archive_pdf(request, pdf: bytes, payload: dict) -> None:
-    """Persist PDF for archive. Failures are logged and do not block download."""
+    """Persist PDF for archive. Editors download only; admins also archive."""
+    user = getattr(request, "user", None)
+    if not getattr(user, "is_admin", False):
+        return
     try:
         save_menu_pdf_to_archive(
             pdf,
@@ -204,7 +207,7 @@ def _archive_pdf(request, pdf: bytes, payload: dict) -> None:
             background_name=payload.get("background_name") or "",
             location_key=payload.get("location_key"),
             location_label=payload.get("location_label"),
-            user=getattr(request, "user", None),
+            user=user,
         )
     except Exception:
         logger.exception("Failed to save menu PDF to archive")
@@ -246,13 +249,32 @@ def _document_pages(payload: dict) -> list[dict]:
 @ensure_csrf_cookie
 @login_required
 def index(request):
-    return render(request, "menu/index.html")
+    return render(
+        request,
+        "menu/index.html",
+        {
+            "app_config": {
+                "isAdmin": bool(getattr(request.user, "is_admin", False)),
+            }
+        },
+    )
 
 
 @ensure_csrf_cookie
 @login_required
 def editor(request):
-    return render(request, "menu/editor.html", {"editor_config": {"translationEnabled": is_translation_configured()}})
+    is_admin = bool(getattr(request.user, "is_admin", False))
+    return render(
+        request,
+        "menu/editor.html",
+        {
+            "editor_config": {
+                "translationEnabled": is_admin and is_translation_configured(),
+                "canEditDatabase": is_admin,
+                "isAdmin": is_admin,
+            }
+        },
+    )
 
 
 @ensure_csrf_cookie
@@ -336,6 +358,8 @@ def preview_api(request):
 @login_required
 @require_http_methods(["POST"])
 def analyze_api(request):
+    if not _admin_required(request):
+        return JsonResponse({"error": "forbidden"}, status=403)
     data = _request_payload(request)
     return JsonResponse({"decisions": analyze_pasted(data.get("text") or "")})
 

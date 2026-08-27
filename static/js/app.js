@@ -14,6 +14,9 @@ const STORAGE_KEYS = {
   autoFormat: "menu_auto_format",
 };
 
+const APP_CONFIG = JSON.parse(document.getElementById("appConfig")?.textContent || "{}");
+const IS_ADMIN = Boolean(APP_CONFIG.isAdmin);
+
 const $ = (id) => document.getElementById(id);
 const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("csrftoken="))?.split("=")[1] || "";
 
@@ -773,6 +776,10 @@ async function preview(reason = "manual") {
 }
 
 async function refreshActions(reason = "manual") {
+  if (!IS_ADMIN || !$("btnMissing")) {
+    return;
+  }
+
   const payload = {
     ru_lines: lines($("ruText").value),
     show_kcal: $("showKcal").checked,
@@ -839,10 +846,13 @@ async function refreshActions(reason = "manual") {
   lastFixables = data.fixables || [];
   actionsAppliedSignature = signature;
   const total = lastMissing.length + lastFixables.length;
-  $("btnMissing").classList.toggle("warn", total > 0);
-  $("btnMissing").title = total
-    ? `Новых блюд: ${lastMissing.length}, неполных блюд: ${lastFixables.length}`
-    : "Проверить меню и открыть редактор при необходимости";
+  const btnMissing = $("btnMissing");
+  if (btnMissing) {
+    btnMissing.classList.toggle("warn", total > 0);
+    btnMissing.title = total
+      ? `Новых блюд: ${lastMissing.length}, неполных блюд: ${lastFixables.length}`
+      : "Проверить меню и открыть редактор при необходимости";
+  }
   debugLog("actions:updated", {
     seq,
     reason,
@@ -1180,17 +1190,21 @@ function syncCoverSelectValue() {
   }
   const selection = getCoverSelection();
   let value = "";
-  if (selection.mode === COVER_MODE.custom) {
+  if (selection.mode === COVER_MODE.custom && loadStorage(STORAGE_KEYS.pdfBackgroundData, "")) {
     value = "__custom__";
   } else if (selection.mode === COVER_MODE.cover && selection.coverId) {
     value = String(selection.coverId);
   }
   coverSelectQuiet = true;
-  select.value = value;
-  if (select.value !== value) {
-    select.value = "__custom__";
+  if (value && [...select.options].some((item) => item.value === value)) {
+    select.value = value;
+  } else if (selection.mode === COVER_MODE.cover && selection.coverId) {
+    // Cover was deleted or catalog not ready yet — keep placeholder until options load.
+    select.value = "";
+  } else {
+    select.value = "";
   }
-  previousCoverSelectValue = select.value || "__custom__";
+  previousCoverSelectValue = select.value || "";
   coverSelectQuiet = false;
 }
 
@@ -1199,11 +1213,10 @@ function renderCoverSelectOptions() {
   if (!select) {
     return;
   }
-  const current = select.value;
   select.innerHTML = "";
   const empty = document.createElement("option");
   empty.value = "";
-  empty.textContent = "Не выбрана";
+  empty.textContent = "Подложка:";
   select.appendChild(empty);
 
   const custom = document.createElement("option");
@@ -1221,14 +1234,8 @@ function renderCoverSelectOptions() {
       select.appendChild(option);
     });
 
-  coverSelectQuiet = true;
-  if ([...select.options].some((item) => item.value === current)) {
-    select.value = current;
-  } else {
-    syncCoverSelectValue();
-  }
-  previousCoverSelectValue = select.value || "__custom__";
-  coverSelectQuiet = false;
+  // Always restore saved selection after options are rebuilt.
+  syncCoverSelectValue();
 }
 
 async function loadCoversCatalog() {
@@ -1791,7 +1798,7 @@ function renderCoversAdminList(covers) {
     .sort((left, right) => String(left.location_name || "").localeCompare(String(right.location_name || ""), "ru"));
 
   if (!sorted.length) {
-    list.innerHTML = '<tr><td colspan="3" class="muted">Пока нет загруженных подложек.</td></tr>';
+    list.innerHTML = '<tr><td colspan="2" class="muted">Пока нет загруженных подложек.</td></tr>';
     return;
   }
 
@@ -1799,19 +1806,21 @@ function renderCoversAdminList(covers) {
     const row = document.createElement("tr");
     row.dataset.coverId = String(cover.id);
 
-    const fileCell = document.createElement("td");
-    fileCell.textContent = cover.original_filename || "—";
-    row.appendChild(fileCell);
-
-    const nameCell = document.createElement("td");
+    const infoCell = document.createElement("td");
+    infoCell.className = "cover-info-cell";
+    const fileLine = document.createElement("div");
+    fileLine.className = "cover-file-line";
+    fileLine.textContent = cover.original_filename || "—";
     const nameInput = document.createElement("input");
     nameInput.type = "text";
     nameInput.className = "cover-name-input";
     nameInput.value = cover.location_name || "";
     nameInput.maxLength = 128;
     nameInput.dataset.original = cover.location_name || "";
-    nameCell.appendChild(nameInput);
-    row.appendChild(nameCell);
+    nameInput.setAttribute("aria-label", "Название локации");
+    infoCell.appendChild(fileLine);
+    infoCell.appendChild(nameInput);
+    row.appendChild(infoCell);
 
     const actionCell = document.createElement("td");
     actionCell.className = "covers-actions";
@@ -1887,12 +1896,12 @@ async function loadCoversAdmin() {
     return;
   }
   coversLoading = true;
-  list.innerHTML = '<tr><td colspan="3" class="muted">Загрузка...</td></tr>';
+  list.innerHTML = '<tr><td colspan="2" class="muted">Загрузка...</td></tr>';
   try {
     const data = await requestJson("/api/menu/covers");
     renderCoversAdminList(data.covers || []);
   } catch (error) {
-    list.innerHTML = `<tr><td colspan="3" class="danger">${error.message}</td></tr>`;
+    list.innerHTML = `<tr><td colspan="2" class="danger">${error.message}</td></tr>`;
   } finally {
     coversLoading = false;
   }
@@ -2145,7 +2154,7 @@ $("btnKcalToggle")?.addEventListener("click", () => {
   checkbox.dispatchEvent(new Event("change", {bubbles: true}));
 });
 
-$("debugLogging").addEventListener("change", () => {
+$("debugLogging")?.addEventListener("change", () => {
   applyDebugLogging($("debugLogging").checked);
 });
 
@@ -2340,12 +2349,12 @@ $("btnPdf").addEventListener("click", async () => {
   }
 });
 
-$("btnMissing").addEventListener("click", async () => {
+$("btnMissing")?.addEventListener("click", async () => {
   await checkAndOpenEditor();
 });
 
 window.addEventListener("load", () => {
-  const runEditorSaveCheck = loadStorage(STORAGE_KEYS.editorSavedChanges, "") === "1";
+  const runEditorSaveCheck = IS_ADMIN && loadStorage(STORAGE_KEYS.editorSavedChanges, "") === "1";
   removeStorage(STORAGE_KEYS.editorSavedChanges);
   $("ruText").value = loadStorage(STORAGE_KEYS.lastRu, "");
   $("enText").value = loadStorage(STORAGE_KEYS.lastEn, "");
@@ -2369,7 +2378,7 @@ window.addEventListener("load", () => {
   updatePreviewBackground();
   initPreviewPageFit();
   applyTheme(loadStorage(STORAGE_KEYS.themeMode, "light"));
-  applyDebugLogging(loadStorage(STORAGE_KEYS.debugLogging, "0") === "1");
+  applyDebugLogging(IS_ADMIN && loadStorage(STORAGE_KEYS.debugLogging, "0") === "1");
   applyAlternatePrintMode(loadStorage(STORAGE_KEYS.alternatePrintMode, "0") === "1");
   setSettingsOpen(false);
   setReviewOpen(false);
