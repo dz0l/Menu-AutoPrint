@@ -920,24 +920,30 @@ td select {
 }
 
 .covers-actions-col {
-  width: 180px;
+  width: 220px;
 }
 
 .cover-info-cell {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
 }
 
 .cover-file-line {
-  font-size: 12px;
+  flex: 0 1 42%;
+  max-width: 42%;
+  font-size: 13px;
   color: var(--muted, #6b7280);
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cover-name-input {
-  width: 100%;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 140px;
+  width: auto;
   height: 34px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -948,15 +954,18 @@ td select {
 
 .covers-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: 8px;
-  align-items: stretch;
-  min-width: 148px;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 .covers-actions .button,
 .covers-actions .danger-button {
-  width: 100%;
+  width: auto;
+  flex: 0 0 auto;
   white-space: nowrap;
   padding-inline: 12px;
 }
@@ -1245,6 +1254,20 @@ td select {
 
   .covers-actions-col {
     width: 148px;
+  }
+
+  .cover-info-cell {
+    flex-wrap: wrap;
+  }
+
+  .cover-file-line {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
+  .covers-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
 
   .review-item {
