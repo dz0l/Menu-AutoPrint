@@ -3,7 +3,7 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>{% block title %}Формирование меню{% endblock %}</title>
   <link rel="icon" href="{% static 'favicon.ico' %}" sizes="any">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
@@ -19,7 +19,7 @@
     })();
   </script>
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
   <div class="app">
     <script>
       (function () {
@@ -37,8 +37,8 @@
       <nav class="nav">
         {% block header_controls %}{% endblock %}
         {% if request.user.is_authenticated %}
-          <span>{{ request.user.username }}</span>
-          <form action="{% url 'logout' %}" method="post">
+          <span class="topbar-user desktop-chrome">{{ request.user.username }}</span>
+          <form class="desktop-chrome" action="{% url 'logout' %}" method="post">
             {% csrf_token %}
             <button class="icon-button" type="submit" title="Выход" aria-label="Выход"><span class="ui-icon" data-ui-icon="logout"></span></button>
           </form>
@@ -52,7 +52,79 @@
       {% block content %}{% endblock %}
     </main>
     <div id="toast" class="toast" hidden></div>
+
+    {% if request.user.is_authenticated %}
+    <div id="mobileSheetBackdrop" class="mobile-sheet-backdrop" hidden></div>
+
+    <section id="mobileSheetMain" class="mobile-sheet" hidden data-mobile-sheet="main" aria-label="Основное">
+      <div class="mobile-sheet-head">
+        <h2>Основное</h2>
+        <button type="button" class="icon-button mobile-sheet-close" data-close-sheet aria-label="Закрыть">×</button>
+      </div>
+      <div class="mobile-sheet-body">
+        <div id="mobileMainSlot" class="mobile-slot"></div>
+        <p id="mobileMainHint" class="muted mobile-main-hint" hidden>
+          Дата, подложка и калории настраиваются на экране формирования меню.
+          <a href="{% url 'menu:index' %}">Открыть меню</a>
+        </p>
+      </div>
+    </section>
+
+    <section id="mobileSheetBase" class="mobile-sheet" hidden data-mobile-sheet="base" aria-label="База">
+      <div class="mobile-sheet-head">
+        <h2>База</h2>
+        <button type="button" class="icon-button mobile-sheet-close" data-close-sheet aria-label="Закрыть">×</button>
+      </div>
+      <div class="mobile-sheet-body mobile-sheet-links">
+        <a class="mobile-sheet-link" href="{% url 'menu:archive' %}"><span class="ui-icon" data-ui-icon="archive"></span> Архив</a>
+        <a class="mobile-sheet-link" href="{% url 'menu:editor' %}"><span class="ui-icon" data-ui-icon="database"></span> База блюд</a>
+        <a class="mobile-sheet-link" href="{% url 'menu:index' %}"><span class="ui-icon" data-ui-icon="printer"></span> Формирование меню</a>
+      </div>
+    </section>
+
+    <section id="mobileSheetSettings" class="mobile-sheet" hidden data-mobile-sheet="settings" aria-label="Настройки">
+      <div class="mobile-sheet-head">
+        <h2>Настройки</h2>
+        <button type="button" class="icon-button mobile-sheet-close" data-close-sheet aria-label="Закрыть">×</button>
+      </div>
+      <div class="mobile-sheet-body">
+        <p class="muted mobile-user-line">{{ request.user.username }}</p>
+        <button id="btnMobileTheme" class="button mobile-sheet-action" type="button">
+          <span class="ui-icon" data-ui-icon="moon-star"></span> Тема светлая / тёмная
+        </button>
+        <div id="mobileSettingsSlot" class="mobile-slot mobile-settings-slot"></div>
+        <form action="{% url 'logout' %}" method="post" class="mobile-logout-form">
+          {% csrf_token %}
+          <button class="button danger-button mobile-sheet-action" type="submit">
+            <span class="ui-icon" data-ui-icon="logout"></span> Выход
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <nav id="mobileTabBar" class="mobile-tab-bar" aria-label="Мобильное меню">
+      <button type="button" class="mobile-tab" data-mobile-tab="main" aria-label="Основное">
+        <span class="ui-icon" data-ui-icon="calendar"></span>
+        <span class="mobile-tab-label">Основное</span>
+      </button>
+      <button type="button" class="mobile-tab" data-mobile-tab="base" aria-label="База">
+        <span class="ui-icon" data-ui-icon="database"></span>
+        <span class="mobile-tab-label">База</span>
+      </button>
+      <button type="button" class="mobile-tab" data-mobile-tab="settings" aria-label="Настройки">
+        <span class="ui-icon" data-ui-icon="settings"></span>
+        <span class="mobile-tab-label">Настройки</span>
+      </button>
+      <button type="button" class="mobile-tab mobile-tab-print" data-mobile-tab="print" aria-label="Печать">
+        <span class="ui-icon" data-ui-icon="printer"></span>
+        <span class="mobile-tab-label">Печать</span>
+      </button>
+    </nav>
+    {% endif %}
   </div>
   {% block scripts %}{% endblock %}
+  {% if request.user.is_authenticated %}
+  <script src="{% static 'js/mobile.js' %}" defer></script>
+  {% endif %}
 </body>
 </html>

@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Формирование меню{% endblock %}
+{% block body_class %}page-index{% endblock %}
 {% block topbar_actions %}
-<div class="page-actions main-toolbar">
+<div id="mainToolbar" class="page-actions main-toolbar">
   <select id="printDateMode" class="visually-hidden" aria-hidden="true" tabindex="-1">
     <option value="today">Сегодня</option>
     <option value="tomorrow">Завтра</option>
@@ -26,20 +27,22 @@
 </div>
 {% endblock %}
 {% block header_controls %}
-<a class="icon-button" href="{% url 'menu:archive' %}" title="Архив" aria-label="Архив"><span class="ui-icon" data-ui-icon="archive"></span></a>
-<a class="icon-button" href="{% url 'menu:editor' %}" title="База" aria-label="База"><span class="ui-icon" data-ui-icon="database"></span></a>
-<button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon" data-ui-icon="moon-star"></span></button>
-<button id="btnSettings" class="icon-button" type="button" aria-expanded="false" aria-controls="settingsBar" aria-label="Настройки" title="Настройки"><span class="ui-icon" data-ui-icon="settings"></span></button>
-<button id="btnPdf" class="primary" type="button"><span class="ui-icon" data-ui-icon="printer"></span> Печать</button>
+<a class="icon-button desktop-chrome" href="{% url 'menu:archive' %}" title="Архив" aria-label="Архив"><span class="ui-icon" data-ui-icon="archive"></span></a>
+<a class="icon-button desktop-chrome" href="{% url 'menu:editor' %}" title="База" aria-label="База"><span class="ui-icon" data-ui-icon="database"></span></a>
+<button id="btnTheme" class="icon-button desktop-chrome" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon" data-ui-icon="moon-star"></span></button>
+<button id="btnSettings" class="icon-button desktop-chrome" type="button" aria-expanded="false" aria-controls="settingsBar" aria-label="Настройки" title="Настройки"><span class="ui-icon" data-ui-icon="settings"></span></button>
+<button id="btnPdf" class="primary desktop-chrome" type="button"><span class="ui-icon" data-ui-icon="printer"></span> Печать</button>
 {% endblock %}
 {% block topbar_panel %}
-<section id="settingsBar" class="settings-bar shell" hidden>
+<section id="settingsBar" class="settings-bar shell desktop-chrome" hidden>
   {% if request.user.is_authenticated and request.user.is_admin %}
     <button id="btnUsers" type="button">Пользователи</button>
     <button id="btnCovers" type="button">Подложки</button>
   {% endif %}
-  <label class="inline" title="Сначала уменьшать отступы, затем шрифт, чтобы меню умещалось на лист A4"><input id="autoFormat" type="checkbox"> Автоформат</label>
-  <label class="inline" title="Печатать через HTML-страницу браузера вместо PDF"><input id="alternatePrintMode" type="checkbox"> Режим альтернативной печати</label>
+  <div id="settingsMobileExtras">
+    <label class="inline" title="Сначала уменьшать отступы, затем шрифт, чтобы меню умещалось на лист A4"><input id="autoFormat" type="checkbox"> Автоформат</label>
+    <label class="inline" title="Печатать через HTML-страницу браузера вместо PDF"><input id="alternatePrintMode" type="checkbox"> Режим альтернативной печати</label>
+  </div>
   {% if request.user.is_authenticated and request.user.is_admin %}
   <label class="inline" title="Вывод диагностических сообщений в DevTools Console"><input id="debugLogging" type="checkbox"> Логирование</label>
   {% endif %}

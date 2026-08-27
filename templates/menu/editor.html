@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}{% if editor_config.canEditDatabase %}Редактор базы{% else %}База блюд{% endif %}{% endblock %}
+{% block body_class %}page-editor{% endblock %}
 {% block topbar_actions %}
 <div class="page-actions editor-actions">
   {% if editor_config.canEditDatabase %}
@@ -14,9 +15,9 @@
 </div>
 {% endblock %}
 {% block header_controls %}
-<a class="icon-button" href="{% url 'menu:index' %}" title="Меню" aria-label="Меню"><span class="ui-icon" data-ui-icon="printer"></span></a>
-<a class="icon-button" href="{% url 'menu:archive' %}" title="Архив" aria-label="Архив"><span class="ui-icon" data-ui-icon="archive"></span></a>
-<button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon" data-ui-icon="moon-star"></span></button>
+<a class="icon-button desktop-chrome" href="{% url 'menu:index' %}" title="Меню" aria-label="Меню"><span class="ui-icon" data-ui-icon="printer"></span></a>
+<a class="icon-button desktop-chrome" href="{% url 'menu:archive' %}" title="Архив" aria-label="Архив"><span class="ui-icon" data-ui-icon="archive"></span></a>
+<button id="btnTheme" class="icon-button desktop-chrome" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon" data-ui-icon="moon-star"></span></button>
 {% endblock %}
 {% block content %}
 <div class="editor-workspace{% if not editor_config.canEditDatabase %} editor-readonly{% endif %}">

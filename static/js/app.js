@@ -1219,10 +1219,13 @@ function renderCoverSelectOptions() {
   empty.textContent = "Подложка:";
   select.appendChild(empty);
 
-  const custom = document.createElement("option");
-  custom.value = "__custom__";
-  custom.textContent = "Своя";
-  select.appendChild(custom);
+  const hideCustom = Boolean(window.MenuMobile?.isMobile?.());
+  if (!hideCustom) {
+    const custom = document.createElement("option");
+    custom.value = "__custom__";
+    custom.textContent = "Своя";
+    select.appendChild(custom);
+  }
 
   coversCatalog
     .slice()
@@ -1236,6 +1239,9 @@ function renderCoverSelectOptions() {
 
   // Always restore saved selection after options are rebuilt.
   syncCoverSelectValue();
+  if (hideCustom && getCoverSelection().mode === COVER_MODE.custom) {
+    clearBackground();
+  }
 }
 
 async function loadCoversCatalog() {
@@ -2407,3 +2413,11 @@ window.addEventListener("load", () => {
     setTimeout(() => refreshAfterEditorSave().catch((error) => toast(error.message)), 0);
   }
 });
+
+window.MenuApp = {
+  clearCustomCoverOnMobile() {
+    if (getCoverSelection().mode === COVER_MODE.custom) {
+      clearBackground();
+    }
+  },
+};

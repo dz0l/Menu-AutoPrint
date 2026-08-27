@@ -1,10 +1,11 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Архив меню{% endblock %}
+{% block body_class %}page-archive{% endblock %}
 {% block header_controls %}
-<a class="icon-button" href="{% url 'menu:index' %}" title="Меню" aria-label="Меню"><span class="ui-icon" data-ui-icon="printer"></span></a>
-<a class="icon-button" href="{% url 'menu:editor' %}" title="База" aria-label="База"><span class="ui-icon" data-ui-icon="database"></span></a>
-<button id="btnTheme" class="icon-button" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon" data-ui-icon="moon-star"></span></button>
+<a class="icon-button desktop-chrome" href="{% url 'menu:index' %}" title="Меню" aria-label="Меню"><span class="ui-icon" data-ui-icon="printer"></span></a>
+<a class="icon-button desktop-chrome" href="{% url 'menu:editor' %}" title="База" aria-label="База"><span class="ui-icon" data-ui-icon="database"></span></a>
+<button id="btnTheme" class="icon-button desktop-chrome" type="button" aria-label="Переключить тему" title="Переключить тему"><span class="ui-icon" data-ui-icon="moon-star"></span></button>
 {% endblock %}
 {% block content %}
 <section class="archive-page">
