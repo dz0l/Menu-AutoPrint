@@ -871,7 +871,7 @@ td select {
 }
 
 .covers-dialog {
-  width: min(640px, calc(100% - 32px));
+  width: min(900px, calc(100% - 32px));
 }
 
 .cover-select-wrap {
@@ -894,8 +894,15 @@ td select {
   border-color: var(--accent, #3b82f6);
 }
 
+.covers-dialog .users-form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 12px;
+}
+
 .covers-table-shell {
-  overflow: visible;
+  overflow-x: auto;
 }
 
 .covers-table {
@@ -906,25 +913,26 @@ td select {
 
 .covers-table th,
 .covers-table td {
-  padding: 8px 10px;
+  padding: 10px 12px;
   border-bottom: 1px solid var(--border);
   text-align: left;
   vertical-align: middle;
 }
 
 .covers-actions-col {
-  width: 128px;
+  width: 180px;
 }
 
 .cover-info-cell {
   display: grid;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .cover-file-line {
   font-size: 12px;
   color: var(--muted, #6b7280);
-  word-break: break-all;
+  word-break: break-word;
 }
 
 .cover-name-input {
@@ -935,19 +943,22 @@ td select {
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
-  padding: 0 8px;
+  padding: 0 10px;
 }
 
 .covers-actions {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   align-items: stretch;
+  min-width: 148px;
 }
 
 .covers-actions .button,
 .covers-actions .danger-button {
   width: 100%;
+  white-space: nowrap;
+  padding-inline: 12px;
 }
 
 .modal-header {
@@ -1222,9 +1233,18 @@ td select {
   }
 
   .modal-dialog,
-  .users-dialog {
+  .users-dialog,
+  .covers-dialog {
     width: calc(100% - 16px);
     margin: 8px auto;
+  }
+
+  .covers-dialog .users-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .covers-actions-col {
+    width: 148px;
   }
 
   .review-item {
