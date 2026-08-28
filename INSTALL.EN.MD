@@ -4,7 +4,6 @@ Django/PostgreSQL application for building bilingual menus, maintaining the dish
 
 Repository: `https://github.com/dz0l/Menu-AutoPrint`
 
-Русская версия: [README.md](README.md)
 
 ## Ubuntu Installation
 
