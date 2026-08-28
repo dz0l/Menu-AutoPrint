@@ -51,7 +51,7 @@ Menu AutoPrint также предоставляет инструменты дл
 
 ## **Скриншоты интерфейса**
 
-Главный экран:
-<img src="images/menu01.png" width="50%" />
-Результат в PDF на 2х страницах:
-<img src="images/menu03.png" width="50%" />
+<p> Главный экран: </p>
+<p> <img src="images/menu01.png" width="50%" /> </p>
+<p> Результат в PDF на 2х страницах: </p>
+<p> <img src="images/menu03.png" width="50%" /> </p>
