@@ -16,7 +16,7 @@ from .services import (
     export_dishes_csv,
     find_dish_by_ru_name,
     import_dishes_csv,
-    list_dishes,
+    list_dishes_page,
     suggest,
     update_dish,
     upsert_dish,
@@ -56,8 +56,17 @@ def dishes(request):
     if not _editor_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
     if request.method == "GET":
-        items = [dish_to_dict(dish) for dish in list_dishes(request.GET)]
-        return JsonResponse({"revision": base_revision(), "dishes": items})
+        page = list_dishes_page(request.GET)
+        items = [dish_to_dict(dish) for dish in page["dishes"]]
+        return JsonResponse(
+            {
+                "revision": base_revision(),
+                "dishes": items,
+                "total": page["total"],
+                "limit": page["limit"],
+                "offset": page["offset"],
+            }
+        )
 
     if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)

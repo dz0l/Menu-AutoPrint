@@ -2,11 +2,13 @@ const STORAGE_KEYS = {
   editorRows: "menu_editor_rows",
   editorSavedChanges: "menu_editor_saved_changes",
   debugLogging: "menu_debug_logging",
+  pageSize: "menu_editor_page_size",
 };
 
 const EDITOR_CONFIG = JSON.parse(document.getElementById("editorConfig")?.textContent || "{}");
 const TRANSLATION_ENABLED = Boolean(EDITOR_CONFIG.translationEnabled);
 const CAN_EDIT_DATABASE = Boolean(EDITOR_CONFIG.canEditDatabase);
+const PAGE_SIZES = [20, 60, 100];
 const GROUP_OPTIONS = [
   "",
   "Салаты",
@@ -25,12 +27,16 @@ const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("cs
 
 let rows = [];
 let deletedRowIds = [];
-let fullDatabaseLoaded = false;
 let focusedRuSet = null;
 let focusedOrder = new Map();
 let saveInFlight = false;
 let translateAllInFlight = false;
-let sortState = {key: "", direction: "asc"};
+let loadInFlight = false;
+let searchTimer = null;
+let pageSize = 20;
+let page = 1;
+let total = 0;
+let browseActive = false;
 
 function debugLog(event, data = {}) {
   try {
@@ -141,6 +147,15 @@ function saveStorage(key, value) {
   } catch {}
 }
 
+function loadPageSize() {
+  try {
+    const raw = Number(localStorage.getItem(STORAGE_KEYS.pageSize) || "20");
+    return PAGE_SIZES.includes(raw) ? raw : 20;
+  } catch {
+    return 20;
+  }
+}
+
 function normalizedKey(value) {
   return (value || "").trim().toLowerCase().replace(/ё/g, "е");
 }
@@ -152,36 +167,61 @@ function rowInFocusedSet(row) {
   return row._isNew || focusedRuSet.has(normalizedKey(row.ru));
 }
 
-function groupRank(value) {
-  const index = GROUP_OPTIONS.indexOf(value || "");
-  return index === -1 ? GROUP_OPTIONS.length : index;
+function isOnlyNewMode() {
+  return Boolean(CAN_EDIT_DATABASE && $("onlyNew")?.checked);
 }
 
-function searchQuery() {
+function isFocusedMode() {
+  return Boolean(focusedRuSet && focusedRuSet.size);
+}
+
+function searchQueryRaw() {
   const input = $("searchRu");
-  return input && !$("onlyNew").checked ? normalizedKey(input.value) : "";
+  if (!input || input.hidden) {
+    return "";
+  }
+  return String(input.value || "").trim();
 }
 
-function visibleRows() {
-  let current = rows;
-  if (focusedRuSet && focusedRuSet.size) {
-    current = current.filter((row) => rowInFocusedSet(row));
-  } else if ($("onlyNew").checked) {
-    current = current.filter((row) => row._isNew);
-  }
+function hasUnsavedChanges() {
+  return changedRows().length > 0 || changedDeleteIds().length > 0;
+}
 
-  const query = searchQuery();
-  if (query) {
-    current = current.filter((row) => normalizedKey(row.ru).includes(query));
+function guardUnsaved(actionLabel = "действие") {
+  if (!hasUnsavedChanges()) {
+    return true;
   }
-  return sortRowsForDisplay(current);
+  toast(`Сначала сохраните изменения перед: ${actionLabel}.`);
+  return false;
+}
+
+function pageCount() {
+  if (!total) {
+    return 1;
+  }
+  return Math.max(1, Math.ceil(total / pageSize));
 }
 
 function editableRows() {
-  if (focusedRuSet && focusedRuSet.size) {
+  if (isFocusedMode()) {
     return rows.filter((row) => rowInFocusedSet(row));
   }
-  return $("onlyNew").checked ? rows.filter((row) => row._isNew) : rows;
+  if (isOnlyNewMode()) {
+    return rows.filter((row) => row._isNew);
+  }
+  return rows;
+}
+
+function visibleRows() {
+  if (isFocusedMode()) {
+    return [...rows]
+      .filter((row) => rowInFocusedSet(row))
+      .sort((left, right) => focusedRank(left) - focusedRank(right));
+  }
+  if (isOnlyNewMode()) {
+    return rows.filter((row) => row._isNew);
+  }
+  return rows;
 }
 
 function changedRows() {
@@ -192,58 +232,24 @@ function changedDeleteIds() {
   return [...new Set(deletedRowIds)];
 }
 
-function statusText(extra = "") {
-  const shown = visibleRows().length;
-  const total = rows.length;
-  status(`${extra}${extra ? " | " : ""}Показано: ${shown}, загружено: ${total}`);
-}
-
 function focusedRank(row) {
   const key = normalizedKey(row.ru);
   return focusedOrder.has(key) ? focusedOrder.get(key) : Number.MAX_SAFE_INTEGER;
 }
 
-function sortRowsForDisplay(sourceRows) {
-  if (!sortState.key) {
-    if (focusedRuSet && focusedRuSet.size) {
-      return [...sourceRows].sort((left, right) => focusedRank(left) - focusedRank(right));
-    }
-    return sourceRows;
+function statusText(extra = "") {
+  if (isOnlyNewMode()) {
+    const shown = visibleRows().length;
+    status(`${extra}${extra ? " | " : ""}Новые строки: ${shown}`);
+    return;
   }
-
-  const factor = sortState.direction === "desc" ? -1 : 1;
-  return [...sourceRows].sort((left, right) => {
-    let result = 0;
-    if (sortState.key === "catRu") {
-      result = groupRank(left.catRu) - groupRank(right.catRu);
-      if (result === 0) {
-        result = String(left.ru || "").localeCompare(String(right.ru || ""), "ru");
-      }
-    } else {
-      const locale = sortState.key === "en" ? "en" : "ru";
-      result = String(left[sortState.key] || "").localeCompare(String(right[sortState.key] || ""), locale);
-    }
-    return result * factor;
-  });
-}
-
-function toggleSort(key) {
-  if (sortState.key === key) {
-    sortState.direction = sortState.direction === "asc" ? "desc" : "asc";
-  } else {
-    sortState = {key, direction: "asc"};
+  if (isFocusedMode()) {
+    status(`${extra}${extra ? " | " : ""}К правке: ${visibleRows().length}`);
+    return;
   }
-  updateSortButtons();
-  render();
-}
-
-function updateSortButtons() {
-  document.querySelectorAll(".table-sort").forEach((button) => {
-    const active = button.dataset.sort === sortState.key;
-    button.classList.toggle("active", active);
-    const base = button.dataset.sort === "catRu" ? "Группа RU" : button.dataset.sort.toUpperCase();
-    button.textContent = active ? `${base} ${sortState.direction === "asc" ? "↑" : "↓"}` : base;
-  });
+  const from = total ? (page - 1) * pageSize + 1 : 0;
+  const to = Math.min(page * pageSize, total);
+  status(`${extra}${extra ? " | " : ""}Показано: ${from}–${to} из ${total}`);
 }
 
 function updateSearchVisibility() {
@@ -255,10 +261,49 @@ function updateSearchVisibility() {
     input.hidden = false;
     return;
   }
-  input.hidden = $("onlyNew").checked;
+  if (isFocusedMode()) {
+    input.hidden = true;
+    return;
+  }
+  input.hidden = isOnlyNewMode();
   if (input.hidden) {
     input.value = "";
   }
+}
+
+function updatePageSizeButtons() {
+  document.querySelectorAll(".page-size-btn").forEach((button) => {
+    button.classList.toggle("active", Number(button.dataset.pageSize) === pageSize);
+  });
+}
+
+function updatePagerUi() {
+  const pager = $("editorPager");
+  const sizeControls = $("pageSizeControls");
+  const showBrowseChrome = browseActive && !isFocusedMode() && !isOnlyNewMode();
+  if (pager) {
+    pager.hidden = !showBrowseChrome;
+  }
+  if (sizeControls) {
+    sizeControls.hidden = !showBrowseChrome;
+  }
+  if (!showBrowseChrome) {
+    return;
+  }
+  const pages = pageCount();
+  const label = $("pagerLabel");
+  if (label) {
+    label.textContent = `${page} / ${pages}`;
+  }
+  const prev = $("btnPagePrev");
+  const next = $("btnPageNext");
+  if (prev) {
+    prev.disabled = page <= 1 || loadInFlight;
+  }
+  if (next) {
+    next.disabled = page >= pages || loadInFlight;
+  }
+  updatePageSizeButtons();
 }
 
 function buildReadOnlyCell(text) {
@@ -418,6 +463,30 @@ async function translateRows(targetRows, reason = "row") {
   }
 }
 
+function mapDishToRow(dish) {
+  return {
+    id: dish.id,
+    ru: dish.ru || "",
+    en: dish.en || "",
+    kcal: dish.kcal ?? "",
+    gr: dish.gr ?? "",
+    catRu: dish.catRu || "",
+    catEn: dish.catEn || "",
+    _autoTranslated: false,
+    _translating: false,
+    _isNew: false,
+    _dirty: false,
+    _original: {
+      ru: dish.ru || "",
+      en: dish.en || "",
+      kcal: dish.kcal ?? "",
+      gr: dish.gr ?? "",
+      catRu: dish.catRu || "",
+      catEn: dish.catEn || "",
+    },
+  };
+}
+
 function render() {
   const tbody = $("rows");
   tbody.innerHTML = "";
@@ -527,52 +596,93 @@ function render() {
 
   window.MenuIcons?.render(tbody);
   updateTranslateAllButton();
+  updatePagerUi();
   statusText();
 }
 
-function mergeRows(fetchedRows) {
-  const preservedNewRows = rows.filter((row) => row._isNew);
-  const existing = new Set(fetchedRows.map((row) => normalizedKey(row.ru)));
-
-  for (const row of preservedNewRows) {
-    const key = normalizedKey(row.ru);
-    if (!key || existing.has(key)) {
-      continue;
-    }
-    fetchedRows.push(row);
-    existing.add(key);
+async function fetchDishPage({q = "", names = "", targetPage = page, size = pageSize} = {}) {
+  const offset = Math.max(0, (targetPage - 1) * size);
+  const params = new URLSearchParams({
+    limit: String(size),
+    offset: String(offset),
+  });
+  if (q) {
+    params.set("q", q);
   }
-
-  rows = fetchedRows;
+  if (names) {
+    params.set("names", names);
+  }
+  const res = await fetch(`/api/dishes/?${params.toString()}`);
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.error || "Ошибка загрузки базы");
+  }
+  return data;
 }
 
-async function loadRows() {
-  const res = await fetch("/api/dishes/?limit=5000");
-  const data = await res.json();
-  const fetchedRows = (data.dishes || []).map((dish) => ({
-    id: dish.id,
-    ru: dish.ru || "",
-    en: dish.en || "",
-    kcal: dish.kcal ?? "",
-    gr: dish.gr ?? "",
-    catRu: dish.catRu || "",
-    catEn: dish.catEn || "",
-    _autoTranslated: false,
-    _translating: false,
-    _isNew: false,
-    _dirty: false,
-    _original: {
-      ru: dish.ru || "",
-      en: dish.en || "",
-      kcal: dish.kcal ?? "",
-      gr: dish.gr ?? "",
-      catRu: dish.catRu || "",
-      catEn: dish.catEn || "",
-    },
-  }));
-  mergeRows(fetchedRows);
-  fullDatabaseLoaded = true;
-  render();
+async function loadBrowsePage({resetPage = false} = {}) {
+  if (loadInFlight) {
+    return;
+  }
+  if (resetPage) {
+    page = 1;
+  }
+  loadInFlight = true;
+  browseActive = true;
+  updatePagerUi();
+  status("Загрузка базы...");
+  try {
+    const data = await fetchDishPage({
+      q: searchQueryRaw(),
+      targetPage: page,
+      size: pageSize,
+    });
+    total = Number(data.total || 0);
+    pageSize = Number(data.limit || pageSize);
+    const offset = Number(data.offset || 0);
+    page = total ? Math.floor(offset / pageSize) + 1 : 1;
+    const preservedNew = CAN_EDIT_DATABASE ? rows.filter((row) => row._isNew) : [];
+    rows = (data.dishes || []).map(mapDishToRow);
+    if (preservedNew.length) {
+      rows = [...preservedNew, ...rows];
+    }
+    render();
+  } catch (error) {
+    toast(error.message || "Ошибка загрузки базы");
+    status(error.message || "Ошибка загрузки базы");
+  } finally {
+    loadInFlight = false;
+    updatePagerUi();
+  }
+}
+
+async function loadFocusedRows(items) {
+  const names = [...new Set(items.map((item) => String(item.ru || item || "").trim()).filter(Boolean))];
+  if (!names.length) {
+    rows = [];
+    total = 0;
+    render();
+    return;
+  }
+  loadInFlight = true;
+  status("Загрузка выбранных блюд...");
+  try {
+    const data = await fetchDishPage({
+      names: names.join("|"),
+      targetPage: 1,
+      size: Math.min(100, Math.max(names.length, 20)),
+    });
+    total = Number(data.total || 0);
+    rows = (data.dishes || []).map(mapDishToRow);
+    browseActive = false;
+    render();
+  } catch (error) {
+    toast(error.message || "Ошибка загрузки");
+    status(error.message || "Ошибка загрузки");
+  } finally {
+    loadInFlight = false;
+    updatePagerUi();
+  }
 }
 
 function addRowsFromLines(sourceLines) {
@@ -595,17 +705,12 @@ function addRowsFromLines(sourceLines) {
 }
 
 function addBlankRow() {
-  rows.push(emptyRow(""));
+  rows.unshift(emptyRow(""));
+  if (isOnlyNewMode()) {
+    browseActive = false;
+  }
   render();
   statusText("Добавлена пустая строка.");
-}
-
-async function ensureFullDatabaseLoaded() {
-  if (fullDatabaseLoaded) {
-    return;
-  }
-  status("Загрузка базы...");
-  await loadRows();
 }
 
 function setFocusedRows(items) {
@@ -621,32 +726,102 @@ function setFocusedRows(items) {
   });
 }
 
+function clearFocusedMode() {
+  focusedRuSet = null;
+  focusedOrder = new Map();
+}
+
 $("onlyNew")?.addEventListener("change", async () => {
-  if (!$("onlyNew").checked) {
-    await ensureFullDatabaseLoaded();
+  if (!guardUnsaved("смену режима")) {
+    $("onlyNew").checked = !$("onlyNew").checked;
+    return;
   }
+  clearFocusedMode();
   updateSearchVisibility();
-  render();
+  if (isOnlyNewMode()) {
+    browseActive = false;
+    rows = rows.filter((row) => row._isNew);
+    total = 0;
+    page = 1;
+    render();
+    status("Быстрый режим: только новые строки.");
+    return;
+  }
+  await loadBrowsePage({resetPage: true});
 });
 
 $("btnAddRow")?.addEventListener("click", () => {
   if (!CAN_EDIT_DATABASE) {
     return;
   }
+  if (!isOnlyNewMode() && !isFocusedMode() && !guardUnsaved("добавление строки")) {
+    return;
+  }
   addBlankRow();
 });
 
-$("searchRu")?.addEventListener("input", render);
-
-$("btnResetFilters")?.addEventListener("click", () => {
-  $("searchRu").value = "";
-  sortState = {key: "", direction: "asc"};
-  updateSortButtons();
-  render();
+$("searchRu")?.addEventListener("input", () => {
+  if (isOnlyNewMode() || isFocusedMode()) {
+    render();
+    return;
+  }
+  if (searchTimer) {
+    clearTimeout(searchTimer);
+  }
+  searchTimer = setTimeout(() => {
+    if (!guardUnsaved("поиск")) {
+      return;
+    }
+    loadBrowsePage({resetPage: true}).catch((error) => toast(error.message));
+  }, 280);
 });
 
-document.querySelectorAll(".table-sort").forEach((button) => {
-  button.addEventListener("click", () => toggleSort(button.dataset.sort));
+$("btnResetFilters")?.addEventListener("click", async () => {
+  if (!guardUnsaved("сброс фильтров")) {
+    return;
+  }
+  if ($("searchRu")) {
+    $("searchRu").value = "";
+  }
+  clearFocusedMode();
+  page = 1;
+  if (isOnlyNewMode()) {
+    render();
+    return;
+  }
+  await loadBrowsePage({resetPage: true});
+});
+
+$("btnPagePrev")?.addEventListener("click", async () => {
+  if (page <= 1 || !guardUnsaved("переход на страницу")) {
+    return;
+  }
+  page -= 1;
+  await loadBrowsePage();
+});
+
+$("btnPageNext")?.addEventListener("click", async () => {
+  if (page >= pageCount() || !guardUnsaved("переход на страницу")) {
+    return;
+  }
+  page += 1;
+  await loadBrowsePage();
+});
+
+document.querySelectorAll(".page-size-btn").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const nextSize = Number(button.dataset.pageSize);
+    if (!PAGE_SIZES.includes(nextSize) || nextSize === pageSize) {
+      return;
+    }
+    if (!guardUnsaved("смену числа строк")) {
+      return;
+    }
+    pageSize = nextSize;
+    saveStorage(STORAGE_KEYS.pageSize, String(pageSize));
+    updatePageSizeButtons();
+    await loadBrowsePage({resetPage: true});
+  });
 });
 
 if ($("btnTranslateAll")) {
@@ -718,13 +893,16 @@ $("btnSave")?.addEventListener("click", async () => {
 });
 
 window.addEventListener("load", async () => {
+  pageSize = loadPageSize();
+  updatePageSizeButtons();
+
   if (!CAN_EDIT_DATABASE) {
-    $("onlyNew").checked = false;
+    if ($("onlyNew")) {
+      $("onlyNew").checked = false;
+    }
     updateSearchVisibility();
-    updateSortButtons();
-    focusedRuSet = null;
-    focusedOrder = new Map();
-    await loadRows();
+    clearFocusedMode();
+    await loadBrowsePage({resetPage: true});
     status("Просмотр базы. Редактирование доступно только администратору. Можно экспортировать CSV.");
     return;
   }
@@ -735,7 +913,6 @@ window.addEventListener("load", async () => {
 
   $("onlyNew").checked = true;
   updateSearchVisibility();
-  updateSortButtons();
 
   if (incoming.length) {
     const missing = incoming.filter((item) => item.mode === "missing").map((item) => item.ru);
@@ -745,15 +922,15 @@ window.addEventListener("load", async () => {
     updateSearchVisibility();
 
     if (hasFixRows) {
-      await loadRows();
+      await loadFocusedRows(incoming);
     }
     const added = addRowsFromLines(missing);
     statusText(`К редактированию: ${incoming.length}, новых строк: ${added}`);
     return;
   }
 
-  focusedRuSet = null;
-  focusedOrder = new Map();
+  clearFocusedMode();
+  browseActive = false;
   render();
-  status("Быстрый режим: нажмите + для нового блюда или снимите галочку, чтобы загрузить всю базу.");
+  status("Быстрый режим: нажмите + для нового блюда или снимите галочку, чтобы открыть базу.");
 });

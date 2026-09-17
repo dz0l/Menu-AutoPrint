@@ -664,17 +664,43 @@ body.theme-dark .preview-footer {
 }
 
 .editor-table-head {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   padding: 13px 16px;
   border-bottom: 1px solid var(--border);
 }
 
-.editor-table-head h1 {
+.editor-table-title {
   margin: 0;
   font-size: 16px;
+  justify-self: start;
+}
+
+.editor-pager {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: center;
+}
+
+.editor-pager-label {
+  min-width: 4.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.page-size-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: end;
+}
+
+.page-size-btn {
+  min-width: 40px;
 }
 
 .table-shell,
@@ -1315,8 +1341,19 @@ td select {
   .panel-head,
   .preview-title,
   .editor-table-head {
-    align-items: stretch;
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .editor-table-title,
+  .editor-pager,
+  .page-size-controls {
+    justify-self: stretch;
+  }
+
+  .editor-pager,
+  .page-size-controls {
+    justify-content: center;
   }
 
   .field-tools {
@@ -1591,7 +1628,8 @@ body.theme-dark .preview-pager-label {
   }
 
   .editor-wrap textarea {
-    min-height: 220px;
+    min-height: calc(100dvh - 210px - var(--mobile-tab-h) - var(--mobile-safe-bottom) - var(--mobile-keyboard-inset));
+    min-height: calc(100vh - 210px - var(--mobile-tab-h) - var(--mobile-safe-bottom) - var(--mobile-keyboard-inset));
   }
 
   .suggest-box {

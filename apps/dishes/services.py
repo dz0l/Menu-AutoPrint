@@ -45,18 +45,57 @@ def base_revision() -> str:
     return f"{count}:{latest.isoformat() if latest else 'empty'}"
 
 
-def list_dishes(params) -> list[Dish]:
+def _parse_positive_int(value, default: int, *, minimum: int = 0, maximum: int | None = None) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        parsed = default
+    if parsed < minimum:
+        parsed = minimum
+    if maximum is not None and parsed > maximum:
+        parsed = maximum
+    return parsed
+
+
+def list_dishes_queryset(params):
     qs = Dish.objects.all()
     q = (params.get("q") or "").strip()
     if q:
         qs = qs.filter(Q(name_ru__icontains=q) | Q(name_en__icontains=q) | Q(category_ru__icontains=q))
+    names_raw = (params.get("names") or "").strip()
+    if names_raw:
+        names = [item.strip() for item in names_raw.split("|") if item.strip()][:200]
+        if names:
+            qs = qs.filter(name_ru__in=names)
     date_from = parse_datetime(params.get("date_from") or "")
     date_to = parse_datetime(params.get("date_to") or "")
     if date_from:
         qs = qs.filter(updated_at__gte=date_from)
     if date_to:
         qs = qs.filter(updated_at__lte=date_to)
-    return list(qs[: int(params.get("limit") or 1000)])
+    return qs.order_by("name_ru", "id")
+
+
+def list_dishes_page(params) -> dict:
+    """Paginated dish list ordered by RU. Returns dishes + total/limit/offset."""
+    qs = list_dishes_queryset(params)
+    total = qs.count()
+    limit = _parse_positive_int(params.get("limit"), 20, minimum=1, maximum=100)
+    offset = _parse_positive_int(params.get("offset"), 0, minimum=0)
+    if offset and offset >= total:
+        offset = max(0, ((total - 1) // limit) * limit) if total else 0
+    dishes = list(qs[offset : offset + limit])
+    return {
+        "dishes": dishes,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+def list_dishes(params) -> list[Dish]:
+    """Backward-compatible helper: return current page of dishes."""
+    return list_dishes_page(params)["dishes"]
 
 
 def parse_int_or_none(value):

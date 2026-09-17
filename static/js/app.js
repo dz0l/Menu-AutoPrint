@@ -1639,7 +1639,51 @@ async function downloadPdfFlow() {
     filename = plainMatch[1];
   }
 
-  const objectUrl = URL.createObjectURL(blob);
+  const pdfBlob = blob.type === "application/pdf" ? blob : new Blob([blob], {type: "application/pdf"});
+  const file = new File([pdfBlob], filename, {type: "application/pdf"});
+  const canShareFile =
+    typeof navigator.canShare === "function" &&
+    (() => {
+      try {
+        return navigator.canShare({files: [file]});
+      } catch {
+        return false;
+      }
+    })();
+
+  if (canShareFile && typeof navigator.share === "function") {
+    try {
+      await navigator.share({
+        files: [file],
+        title: filename,
+      });
+      return;
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        toast("Отправка отменена.");
+        return;
+      }
+      debugWarn("pdf:share-failed", {error: error?.message || String(error)});
+    }
+  }
+
+  const objectUrl = URL.createObjectURL(pdfBlob);
+  const isMobileUa = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || "");
+  if (isMobileUa) {
+    const opened = window.open(objectUrl, "_blank");
+    if (!opened) {
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.target = "_blank";
+      link.rel = "noopener";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    return;
+  }
+
   const link = document.createElement("a");
   link.href = objectUrl;
   link.download = filename;
