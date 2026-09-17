@@ -195,6 +195,16 @@ git pull
 docker compose up -d --build web
 ```
 
+Если Docker Hub / CDN зависает на скачивании слоёв, а локальный образ `web` уже есть, можно обновить **только код** приложения без pull базовых образов:
+
+```bash
+cd /opt/menu-autoprint
+git pull
+bash scripts/update_web_code.sh
+```
+
+Скрипт собирает `Dockerfile.code` поверх текущего локального образа, пересоздаёт `web`, выполняет миграции. Новые pip/apt-зависимости таким способом **не** ставятся — при изменении `requirements.txt` или основного `Dockerfile` нужна обычная полная сборка, когда Hub снова доступен.
+
 Ручной бэкап PostgreSQL:
 
 ```bash

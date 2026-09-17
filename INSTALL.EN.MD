@@ -204,6 +204,16 @@ git pull
 docker compose up -d --build web
 ```
 
+If Docker Hub / CDN stalls while pulling layers but a local `web` image already exists, you can update **application code only** without pulling base images:
+
+```bash
+cd /opt/menu-autoprint
+git pull
+bash scripts/update_web_code.sh
+```
+
+The script builds `Dockerfile.code` on top of the current local image, recreates `web`, and runs migrations. It does **not** install new pip/apt packages — if `requirements.txt` or the main `Dockerfile` changed, use a full build once Hub is reachable again.
+
 Create a manual PostgreSQL backup:
 
 ```bash

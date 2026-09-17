@@ -1,0 +1,15 @@
+# Patch-сборка: поверх уже скачанного локального образа web.
+# Штатный путь обновления не меняется: docker compose up -d --build web
+#
+# Использование: bash scripts/update_web_code.sh
+
+ARG BASE_IMAGE=menu-autoprint-web:latest
+FROM ${BASE_IMAGE}
+
+WORKDIR /app
+
+COPY . /app/
+
+RUN python manage.py collectstatic --noinput
+
+CMD ["sh", "/app/scripts/start_web.sh"]
