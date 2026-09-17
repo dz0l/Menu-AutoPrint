@@ -78,4 +78,26 @@
 {% block scripts %}
 {{ editor_config|json_script:"editorConfig" }}
 <script src="{% static 'js/editor.js' %}" defer></script>
+<script>
+  (function () {
+    var btn = document.getElementById("btnTheme");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var dark = document.body.classList.toggle("theme-dark");
+      document.documentElement.classList.toggle("theme-dark-root", dark);
+      try {
+        localStorage.setItem("menu_theme_mode", dark ? "dark" : "light");
+      } catch (e) {}
+      var icon = btn.querySelector("[data-ui-icon]");
+      if (icon) {
+        icon.setAttribute("data-ui-icon", dark ? "sun" : "moon-star");
+        if (window.MenuIcons && typeof window.MenuIcons.render === "function") {
+          window.MenuIcons.render(btn);
+        }
+      }
+      btn.title = dark ? "Светлая тема" : "Тёмная тема";
+      btn.setAttribute("aria-label", btn.title);
+    });
+  })();
+</script>
 {% endblock %}
