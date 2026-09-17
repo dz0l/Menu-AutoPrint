@@ -634,6 +634,10 @@ body.theme-dark .preview-footer {
   align-items: start;
 }
 
+.editor-workspace.editor-focus-mode {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .editor-sidebar,
 .desk-panel {
   overflow: hidden;
@@ -652,6 +656,10 @@ body.theme-dark .preview-footer {
   display: grid;
   gap: 10px;
   margin-bottom: 10px;
+}
+
+.filter-toggles {
+  margin-bottom: 12px;
 }
 
 .mode-toggle {

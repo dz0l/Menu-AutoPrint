@@ -57,6 +57,12 @@ def _parse_positive_int(value, default: int, *, minimum: int = 0, maximum: int |
     return parsed
 
 
+def _parse_bool(value) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def list_dishes_queryset(params):
     qs = Dish.objects.all()
     q = (params.get("q") or "").strip()
@@ -67,6 +73,12 @@ def list_dishes_queryset(params):
         names = [item.strip() for item in names_raw.split("|") if item.strip()][:200]
         if names:
             qs = qs.filter(name_ru__in=names)
+    if _parse_bool(params.get("missing_kcal")):
+        qs = qs.filter(kcal_per_100__isnull=True)
+    if _parse_bool(params.get("missing_gr")):
+        qs = qs.filter(grams_default__isnull=True)
+    if _parse_bool(params.get("missing_group")):
+        qs = qs.filter(Q(category_ru="") | Q(category_ru__isnull=True) | Q(category_ru__iexact="Без группы"))
     date_from = parse_datetime(params.get("date_from") or "")
     date_to = parse_datetime(params.get("date_to") or "")
     if date_from:

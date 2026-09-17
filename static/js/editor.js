@@ -167,20 +167,24 @@ function rowInFocusedSet(row) {
   return row._isNew || focusedRuSet.has(normalizedKey(row.ru));
 }
 
-function isOnlyNewMode() {
-  return Boolean(CAN_EDIT_DATABASE && $("onlyNew")?.checked);
-}
-
 function isFocusedMode() {
   return Boolean(focusedRuSet && focusedRuSet.size);
 }
 
 function searchQueryRaw() {
   const input = $("searchRu");
-  if (!input || input.hidden) {
+  if (!input) {
     return "";
   }
   return String(input.value || "").trim();
+}
+
+function filterFlags() {
+  return {
+    missingKcal: Boolean($("filterMissingKcal")?.checked),
+    missingGr: Boolean($("filterMissingGr")?.checked),
+    missingGroup: Boolean($("filterMissingGroup")?.checked),
+  };
 }
 
 function hasUnsavedChanges() {
@@ -206,9 +210,6 @@ function editableRows() {
   if (isFocusedMode()) {
     return rows.filter((row) => rowInFocusedSet(row));
   }
-  if (isOnlyNewMode()) {
-    return rows.filter((row) => row._isNew);
-  }
   return rows;
 }
 
@@ -217,9 +218,6 @@ function visibleRows() {
     return [...rows]
       .filter((row) => rowInFocusedSet(row))
       .sort((left, right) => focusedRank(left) - focusedRank(right));
-  }
-  if (isOnlyNewMode()) {
-    return rows.filter((row) => row._isNew);
   }
   return rows;
 }
@@ -238,11 +236,6 @@ function focusedRank(row) {
 }
 
 function statusText(extra = "") {
-  if (isOnlyNewMode()) {
-    const shown = visibleRows().length;
-    status(`${extra}${extra ? " | " : ""}Новые строки: ${shown}`);
-    return;
-  }
   if (isFocusedMode()) {
     status(`${extra}${extra ? " | " : ""}К правке: ${visibleRows().length}`);
     return;
@@ -252,22 +245,13 @@ function statusText(extra = "") {
   status(`${extra}${extra ? " | " : ""}Показано: ${from}–${to} из ${total}`);
 }
 
-function updateSearchVisibility() {
-  const input = $("searchRu");
-  if (!input) {
-    return;
-  }
-  if (!CAN_EDIT_DATABASE) {
-    input.hidden = false;
-    return;
-  }
-  if (isFocusedMode()) {
-    input.hidden = true;
-    return;
-  }
-  input.hidden = isOnlyNewMode();
-  if (input.hidden) {
-    input.value = "";
+function applyLayoutMode() {
+  const workspace = document.querySelector(".editor-workspace");
+  const sidebar = $("editorSidebar");
+  const focused = isFocusedMode();
+  workspace?.classList.toggle("editor-focus-mode", focused);
+  if (sidebar) {
+    sidebar.hidden = focused;
   }
 }
 
@@ -280,13 +264,14 @@ function updatePageSizeButtons() {
 function updatePagerUi() {
   const pager = $("editorPager");
   const sizeControls = $("pageSizeControls");
-  const showBrowseChrome = browseActive && !isFocusedMode() && !isOnlyNewMode();
+  const showBrowseChrome = browseActive && !isFocusedMode();
   if (pager) {
     pager.hidden = !showBrowseChrome;
   }
   if (sizeControls) {
     sizeControls.hidden = !showBrowseChrome;
   }
+  applyLayoutMode();
   if (!showBrowseChrome) {
     return;
   }
@@ -600,7 +585,7 @@ function render() {
   statusText();
 }
 
-async function fetchDishPage({q = "", names = "", targetPage = page, size = pageSize} = {}) {
+async function fetchDishPage({q = "", names = "", targetPage = page, size = pageSize, applyFilters = true} = {}) {
   const offset = Math.max(0, (targetPage - 1) * size);
   const params = new URLSearchParams({
     limit: String(size),
@@ -611,6 +596,18 @@ async function fetchDishPage({q = "", names = "", targetPage = page, size = page
   }
   if (names) {
     params.set("names", names);
+  }
+  if (applyFilters) {
+    const flags = filterFlags();
+    if (flags.missingKcal) {
+      params.set("missing_kcal", "1");
+    }
+    if (flags.missingGr) {
+      params.set("missing_gr", "1");
+    }
+    if (flags.missingGroup) {
+      params.set("missing_group", "1");
+    }
   }
   const res = await fetch(`/api/dishes/?${params.toString()}`);
   const data = await res.json();
@@ -629,6 +626,7 @@ async function loadBrowsePage({resetPage = false} = {}) {
   }
   loadInFlight = true;
   browseActive = true;
+  clearFocusedMode();
   updatePagerUi();
   status("Загрузка базы...");
   try {
@@ -661,20 +659,22 @@ async function loadFocusedRows(items) {
   if (!names.length) {
     rows = [];
     total = 0;
+    browseActive = false;
     render();
     return;
   }
   loadInFlight = true;
+  browseActive = false;
   status("Загрузка выбранных блюд...");
   try {
     const data = await fetchDishPage({
       names: names.join("|"),
       targetPage: 1,
       size: Math.min(100, Math.max(names.length, 20)),
+      applyFilters: false,
     });
     total = Number(data.total || 0);
     rows = (data.dishes || []).map(mapDishToRow);
-    browseActive = false;
     render();
   } catch (error) {
     toast(error.message || "Ошибка загрузки");
@@ -706,9 +706,6 @@ function addRowsFromLines(sourceLines) {
 
 function addBlankRow() {
   rows.unshift(emptyRow(""));
-  if (isOnlyNewMode()) {
-    browseActive = false;
-  }
   render();
   statusText("Добавлена пустая строка.");
 }
@@ -731,49 +728,46 @@ function clearFocusedMode() {
   focusedOrder = new Map();
 }
 
-$("onlyNew")?.addEventListener("change", async () => {
-  if (!guardUnsaved("смену режима")) {
-    $("onlyNew").checked = !$("onlyNew").checked;
-    return;
+function scheduleBrowseReload() {
+  if (searchTimer) {
+    clearTimeout(searchTimer);
   }
-  clearFocusedMode();
-  updateSearchVisibility();
-  if (isOnlyNewMode()) {
-    browseActive = false;
-    rows = rows.filter((row) => row._isNew);
-    total = 0;
-    page = 1;
-    render();
-    status("Быстрый режим: только новые строки.");
-    return;
-  }
-  await loadBrowsePage({resetPage: true});
-});
+  searchTimer = setTimeout(() => {
+    if (!guardUnsaved("обновление списка")) {
+      return;
+    }
+    loadBrowsePage({resetPage: true}).catch((error) => toast(error.message));
+  }, 280);
+}
 
 $("btnAddRow")?.addEventListener("click", () => {
   if (!CAN_EDIT_DATABASE) {
-    return;
-  }
-  if (!isOnlyNewMode() && !isFocusedMode() && !guardUnsaved("добавление строки")) {
     return;
   }
   addBlankRow();
 });
 
 $("searchRu")?.addEventListener("input", () => {
-  if (isOnlyNewMode() || isFocusedMode()) {
-    render();
+  if (isFocusedMode()) {
     return;
   }
-  if (searchTimer) {
-    clearTimeout(searchTimer);
-  }
-  searchTimer = setTimeout(() => {
-    if (!guardUnsaved("поиск")) {
+  scheduleBrowseReload();
+});
+
+["filterMissingKcal", "filterMissingGr", "filterMissingGroup"].forEach((id) => {
+  $(id)?.addEventListener("change", () => {
+    if (isFocusedMode()) {
+      return;
+    }
+    if (!guardUnsaved("смену фильтра")) {
+      const box = $(id);
+      if (box) {
+        box.checked = !box.checked;
+      }
       return;
     }
     loadBrowsePage({resetPage: true}).catch((error) => toast(error.message));
-  }, 280);
+  });
 });
 
 $("btnResetFilters")?.addEventListener("click", async () => {
@@ -783,12 +777,12 @@ $("btnResetFilters")?.addEventListener("click", async () => {
   if ($("searchRu")) {
     $("searchRu").value = "";
   }
-  clearFocusedMode();
+  ["filterMissingKcal", "filterMissingGr", "filterMissingGroup"].forEach((id) => {
+    if ($(id)) {
+      $(id).checked = false;
+    }
+  });
   page = 1;
-  if (isOnlyNewMode()) {
-    render();
-    return;
-  }
   await loadBrowsePage({resetPage: true});
 });
 
@@ -896,33 +890,22 @@ window.addEventListener("load", async () => {
   pageSize = loadPageSize();
   updatePageSizeButtons();
 
-  if (!CAN_EDIT_DATABASE) {
-    if ($("onlyNew")) {
-      $("onlyNew").checked = false;
-    }
-    updateSearchVisibility();
-    clearFocusedMode();
-    await loadBrowsePage({resetPage: true});
-    status("Просмотр базы. Редактирование доступно только администратору. Можно экспортировать CSV.");
-    return;
-  }
-
   const incomingRaw = loadStorageJson(STORAGE_KEYS.editorRows);
   const incoming = Array.isArray(incomingRaw) ? incomingRaw.filter((item) => item && item.ru) : [];
   removeStorage(STORAGE_KEYS.editorRows);
 
-  $("onlyNew").checked = true;
-  updateSearchVisibility();
-
-  if (incoming.length) {
+  if (incoming.length && CAN_EDIT_DATABASE) {
     const missing = incoming.filter((item) => item.mode === "missing").map((item) => item.ru);
     const hasFixRows = incoming.some((item) => item.mode === "fix");
     setFocusedRows(incoming);
-    $("onlyNew").checked = !hasFixRows;
-    updateSearchVisibility();
+    browseActive = false;
+    applyLayoutMode();
 
     if (hasFixRows) {
       await loadFocusedRows(incoming);
+    } else {
+      rows = [];
+      total = 0;
     }
     const added = addRowsFromLines(missing);
     statusText(`К редактированию: ${incoming.length}, новых строк: ${added}`);
@@ -930,7 +913,8 @@ window.addEventListener("load", async () => {
   }
 
   clearFocusedMode();
-  browseActive = false;
-  render();
-  status("Быстрый режим: нажмите + для нового блюда или снимите галочку, чтобы открыть базу.");
+  await loadBrowsePage({resetPage: true});
+  if (!CAN_EDIT_DATABASE) {
+    status("Просмотр базы. Редактирование доступно только администратору. Можно экспортировать CSV.");
+  }
 });

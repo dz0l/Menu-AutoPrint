@@ -1497,7 +1497,7 @@ async function runAnalyze(options = {}) {
     if (button) {
       button.disabled = false;
       if (button.id === "btnMissing") {
-        button.innerHTML = '<span class="ui-icon" data-ui-icon="database-zap"></span> Проверить и открыть редактор';
+        button.innerHTML = '<span class="ui-icon" data-ui-icon="database-zap"></span> Проверить меню';
         window.MenuIcons?.render(button);
       } else {
         button.textContent = originalText;

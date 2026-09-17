@@ -21,17 +21,15 @@
 {% endblock %}
 {% block content %}
 <div class="editor-workspace{% if not editor_config.canEditDatabase %} editor-readonly{% endif %}">
-  <aside class="surface editor-sidebar">
+  <aside id="editorSidebar" class="surface editor-sidebar">
     <section class="filter-section">
       <h1>Фильтры и режимы</h1>
-      {% if editor_config.canEditDatabase %}
-      <div class="segment-row" aria-label="Режим отображения">
-        <label class="toggle-pill mode-toggle"><input id="onlyNew" type="checkbox" checked><span>Только новые</span></label>
+      <input id="searchRu" class="editor-search" type="search" placeholder="Поиск RU" autocomplete="off">
+      <div class="segment-row filter-toggles" aria-label="Фильтры данных">
+        <label class="toggle-pill"><input id="filterMissingKcal" type="checkbox"><span>Без ккал</span></label>
+        <label class="toggle-pill"><input id="filterMissingGr" type="checkbox"><span>Без грамм</span></label>
+        <label class="toggle-pill"><input id="filterMissingGroup" type="checkbox"><span>Без групп</span></label>
       </div>
-      {% else %}
-      <input id="onlyNew" class="visually-hidden" type="checkbox">
-      {% endif %}
-      <input id="searchRu" class="editor-search" type="search" placeholder="Поиск RU" autocomplete="off" {% if editor_config.canEditDatabase %}hidden{% endif %}>
       <button id="btnResetFilters" class="button" type="button">Сбросить</button>
     </section>
   </aside>

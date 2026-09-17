@@ -60,7 +60,7 @@
         <button id="btnUndo" class="icon-button" type="button" title="Отменить" aria-label="Отменить"><span class="ui-icon" data-ui-icon="undo-2"></span></button>
         <button id="btnRedo" class="icon-button" type="button" title="Повторить" aria-label="Повторить"><span class="ui-icon" data-ui-icon="redo-2"></span></button>
         {% if request.user.is_authenticated and request.user.is_admin %}
-        <button id="btnMissing" class="button" type="button"><span class="ui-icon" data-ui-icon="database-zap"></span> Проверить и открыть редактор</button>
+        <button id="btnMissing" class="button" type="button" title="Проверить меню и открыть редактор при необходимости"><span class="ui-icon" data-ui-icon="database-zap"></span> Проверить меню</button>
         {% endif %}
       </div>
     </div>
