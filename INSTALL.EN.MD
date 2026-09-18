@@ -136,6 +136,8 @@ This mode does not serve public HTTPS by itself; a host-level proxy must listen 
 
 If you publish plain HTTP on a non-standard port, open the app as `http://server-ip:port/`.
 
+Archive PDFs and cover images under `media/` are not served directly by nginx: archive downloads and cover previews go through the logged-in application.
+
 ```bash
 docker compose up -d --build --remove-orphans
 ```

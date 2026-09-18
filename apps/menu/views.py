@@ -1,5 +1,4 @@
 import base64
-import json
 import logging
 import re
 import unicodedata
@@ -14,6 +13,11 @@ from django.urls import reverse
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 
+from apps.core.http_utils import admin_required as _admin_required
+from apps.core.http_utils import editor_required as _editor_required
+from apps.core.http_utils import json_body as _json_body
+from apps.core.http_utils import request_payload as _request_payload
+from apps.core.http_utils import to_bool as _to_bool
 from apps.dishes.services import analyze_pasted
 from apps.dishes.translation import is_translation_configured
 from .archive import (
@@ -52,38 +56,14 @@ from .services import build_preview, normalize_lines, translate_lines
 logger = logging.getLogger(__name__)
 SESSION_DOCUMENTS_KEY = "menu_rendered_documents"
 SESSION_DOCUMENTS_LIMIT = 8
-
-
-def _json_body(request) -> dict:
-    if not request.body:
-        return {}
-    return json.loads(request.body.decode("utf-8"))
-
-
-def _request_payload(request) -> dict:
-    if request.content_type and "application/json" in request.content_type:
-        return _json_body(request)
-    return request.POST.dict()
-
-
-def _to_bool(value) -> bool:
-    if isinstance(value, bool):
-        return value
-    return str(value).strip().lower() not in {"", "0", "false", "no", "off", "none"}
+# Cap custom background data URLs stored in session (~1 MiB raw ≈ 1.4M base64 chars).
+SESSION_BACKGROUND_MAX_CHARS = 1_500_000
 
 
 def _ascii_filename(value: str) -> str:
     normalized = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
     sanitized = re.sub(r'[^A-Za-z0-9._ -]+', "", normalized).strip()
     return sanitized or "menu.pdf"
-
-
-def _editor_required(request) -> bool:
-    return request.user.is_authenticated and request.user.is_active
-
-
-def _admin_required(request) -> bool:
-    return _editor_required(request) and bool(getattr(request.user, "is_admin", False))
 
 
 def _parse_cover_id(value) -> int | None:
@@ -119,7 +99,10 @@ def _build_document_payload(data: dict) -> dict:
             cover = get_cover(cover_id)
         except MenuCover.DoesNotExist as exc:
             raise ValueError("Подложка не найдена.") from exc
-        background_bytes = read_cover_bytes(cover)
+        try:
+            background_bytes = read_cover_bytes(cover)
+        except FileNotFoundError as exc:
+            raise ValueError("Файл подложки отсутствует на сервере.") from exc
         background_data = _bytes_to_data_url(background_bytes, cover_content_type(cover))
         background_name = cover.original_filename
         location_label = cover.location_name
@@ -162,6 +145,36 @@ def _store_document(request, payload: dict) -> str:
     request.session[SESSION_DOCUMENTS_KEY] = dict(docs)
     request.session.modified = True
     return token
+
+
+def _session_safe_payload(payload: dict) -> dict:
+    """Drop non-JSON bytes and avoid storing huge backgrounds in session."""
+    stored = {key: value for key, value in payload.items() if key != "background_bytes"}
+    if stored.get("cover_id") is not None:
+        # Re-read from disk in document_print_page.
+        stored["background_data"] = ""
+        return stored
+    background_data = stored.get("background_data") or ""
+    if len(background_data) > SESSION_BACKGROUND_MAX_CHARS:
+        raise ValueError(
+            "Файл подложки слишком большой для альтернативной печати. "
+            "Выберите серверную подложку или уменьшите файл."
+        )
+    return stored
+
+
+def _resolve_print_background(payload: dict) -> str:
+    background_data = payload.get("background_data") or ""
+    if background_data:
+        return background_data
+    cover_id = payload.get("cover_id")
+    if cover_id is None:
+        return ""
+    try:
+        cover = get_cover(cover_id)
+        return _bytes_to_data_url(read_cover_bytes(cover), cover_content_type(cover))
+    except (MenuCover.DoesNotExist, FileNotFoundError):
+        return ""
 
 
 def _get_document(request, token: str) -> dict:
@@ -360,7 +373,10 @@ def preview_api(request):
 def analyze_api(request):
     if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
-    data = _request_payload(request)
+    try:
+        data = _request_payload(request)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
     return JsonResponse({"decisions": analyze_pasted(data.get("text") or "")})
 
 
@@ -369,11 +385,10 @@ def analyze_api(request):
 def render_document_api(request):
     try:
         payload = _build_document_payload(_request_payload(request))
+        stored = _session_safe_payload(payload)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
-    # Session JSON must stay serializable.
-    payload.pop("background_bytes", None)
-    token = _store_document(request, payload)
+    token = _store_document(request, stored)
     return JsonResponse(
         {
             "token": token,
@@ -394,7 +409,7 @@ def document_print_page(request, token: str):
             "filename": payload["filename"],
             "display_date": payload["display_date"],
             "show_kcal": payload["show_kcal"],
-            "background_data": payload.get("background_data") or "",
+            "background_data": _resolve_print_background(payload),
             "pages": _document_pages(payload),
         },
     )

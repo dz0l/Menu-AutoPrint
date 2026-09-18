@@ -15,7 +15,6 @@ GROUP_RU2EN = {
     "гарнир": "Side Dishes:",
     "завтрак": "Breakfast:",
     "шашлык": "BBQ:",
-    "банкет": "Banquet:",
 }
 
 PAGE_BREAK_MARKER = "---"
@@ -78,7 +77,7 @@ def translate_group_line(line: str) -> str:
     return GROUP_RU2EN.get(label, f"{(line or '').strip().rstrip(':')}:" if line else "")
 
 
-def translate_lines(ru_lines: list[str], current_en: list[str] | None = None) -> list[str]:
+def translate_lines(ru_lines: list[str]) -> list[str]:
     dishes = dish_maps()
     translated = []
     for ru in ru_lines:
@@ -93,13 +92,14 @@ def translate_lines(ru_lines: list[str], current_en: list[str] | None = None) ->
     return translated
 
 
-def line_info(line: str, ru_ref: str | None = None) -> MenuLine:
+def line_info(line: str, ru_ref: str | None = None, *, dishes: dict[str, Dish] | None = None) -> MenuLine:
     ref = ru_ref or line
     if is_page_break_line(ref) or is_page_break_line(line):
         return MenuLine(raw=PAGE_BREAK_MARKER, is_group=False, missing=False)
     if is_group_line(ref):
         return MenuLine(raw=line, is_group=True)
-    dish = dish_maps().get(clean_name(ref))
+    maps = dishes if dishes is not None else dish_maps()
+    dish = maps.get(clean_name(ref))
     if not dish:
         return MenuLine(raw=line, is_group=False, grams="??", kcal="??", missing=True)
     if dish.kcal_per_100 is None and dish.grams_default is None:
@@ -112,14 +112,15 @@ def line_info(line: str, ru_ref: str | None = None) -> MenuLine:
     return MenuLine(raw=line, is_group=False, grams=str(dish.grams_default), kcal=str(kcal), missing=False)
 
 
-def _build_segment_items(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto_format=False) -> tuple[list, list, dict, list]:
+def _build_segment_items(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto_format=False, *, dishes: dict[str, Dish] | None = None) -> tuple[list, list, dict, list]:
+    maps = dishes if dishes is not None else dish_maps()
     missing = []
     ru = []
     en = []
     for index, line in enumerate(ru_lines):
         if is_page_break_line(line):
             continue
-        info = line_info(line)
+        info = line_info(line, dishes=maps)
         if info.missing:
             missing.append(line)
         ru.append(_render_line(info, "ru", show_kcal))
@@ -127,7 +128,7 @@ def _build_segment_items(ru_lines: list[str], en_lines: list[str], show_kcal=Tru
         en_line = en_lines[index] if index < len(en_lines) else "???"
         if is_page_break_line(en_line):
             en_line = "???"
-        en_info = line_info(en_line, ru_ref=line)
+        en_info = line_info(en_line, ru_ref=line, dishes=maps)
         if en_info.missing:
             missing.append(line)
         en.append(_render_line(en_info, "en", show_kcal))
@@ -147,12 +148,14 @@ def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto
     paired = split_paired_segments(ru_lines, en_lines)
     segments = []
     missing: list[str] = []
+    dishes = dish_maps()
     for ru_seg, en_seg in paired:
         ru_items, en_items, layout, seg_missing = _build_segment_items(
             ru_seg,
             en_seg,
             show_kcal=show_kcal,
             auto_format=auto_format,
+            dishes=dishes,
         )
         missing.extend(seg_missing)
         segments.append({"ru": ru_items, "en": en_items, "layout": layout})

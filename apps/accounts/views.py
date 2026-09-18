@@ -1,6 +1,4 @@
-﻿import json
-
-from django.conf import settings
+﻿from django.conf import settings
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
@@ -13,6 +11,8 @@ from django.shortcuts import redirect, render
 from django.utils.crypto import get_random_string
 from django.views.decorators.http import require_http_methods
 
+from apps.core.http_utils import admin_required as _admin_required
+from apps.core.http_utils import json_body as _json_body
 from .models import UserPreference
 
 
@@ -41,27 +41,12 @@ class RateLimitedLoginView(LoginView):
         return response
 
 
-def _json_body(request) -> dict:
-    if not request.body:
-        return {}
-    return json.loads(request.body.decode("utf-8"))
-
-
-def _editor_required(request):
-    return request.user.is_authenticated and request.user.is_active
-
-
-def _admin_required(request):
-    return _editor_required(request) and request.user.is_admin
-
-
 def _serialize_user(user):
     return {
         "id": user.id,
         "username": user.username,
         "role": user.role,
         "is_admin": user.is_admin,
-        "is_madmin": user.is_admin,
         "must_change_password": user.must_change_password,
     }
 
@@ -86,7 +71,10 @@ def users(request):
     if request.method == "GET":
         return JsonResponse({"users": [_serialize_user(u) for u in User.objects.order_by("username")]})
 
-    data = _json_body(request)
+    try:
+        data = _json_body(request)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
     username = (data.get("username") or "").strip()
     password = data.get("password") or _generate_valid_password()
     if not username:
@@ -176,7 +164,10 @@ def change_password(request):
     if request.method == "GET":
         return JsonResponse({"must_change_password": request.user.must_change_password})
 
-    data = _json_body(request)
+    try:
+        data = _json_body(request)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
     new_password = data.get("new_password") or ""
     new_password_repeat = data.get("new_password_repeat") or ""
     if new_password != new_password_repeat:
@@ -199,12 +190,18 @@ def change_password(request):
 def profile(request):
     if request.method == "GET":
         return JsonResponse({"username": request.user.username})
-    data = _json_body(request)
+    try:
+        data = _json_body(request)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
     username = (data.get("username") or "").strip()
     if not username:
         return JsonResponse({"error": "username required"}, status=400)
     request.user.username = username
-    request.user.save(update_fields=["username"])
+    try:
+        request.user.save(update_fields=["username"])
+    except IntegrityError:
+        return JsonResponse({"error": "username already exists"}, status=400)
     return JsonResponse({"username": request.user.username})
 
 
@@ -214,13 +211,19 @@ def preferences(request):
         pref, _ = UserPreference.objects.get_or_create(user=request.user)
         if request.method == "GET":
             return JsonResponse({"preferences": pref.data})
-        pref.data.update(_json_body(request))
+        try:
+            pref.data.update(_json_body(request))
+        except ValueError as exc:
+            return JsonResponse({"error": str(exc)}, status=400)
         pref.save(update_fields=["data", "updated_at"])
         return JsonResponse({"preferences": pref.data})
 
     if request.method == "GET":
         return JsonResponse({"preferences": request.session.get("ui_preferences", {})})
-    prefs = request.session.get("ui_preferences", {})
-    prefs.update(_json_body(request))
+    try:
+        prefs = request.session.get("ui_preferences", {})
+        prefs.update(_json_body(request))
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
     request.session["ui_preferences"] = prefs
     return JsonResponse({"preferences": prefs})

@@ -54,7 +54,6 @@ UNKNOWN_LOCATION_LABEL = "unknown_location"
 
 FOOTER_NOTE_RU = "Калорийность и вес указаны на порцию"
 FOOTER_NOTE_EN = "Calories indicated per serving"
-FOOTER_NOTE = FOOTER_NOTE_RU
 
 BASE_MENU_FONT_SIZE = 20
 BASE_MENU_LEADING = 28
@@ -233,12 +232,12 @@ def resolve_cover_location(background_name: str | None) -> str:
 
 
 def format_print_date(value: str | None) -> str:
-    parsed = _parse_date(value)
+    parsed = parse_date(value)
     return parsed.strftime("%d.%m.%Y")
 
 
 def format_print_stamp(value: str | None) -> str:
-    parsed = _parse_date(value)
+    parsed = parse_date(value)
     return parsed.strftime("%d%m%Y")
 
 
@@ -249,7 +248,7 @@ def _has_breakfast_first_group(lines: list[str] | None) -> bool:
     return first == "завтрак:"
 
 
-def _parse_date(value: str | None) -> date:
+def parse_date(value: str | None) -> date:
     raw = (value or "").strip()
     if not raw:
         return datetime.now().date()
@@ -260,6 +259,10 @@ def _parse_date(value: str | None) -> date:
         except ValueError:
             continue
     return datetime.now().date()
+
+
+# Backward-compatible alias for older imports.
+_parse_date = parse_date
 
 
 def get_menu_fonts() -> tuple[str, str]:
@@ -610,14 +613,6 @@ def _wrap_text(text: str, *, max_width: float, font_name: str, font_size: int) -
             current = word
     lines.append(current)
     return lines
-
-
-def _split_last_word(text: str) -> tuple[str, str]:
-    raw = (text or "").strip()
-    parts = raw.rsplit(" ", 1)
-    if len(parts) == 2:
-        return parts[0], parts[1]
-    return "", raw
 
 
 def _text_width(text: str, font_name: str, font_size: int) -> float:

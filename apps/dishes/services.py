@@ -105,11 +105,6 @@ def list_dishes_page(params) -> dict:
     }
 
 
-def list_dishes(params) -> list[Dish]:
-    """Backward-compatible helper: return current page of dishes."""
-    return list_dishes_page(params)["dishes"]
-
-
 def parse_int_or_none(value):
     if value in (None, ""):
         return None
@@ -328,52 +323,6 @@ def review_dishes_csv_import(text: str, progress=None) -> ImportReviewResult:
     if progress and total:
         progress(total, total, "review")
     return result
-
-
-def import_dishes_csv_safely(text: str, actor=None, dry_run=False, apply_updates=False, progress=None) -> dict:
-    review = review_dishes_csv_import(text, progress=progress)
-    outcome = {
-        "created": 0,
-        "updated": 0,
-        "skipped": len(review.skipped) + len(review.exact_matches),
-        "changed_matches": review.changed_matches,
-        "similar_matches": review.similar_matches,
-        "errors": list(review.errors),
-    }
-
-    create_total = len(review.create_candidates)
-    update_total = len(review.changed_matches) if apply_updates else 0
-    apply_total = create_total + update_total
-    applied = 0
-
-    with transaction.atomic():
-        for item in review.create_candidates:
-            try:
-                upsert_dish(item["incoming"], actor)
-                outcome["created"] += 1
-            except Exception as exc:
-                outcome["errors"].append({"row": item["row"], "error": str(exc)})
-            applied += 1
-            if progress and apply_total:
-                progress(applied, apply_total, "import")
-
-        if apply_updates:
-            for item in review.changed_matches:
-                try:
-                    upsert_dish(item["incoming"], actor)
-                    outcome["updated"] += 1
-                except Exception as exc:
-                    outcome["errors"].append({"row": item["row"], "error": str(exc)})
-                applied += 1
-                if progress and apply_total:
-                    progress(applied, apply_total, "import")
-
-        if dry_run:
-            transaction.set_rollback(True)
-
-    if progress and apply_total:
-        progress(apply_total, apply_total, "import")
-    return outcome
 
 
 def replace_dishes_csv(text: str, actor=None, dry_run=False, progress=None) -> dict:

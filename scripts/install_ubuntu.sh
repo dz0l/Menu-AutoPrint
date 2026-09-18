@@ -562,6 +562,8 @@ fi
 
 cd "$APP_DIR"
 
+mkdir -p path
+
 step "Updating code (git pull)..."
 if ! git pull --ff-only; then
   record_error "git pull --ff-only failed in $APP_DIR"

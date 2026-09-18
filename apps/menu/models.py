@@ -6,7 +6,6 @@ class MenuArchiveEntry(models.Model):
     class MenuType(models.TextChoices):
         BREAKFAST = "breakfast", "Breakfast"
         MAIN = "main", "Main"
-        BANQUET = "banquet", "Banquet"
 
     menu_date = models.DateField(db_index=True)
     menu_type = models.CharField(max_length=16, choices=MenuType.choices, db_index=True)

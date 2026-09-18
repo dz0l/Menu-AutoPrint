@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import re
 import uuid
 from pathlib import Path
 
@@ -148,8 +147,3 @@ def cover_content_type(cover: MenuCover) -> str:
     if suffix == ".png":
         return "image/png"
     return "image/jpeg"
-
-
-def safe_location_key_from_name(value: str = "") -> str:
-    safe = re.sub(r"[^a-z0-9._-]+", "_", (value or "").strip().lower()).strip("._-")
-    return safe or "unknown_location"

@@ -1,11 +1,13 @@
-import json
-
 from django.conf import settings
 from django.core.cache import cache
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
+from apps.core.http_utils import admin_required as _admin_required
+from apps.core.http_utils import editor_required as _editor_required
+from apps.core.http_utils import json_body as _json_body
+from apps.core.http_utils import to_bool as _to_bool
 from .models import Dish
 from .services import (
     base_revision,
@@ -29,26 +31,6 @@ from .translation import (
     is_translation_configured,
     translate_ru_to_en,
 )
-
-
-def _json_body(request) -> dict:
-    if not request.body:
-        return {}
-    return json.loads(request.body.decode("utf-8"))
-
-
-def _to_bool(value) -> bool:
-    if isinstance(value, bool):
-        return value
-    return str(value).strip().lower() not in {"", "0", "false", "no", "off", "none"}
-
-
-def _editor_required(request):
-    return request.user.is_authenticated and request.user.is_active
-
-
-def _admin_required(request):
-    return _editor_required(request) and bool(getattr(request.user, "is_admin", False))
 
 
 @require_http_methods(["GET", "POST"])
@@ -149,7 +131,10 @@ def import_csv(request):
 def bulk_upsert(request):
     if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
-    payload = _json_body(request)
+    try:
+        payload = _json_body(request)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
     rows = payload.get("rows", [])
     delete_ids = payload.get("delete_ids", [])
     result = {"created": 0, "updated": 0, "deleted": 0, "errors": []}
@@ -185,7 +170,10 @@ def bulk_upsert(request):
 def check_missing_fixables_view(request):
     if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
-    payload = _json_body(request)
+    try:
+        payload = _json_body(request)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
     lines = payload.get("ru_lines") or payload.get("lines") or []
     show_kcal = _to_bool(payload.get("show_kcal", True))
     return JsonResponse(check_missing_fixables(lines, show_kcal=show_kcal))
@@ -202,7 +190,10 @@ def translation_status_view(request):
 def translate_view(request):
     if not _admin_required(request):
         return JsonResponse({"error": "forbidden"}, status=403)
-    payload = _json_body(request)
+    try:
+        payload = _json_body(request)
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
     texts = payload.get("texts") or []
     if not isinstance(texts, list):
         return JsonResponse({"error": "texts must be a list"}, status=400)

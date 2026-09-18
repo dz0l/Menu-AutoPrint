@@ -127,6 +127,8 @@ DJANGO_CSRF_TRUSTED_ORIGINS=https://your-domain.tld
 
 Если публикуете обычный HTTP на нестандартном порту, открывайте `http://ip-сервера:порт/`.
 
+Файлы архива и подложек (`media/`) не отдаются напрямую через nginx: скачивание архива и превью подложек идут через приложение под логином.
+
 ```bash
 docker compose up -d --build --remove-orphans
 ```

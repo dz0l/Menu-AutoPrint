@@ -1409,15 +1409,33 @@ function renderReview(decisions, options = {}) {
   actionable.forEach((item) => {
     const wrapper = document.createElement("div");
     wrapper.className = "review-item";
-    wrapper.innerHTML = `
-      <div class="review-compare">
-        <div class="review-source"><strong>${item.raw}</strong></div>
-        <div class="review-target">${item.best.name}</div>
-        <div class="review-score">Сходство: ${Math.round((item.best.score || 0) * 100)}%</div>
-      </div>
-      <div class="review-actions review-actions-column"></div>
-    `;
-    const actions = wrapper.querySelector(".review-actions");
+
+    const compare = document.createElement("div");
+    compare.className = "review-compare";
+
+    const source = document.createElement("div");
+    source.className = "review-source";
+    const sourceStrong = document.createElement("strong");
+    sourceStrong.textContent = item.raw || "";
+    source.appendChild(sourceStrong);
+
+    const target = document.createElement("div");
+    target.className = "review-target";
+    target.textContent = item.best.name || "";
+
+    const score = document.createElement("div");
+    score.className = "review-score";
+    score.textContent = `Сходство: ${Math.round((item.best.score || 0) * 100)}%`;
+
+    compare.appendChild(source);
+    compare.appendChild(target);
+    compare.appendChild(score);
+
+    const actions = document.createElement("div");
+    actions.className = "review-actions review-actions-column";
+
+    wrapper.appendChild(compare);
+    wrapper.appendChild(actions);
 
     const apply = document.createElement("button");
     apply.type = "button";

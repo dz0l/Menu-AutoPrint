@@ -10,7 +10,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from apps.pdf.services import UNKNOWN_LOCATION_LABEL, _parse_date, build_download_filename
+from apps.pdf.services import UNKNOWN_LOCATION_LABEL, parse_date, build_download_filename
 
 from .models import MenuArchiveEntry
 
@@ -21,7 +21,6 @@ UNKNOWN_LOCATION_KEY = "unknown_location"
 MENU_TYPE_LABELS = {
     MenuArchiveEntry.MenuType.BREAKFAST: "Завтрак",
     MenuArchiveEntry.MenuType.MAIN: "Основное",
-    MenuArchiveEntry.MenuType.BANQUET: "Банкет",
 }
 
 
@@ -40,14 +39,12 @@ def low_space_threshold_bytes() -> int:
 
 
 def detect_menu_type(ru_lines: list[str] | None) -> str:
-    """Return breakfast|main|banquet from the first RU group line."""
+    """Return breakfast|main from the first RU group line."""
     if not ru_lines:
         return MenuArchiveEntry.MenuType.MAIN
     first = (ru_lines[0] or "").strip().lower()
     if first == "завтрак:":
         return MenuArchiveEntry.MenuType.BREAKFAST
-    if first == "банкет:":
-        return MenuArchiveEntry.MenuType.BANQUET
     return MenuArchiveEntry.MenuType.MAIN
 
 
@@ -97,7 +94,6 @@ def archive_row_title(types: dict, menu_date: date, *, location_key: str = "", l
     for key in (
         MenuArchiveEntry.MenuType.MAIN,
         MenuArchiveEntry.MenuType.BREAKFAST,
-        MenuArchiveEntry.MenuType.BANQUET,
     ):
         item = types.get(key) or {}
         name = (item.get("display_name") or "").strip()
@@ -120,7 +116,7 @@ def save_menu_pdf_to_archive(
     location_label: str | None = None,
     user=None,
 ) -> MenuArchiveEntry:
-    menu_date = _parse_date(print_date)
+    menu_date = parse_date(print_date)
     resolved_type = menu_type or detect_menu_type(ru_lines)
     if resolved_type not in MenuArchiveEntry.MenuType.values:
         resolved_type = MenuArchiveEntry.MenuType.MAIN

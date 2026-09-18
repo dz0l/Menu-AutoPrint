@@ -14,10 +14,6 @@ class User(AbstractUser):
     def is_admin(self) -> bool:
         return self.is_authenticated and self.is_active and self.role == self.Role.ADMIN
 
-    @property
-    def is_editor(self) -> bool:
-        return self.is_authenticated and self.is_active
-
 
 class UserPreference(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="preferences")
