@@ -333,12 +333,16 @@ def archive_page(request):
                 "free_label": format_bytes(status["free_bytes"]),
                 "archive_label": format_bytes(status["archive_bytes"]),
                 "threshold_label": format_bytes(status["low_space_threshold_bytes"]),
-                "used_percent": round((status["used_bytes"] / status["total_bytes"]) * 100, 1)
-                if status["total_bytes"]
-                else 0,
-                "archive_percent": round((status["archive_bytes"] / status["total_bytes"]) * 100, 1)
-                if status["total_bytes"]
-                else 0,
+                "used_percent": (
+                    format((status["used_bytes"] / status["total_bytes"]) * 100, ".1f")
+                    if status["total_bytes"]
+                    else "0"
+                ),
+                "archive_percent": (
+                    format((status["archive_bytes"] / status["total_bytes"]) * 100, ".1f")
+                    if status["total_bytes"]
+                    else "0"
+                ),
             },
             "rows": rows,
             "type_columns": type_columns,
