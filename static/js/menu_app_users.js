@@ -13,32 +13,6 @@
   const requestJson = C.requestJson;
   const csrfToken = C.csrfToken;
 
-  function randomPassword() {
-    const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
-    const lower = "abcdefghijkmnopqrstuvwxyz";
-    const digits = "23456789";
-    const special = "!@#$%^&*";
-    const alphabet = upper + lower + digits + special;
-    const pick = (source) => {
-      const bytes = new Uint32Array(1);
-      window.crypto.getRandomValues(bytes);
-      return source[bytes[0] % source.length];
-    };
-    const chars = [pick(upper), pick(lower), pick(digits), pick(special)];
-    const bytes = new Uint32Array(10);
-    window.crypto.getRandomValues(bytes);
-    for (const value of bytes) {
-      chars.push(alphabet[value % alphabet.length]);
-    }
-    for (let i = chars.length - 1; i > 0; i -= 1) {
-      const bytes = new Uint32Array(1);
-      window.crypto.getRandomValues(bytes);
-      const j = bytes[0] % (i + 1);
-      [chars[i], chars[j]] = [chars[j], chars[i]];
-    }
-    return chars.join("");
-  }
-
   function showUserResult(message) {
     const box = $("usersResult");
     if (!box) {
@@ -156,7 +130,6 @@
 
   async function createUser() {
     const username = $("userCreateName")?.value.trim();
-    const password = $("userCreatePassword")?.value.trim();
     if (!username) {
       toast("Укажите имя пользователя.");
       return;
@@ -171,10 +144,9 @@
           "Content-Type": "application/json",
           "X-CSRFToken": csrfToken(),
         },
-        body: JSON.stringify({username, password}),
+        body: JSON.stringify({username}),
       });
       $("userCreateName").value = "";
-      $("userCreatePassword").value = "";
       showUserResult(`Пользователь ${data.user.username} создан. Пароль: ${data.generated_password}`);
       toast(`Пользователь ${data.user.username} создан.`);
       await loadUsers();
@@ -186,7 +158,6 @@
   }
 
   Object.assign(App, {
-    randomPassword,
     showUserResult,
     renderUsers,
     loadUsers,

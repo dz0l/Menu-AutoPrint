@@ -205,11 +205,6 @@
         App.loadUsers().catch(() => {});
       });
 
-      $("btnGenerateUserPassword").addEventListener("click", () => {
-        $("userCreatePassword").value = App.randomPassword();
-        App.showUserResult("Пароль сгенерирован. Он будет показан повторно только после создания или сброса.");
-      });
-
       $("btnCreateUser").addEventListener("click", () => {
         App.createUser().catch((error) => toast(error.message));
       });

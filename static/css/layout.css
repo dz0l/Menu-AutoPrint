@@ -270,7 +270,6 @@ body.theme-dark .warn {
   min-height: 0;
 }
 
-.menu-input,
 @media (max-width: 1180px) {
   .topbar {
     grid-template-columns: 1fr;
@@ -339,8 +338,7 @@ body.theme-dark .warn {
     padding: 12px;
   }
 
-  .preview-footer,
-  .document-footer {
+  .preview-footer {
     flex-direction: column;
   }
 

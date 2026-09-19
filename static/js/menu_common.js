@@ -56,7 +56,7 @@
     box.hidden = false;
     setTimeout(() => {
       box.hidden = true;
-    }, 2600);
+    }, 5200);
   }
 
   function lines(value) {

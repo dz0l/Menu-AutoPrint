@@ -137,16 +137,11 @@
             <span>Имя пользователя</span>
             <input id="userCreateName" type="text" autocomplete="off">
           </label>
-          <label class="stack form-field compact-field">
-            <span>Сгенерированный пароль</span>
-            <input id="userCreatePassword" type="text" readonly>
-          </label>
         </div>
         <div class="review-actions">
-          <button id="btnGenerateUserPassword" type="button">Сгенерировать пароль</button>
           <button id="btnCreateUser" class="primary" type="button">Создать пользователя</button>
         </div>
-        <p class="muted">Пароль показывается только в момент создания или сброса.</p>
+        <p class="muted">Пароль генерируется автоматически и показывается только в момент создания или сброса.</p>
         <div id="usersResult" class="users-result" hidden></div>
       </section>
       <section class="users-list-wrap">
