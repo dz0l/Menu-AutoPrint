@@ -17,6 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /app/
 
-RUN python manage.py collectstatic --noinput
+# Build has no .env; runtime still requires a real DJANGO_SECRET_KEY when DEBUG=0.
+RUN DJANGO_SECRET_KEY=build-only-collectstatic python manage.py collectstatic --noinput
 
 CMD ["sh", "/app/scripts/start_web.sh"]
