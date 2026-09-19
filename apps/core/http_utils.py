@@ -3,17 +3,27 @@
 from __future__ import annotations
 
 import json
+import re
 
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.exceptions import ValidationError
 from django.http import HttpRequest
+
+_USERNAME_VALIDATOR = UnicodeUsernameValidator()
 
 
 def json_body(request: HttpRequest) -> dict:
     if not request.body:
         return {}
     try:
-        return json.loads(request.body.decode("utf-8"))
+        data = json.loads(request.body.decode("utf-8"))
     except json.JSONDecodeError as exc:
-        raise ValueError("Incorrect JSON.") from exc
+        raise ValueError("Invalid JSON.") from exc
+    if data is None:
+        return {}
+    if not isinstance(data, dict):
+        raise ValueError("Waiting for JSON object.")
+    return data
 
 
 def request_payload(request: HttpRequest) -> dict:
@@ -34,3 +44,18 @@ def editor_required(request: HttpRequest) -> bool:
 
 def admin_required(request: HttpRequest) -> bool:
     return editor_required(request) and bool(getattr(request.user, "is_admin", False))
+
+
+def validate_username_value(username: str) -> str:
+    value = (username or "").strip()
+    if not value:
+        raise ValueError("username required")
+    if len(value) > 150:
+        raise ValueError("username too long")
+    if re.search(r"[<>\"'`]", value):
+        raise ValueError("username contains invalid characters")
+    try:
+        _USERNAME_VALIDATOR(value)
+    except ValidationError as exc:
+        raise ValueError("; ".join(exc.messages)) from exc
+    return value

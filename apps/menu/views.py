@@ -222,8 +222,9 @@ def _archive_pdf(request, pdf: bytes, payload: dict) -> None:
             location_label=payload.get("location_label"),
             user=user,
         )
-    except Exception:
+    except Exception as exc:
         logger.exception("Failed to save menu PDF to archive")
+        raise ValueError("Не удалось сохранить PDF в архив. Проверьте диск и повторите.") from exc
 
 
 def _document_pages(payload: dict) -> list[dict]:
@@ -302,7 +303,6 @@ def archive_page(request):
     type_columns = [
         {"key": MenuArchiveEntry.MenuType.BREAKFAST, "label": MENU_TYPE_LABELS[MenuArchiveEntry.MenuType.BREAKFAST]},
         {"key": MenuArchiveEntry.MenuType.MAIN, "label": MENU_TYPE_LABELS[MenuArchiveEntry.MenuType.MAIN]},
-        # Banquet column hidden until menu-type trigger is decided.
     ]
     rows = []
     for raw in raw_rows:
@@ -424,14 +424,13 @@ def document_print_page(request, token: str):
 def pdf_api(request):
     try:
         payload = _build_document_payload(_request_payload(request))
+        pdf = _build_pdf_from_payload(payload)
+        _archive_pdf(request, pdf, payload)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
-    try:
-        pdf = _build_pdf_from_payload(payload)
     except Exception as exc:
         logger.exception("PDF generation failed hard: %s", exc)
         return JsonResponse({"error": "pdf_generation_failed"}, status=500)
-    _archive_pdf(request, pdf, payload)
     return _pdf_response(pdf, payload["filename"], download=True)
 
 

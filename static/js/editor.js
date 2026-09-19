@@ -27,11 +27,14 @@ const csrfToken = () => document.cookie.split("; ").find((v) => v.startsWith("cs
 
 let rows = [];
 let deletedRowIds = [];
-let focusedRuSet = null;
+let focusedIds = null;
+let focusedNewKeys = null;
 let focusedOrder = new Map();
+let focusedActive = false;
 let saveInFlight = false;
 let translateAllInFlight = false;
 let loadInFlight = false;
+let pendingBrowseReload = false;
 let searchTimer = null;
 let pageSize = 20;
 let page = 1;
@@ -71,11 +74,14 @@ function toast(message) {
 function setSaveBusy(busy) {
   saveInFlight = busy;
   const button = $("btnSave");
-  if (!button) {
-    return;
+  if (button) {
+    button.disabled = busy;
+    button.textContent = busy ? "Сохранение..." : "Сохранить";
   }
-  button.disabled = busy;
-  button.textContent = busy ? "Сохранение..." : "Сохранить";
+  document.querySelector(".editor-workspace")?.classList.toggle("editor-save-busy", busy);
+  document.querySelectorAll("#rows input, #rows textarea, #rows select, #btnAddRow").forEach((el) => {
+    el.disabled = busy;
+  });
 }
 
 function authRequiredMessage() {
@@ -83,6 +89,7 @@ function authRequiredMessage() {
 }
 
 function emptyRow(ru = "") {
+  const key = normalizedKey(ru) || `blank-${Date.now()}-${Math.random().toString(16).slice(2)}`;
   return {
     ru,
     en: "",
@@ -94,6 +101,7 @@ function emptyRow(ru = "") {
     _translating: false,
     _isNew: true,
     _dirty: true,
+    _focusKey: key,
     _original: null,
   };
 }
@@ -161,14 +169,21 @@ function normalizedKey(value) {
 }
 
 function rowInFocusedSet(row) {
-  if (!focusedRuSet || !focusedRuSet.size) {
-    return false;
+  if (!focusedActive) {
+    return true;
   }
-  return row._isNew || focusedRuSet.has(normalizedKey(row.ru));
+  if (row.id != null && focusedIds && focusedIds.has(Number(row.id))) {
+    return true;
+  }
+  if (row._focusKey && focusedNewKeys && focusedNewKeys.has(row._focusKey)) {
+    return true;
+  }
+  const key = normalizedKey(row.ru);
+  return Boolean(key && focusedNewKeys && focusedNewKeys.has(key));
 }
 
 function isFocusedMode() {
-  return Boolean(focusedRuSet && focusedRuSet.size);
+  return focusedActive;
 }
 
 function searchQueryRaw() {
@@ -231,6 +246,12 @@ function changedDeleteIds() {
 }
 
 function focusedRank(row) {
+  if (row.id != null && focusedOrder.has(`id:${row.id}`)) {
+    return focusedOrder.get(`id:${row.id}`);
+  }
+  if (row._focusKey && focusedOrder.has(`new:${row._focusKey}`)) {
+    return focusedOrder.get(`new:${row._focusKey}`);
+  }
   const key = normalizedKey(row.ru);
   return focusedOrder.has(key) ? focusedOrder.get(key) : Number.MAX_SAFE_INTEGER;
 }
@@ -411,6 +432,7 @@ async function translateRows(targetRows, reason = "row") {
   }
   candidates.forEach((row) => {
     row._translating = true;
+    row._translateRu = String(row.ru || "").trim();
   });
   render();
   status(`Перевод: ${candidates.length} строк...`);
@@ -424,6 +446,14 @@ async function translateRows(targetRows, reason = "row") {
       translations.forEach((value, index) => {
         const row = chunk[index];
         if (!row || !value) {
+          return;
+        }
+        const currentRu = String(row.ru || "").trim();
+        const requestedRu = String(chunk[index]._translateRu || currentRu).trim();
+        if (currentRu !== requestedRu) {
+          return;
+        }
+        if (row.en && row.en !== (row._original?.en || "") && !row._autoTranslated) {
           return;
         }
         row.en = value;
@@ -619,6 +649,7 @@ async function fetchDishPage({q = "", names = "", targetPage = page, size = page
 
 async function loadBrowsePage({resetPage = false} = {}) {
   if (loadInFlight) {
+    pendingBrowseReload = true;
     return;
   }
   if (resetPage) {
@@ -651,6 +682,10 @@ async function loadBrowsePage({resetPage = false} = {}) {
   } finally {
     loadInFlight = false;
     updatePagerUi();
+    if (pendingBrowseReload) {
+      pendingBrowseReload = false;
+      loadBrowsePage({resetPage: true}).catch((error) => toast(error.message));
+    }
   }
 }
 
@@ -675,6 +710,17 @@ async function loadFocusedRows(items) {
     });
     total = Number(data.total || 0);
     rows = (data.dishes || []).map(mapDishToRow);
+    focusedIds = new Set(rows.map((row) => Number(row.id)).filter(Boolean));
+    rows.forEach((row, index) => {
+      focusedOrder.set(`id:${row.id}`, index);
+      const key = normalizedKey(row.ru);
+      if (key && focusedNewKeys) {
+        focusedNewKeys.delete(key);
+      }
+    });
+    if (names.length > 100) {
+      toast(`Загружено первых ${rows.length} из ${names.length}. Остальные откройте из базы отдельно.`);
+    }
     render();
   } catch (error) {
     toast(error.message || "Ошибка загрузки");
@@ -696,6 +742,9 @@ function addRowsFromLines(sourceLines) {
       continue;
     }
     rows.push(emptyRow(ru));
+    if (focusedActive && focusedNewKeys) {
+      focusedNewKeys.add(key);
+    }
     existing.add(key);
     added += 1;
   }
@@ -711,20 +760,26 @@ function addBlankRow() {
 }
 
 function setFocusedRows(items) {
-  focusedRuSet = new Set();
+  focusedActive = true;
+  focusedIds = new Set();
+  focusedNewKeys = new Set();
   focusedOrder = new Map();
   items.forEach((item, index) => {
-    const key = normalizedKey(item.ru || item);
-    if (!key || focusedRuSet.has(key)) {
+    const ru = String(item.ru || item || "").trim();
+    const key = normalizedKey(ru);
+    if (!key) {
       return;
     }
-    focusedRuSet.add(key);
+    focusedNewKeys.add(key);
     focusedOrder.set(key, index);
+    focusedOrder.set(`new:${key}`, index);
   });
 }
 
 function clearFocusedMode() {
-  focusedRuSet = null;
+  focusedActive = false;
+  focusedIds = null;
+  focusedNewKeys = null;
   focusedOrder = new Map();
 }
 
@@ -862,18 +917,32 @@ $("btnSave")?.addEventListener("click", async () => {
 
     const errorsCount = data.errors?.length || 0;
     status(`Создано: ${data.created}, обновлено: ${data.updated}, удалено: ${data.deleted || 0}, ошибок: ${errorsCount}`);
-    deletedRowIds = [];
-    if (errorsCount > 0) {
-      toast("Сохранение завершилось с ошибками. Проверьте строки и повторите.");
-      return;
-    }
-    payloadRows.forEach((row) => {
+    (data.row_results || []).forEach((item) => {
+      const row = payloadRows[item.index];
+      if (!row) {
+        return;
+      }
+      row.id = item.id;
       row._isNew = false;
       row._dirty = false;
       row._autoTranslated = false;
       row._original = rowSnapshot(row);
+      if (focusedActive) {
+        focusedIds = focusedIds || new Set();
+        focusedIds.add(Number(item.id));
+        if (row._focusKey && focusedNewKeys) {
+          focusedNewKeys.delete(row._focusKey);
+        }
+      }
     });
-    if ((data.created || 0) > 0 || (data.updated || 0) > 0) {
+    const deletedOk = new Set(data.deleted_ids || []);
+    deletedRowIds = deletedRowIds.filter((id) => !deletedOk.has(id));
+    if (errorsCount > 0) {
+      toast("Сохранение завершилось с ошибками. Проверьте строки и повторите.");
+      render();
+      return;
+    }
+    if ((data.created || 0) > 0 || (data.updated || 0) > 0 || (data.deleted || 0) > 0) {
       saveStorage(STORAGE_KEYS.editorSavedChanges, "1");
     }
     location.href = "/";

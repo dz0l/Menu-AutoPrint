@@ -6,6 +6,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-insecure-change-me")
 
+INSECURE_SECRET_KEYS = {
+    "",
+    "dev-insecure-change-me",
+    "change-me",
+    "changeme",
+}
+
 
 def env_bool(name: str, default: str = "0") -> bool:
     return os.environ.get(name, default).lower() in {"1", "true", "yes", "on"}
@@ -19,6 +26,12 @@ def env_int(name: str, default: int) -> int:
 
 
 DEBUG = env_bool("DJANGO_DEBUG", "0")
+
+if not DEBUG and SECRET_KEY.strip() in INSECURE_SECRET_KEYS:
+    raise RuntimeError(
+        "DJANGO_SECRET_KEY is missing or uses an insecure placeholder. "
+        "Set a strong secret in .env before running with DJANGO_DEBUG=0."
+    )
 
 ALLOWED_HOSTS = [
     host.strip()

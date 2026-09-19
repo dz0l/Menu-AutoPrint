@@ -127,11 +127,17 @@ def _translate_with_azure(texts: list[str]) -> list[str]:
 
     try:
         data = json.loads(payload)
-        result = [
-            str(item["translations"][0].get("text", "")).strip()
-            for item in data
-        ]
-    except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        if not isinstance(data, list) or not data:
+            raise TranslationBadResponse("Azure Translator response format is invalid")
+        result = []
+        for item in data:
+            translations = (item or {}).get("translations") if isinstance(item, dict) else None
+            if not translations:
+                raise TranslationBadResponse("Azure Translator response format is invalid")
+            result.append(str(translations[0].get("text", "")).strip())
+    except TranslationBadResponse:
+        raise
+    except (KeyError, TypeError, IndexError, ValueError, json.JSONDecodeError) as exc:
         logger.warning("azure translation bad response")
         raise TranslationBadResponse("Azure Translator response format is invalid") from exc
 

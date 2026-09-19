@@ -258,7 +258,7 @@ def parse_date(value: str | None) -> date:
             return datetime.strptime(raw, fmt).date()
         except ValueError:
             continue
-    return datetime.now().date()
+    raise ValueError("Некорректная дата печати.")
 
 
 # Backward-compatible alias for older imports.
@@ -350,7 +350,9 @@ def _draw_preview_page(
         pdf.setFont(block.font_name, block.font_size)
         for line_index, line in enumerate(block.lines):
             if y < content_bottom:
-                break
+                raise ValueError(
+                    "Меню не помещается на лист. Добавьте разделитель --- или сократите список."
+                )
             pdf.drawCentredString(width / 2, y, line)
             if line_index < len(block.lines) - 1:
                 if block.is_dish and line_index == 0:
@@ -424,7 +426,12 @@ def compute_page_layout(
             if fits(layout):
                 return layout
 
-    return PageLayout.create(MIN_MENU_FONT_SIZE, spacing_scale=SPACING_SCALE_STEPS[-1])
+    layout = PageLayout.create(MIN_MENU_FONT_SIZE, spacing_scale=SPACING_SCALE_STEPS[-1])
+    if not fits(layout):
+        raise ValueError(
+            "Меню не помещается на лист. Добавьте разделитель --- или сократите список."
+        )
+    return layout
 
 
 def enrich_page_items(

@@ -108,18 +108,41 @@ def list_dishes_page(params) -> dict:
 def parse_int_or_none(value):
     if value in (None, ""):
         return None
-    return int(value)
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError("invalid integer") from exc
+    if parsed < 0 or parsed > 32767:
+        raise ValueError("integer out of range")
+    return parsed
 
 
-def _dish_update_payload(data: dict) -> dict:
-    payload = {
-        "name_en": (data.get("en") or data.get("name_en") or "").strip(),
-        "kcal_per_100": parse_int_or_none(data.get("kcal", data.get("kcal_per_100"))),
-        "grams_default": parse_int_or_none(data.get("gr", data.get("grams_default"))),
-        "category_ru": (data.get("catRu") or data.get("category_ru") or "").strip(),
-        "category_en": (data.get("catEn") or data.get("category_en") or "").strip(),
-    }
-    if payload["category_ru"] and not payload["category_en"]:
+def _dish_update_payload(data: dict, *, partial: bool = False) -> dict:
+    """Build update fields. partial=True keeps only keys present in the request."""
+    if not isinstance(data, dict):
+        raise ValueError("invalid payload")
+
+    def has(*keys):
+        return any(key in data for key in keys)
+
+    payload = {}
+    if not partial or has("en", "name_en"):
+        payload["name_en"] = (data.get("en") or data.get("name_en") or "").strip()
+        if len(payload["name_en"]) > 255:
+            raise ValueError("name_en too long")
+    if not partial or has("kcal", "kcal_per_100"):
+        payload["kcal_per_100"] = parse_int_or_none(data.get("kcal", data.get("kcal_per_100")))
+    if not partial or has("gr", "grams_default"):
+        payload["grams_default"] = parse_int_or_none(data.get("gr", data.get("grams_default")))
+    if not partial or has("catRu", "category_ru"):
+        payload["category_ru"] = (data.get("catRu") or data.get("category_ru") or "").strip()
+        if len(payload["category_ru"]) > 120:
+            raise ValueError("category_ru too long")
+    if not partial or has("catEn", "category_en"):
+        payload["category_en"] = (data.get("catEn") or data.get("category_en") or "").strip()
+        if len(payload["category_en"]) > 120:
+            raise ValueError("category_en too long")
+    if payload.get("category_ru") and not payload.get("category_en"):
         payload["category_en"] = CAT_RU2EN.get(payload["category_ru"], "")
     return payload
 
@@ -173,10 +196,14 @@ def upsert_dish(data: dict, actor=None) -> tuple[Dish, bool]:
 
 
 def update_dish(dish: Dish, data: dict, actor=None) -> Dish:
-    name_ru = (data.get("ru") or data.get("name_ru") or dish.name_ru or "").strip()
+    name_ru = dish.name_ru
+    if "ru" in data or "name_ru" in data:
+        name_ru = (data.get("ru") or data.get("name_ru") or "").strip()
     if not name_ru:
         raise ValueError("name_ru required")
-    payload = _dish_update_payload(data)
+    if len(name_ru) > 255:
+        raise ValueError("name_ru too long")
+    payload = _dish_update_payload(data, partial=True)
 
     with transaction.atomic():
         duplicate = find_dish_by_ru_name(name_ru, exclude_id=dish.id)

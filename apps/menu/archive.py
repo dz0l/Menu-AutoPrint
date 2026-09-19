@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import logging
+import os
 import re
 import shutil
 from datetime import date, timedelta
 from pathlib import Path
+from uuid import uuid4
 
 from django.conf import settings
 from django.db import transaction
@@ -125,7 +127,6 @@ def save_menu_pdf_to_archive(
     relative = archive_relative_path(menu_date, resolved_type, resolved_key)
     absolute = Path(settings.MEDIA_ROOT) / relative
     absolute.parent.mkdir(parents=True, exist_ok=True)
-    absolute.write_bytes(pdf_bytes)
     title = archive_display_name(
         print_date,
         background_name,
@@ -139,18 +140,26 @@ def save_menu_pdf_to_archive(
         "menu_type": resolved_type,
         "location_key": resolved_key,
     }
-    with transaction.atomic():
-        existing = MenuArchiveEntry.objects.filter(**lookup).first()
-        old_relative = (existing.relative_path or "").replace("\\", "/") if existing else ""
-        entry, _created = MenuArchiveEntry.objects.update_or_create(
-            **lookup,
-            defaults={
-                "display_name": title,
-                "relative_path": relative.replace("\\", "/"),
-                "file_size": len(pdf_bytes),
-                "created_by": actor,
-            },
-        )
+    tmp_path = absolute.with_suffix(absolute.suffix + f".tmp-{uuid4().hex}")
+    old_relative = ""
+    try:
+        tmp_path.write_bytes(pdf_bytes)
+        with transaction.atomic():
+            existing = MenuArchiveEntry.objects.filter(**lookup).first()
+            old_relative = (existing.relative_path or "").replace("\\", "/") if existing else ""
+            entry, _created = MenuArchiveEntry.objects.update_or_create(
+                **lookup,
+                defaults={
+                    "display_name": title,
+                    "relative_path": relative.replace("\\", "/"),
+                    "file_size": len(pdf_bytes),
+                    "created_by": actor,
+                },
+            )
+            os.replace(tmp_path, absolute)
+    except Exception:
+        tmp_path.unlink(missing_ok=True)
+        raise
     if old_relative and old_relative != relative.replace("\\", "/"):
         delete_archive_file(old_relative)
     try:

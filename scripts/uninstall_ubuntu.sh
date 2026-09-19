@@ -124,8 +124,19 @@ fi
 
 if [[ "$REMOVE_APP_DIR" == "1" ]]; then
   if [[ -d "$APP_DIR" ]]; then
-    echo "Deleting $APP_DIR ..."
-    sudo rm -rf "$APP_DIR"
+    APP_DIR_REAL="$(readlink -f "$APP_DIR" 2>/dev/null || realpath "$APP_DIR" 2>/dev/null || echo "$APP_DIR")"
+    case "$APP_DIR_REAL" in
+      /|/home|/opt|/var|/usr|/etc|/root|/mnt|/media)
+        echo "Refusing to delete unsafe APP_DIR=$APP_DIR_REAL" >&2
+        exit 1
+        ;;
+    esac
+    if [[ ! -f "$APP_DIR_REAL/docker-compose.yml" ]]; then
+      echo "Refusing to delete $APP_DIR_REAL: docker-compose.yml not found (not a Menu AutoPrint app dir)." >&2
+      exit 1
+    fi
+    echo "Deleting $APP_DIR_REAL ..."
+    sudo rm -rf --one-file-system "$APP_DIR_REAL"
   fi
 fi
 

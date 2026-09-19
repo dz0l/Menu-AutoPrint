@@ -12,4 +12,4 @@ backups
 docs
 CONTINUITY.md
 *.local.md
-.cursor
+.local

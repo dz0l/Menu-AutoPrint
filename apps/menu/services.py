@@ -34,7 +34,14 @@ def normalize_lines(value: str | list[str] | None) -> list[str]:
         source = value
     else:
         source = str(value or "").replace("\u00a0", " ").splitlines()
-    return [line.strip() for line in source if line and line.strip()]
+    normalized = []
+    for line in source:
+        if line is None:
+            continue
+        text = str(line).replace("\u00a0", " ").strip()
+        if text:
+            normalized.append(text)
+    return normalized
 
 
 def is_page_break_line(value: str) -> bool:

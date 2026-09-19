@@ -88,6 +88,10 @@ class Command(BaseCommand):
             )
         )
 
+        if outcome["errors"]:
+            self._print_errors(outcome["errors"][:show_limit])
+            raise CommandError(f"Import finished with {len(outcome['errors'])} apply error(s).")
+
         if review.changed_matches or review.similar_matches:
             self.stdout.write(
                 self.style.WARNING(

@@ -67,8 +67,8 @@ def dish_detail(request, dish_id):
     if request.method == "DELETE":
         delete_dish(dish, request.user)
         return JsonResponse({"deleted": True})
-    data = _json_body(request)
     try:
+        data = _json_body(request)
         updated = update_dish(dish, data, request.user)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
@@ -137,29 +137,46 @@ def bulk_upsert(request):
         return JsonResponse({"error": str(exc)}, status=400)
     rows = payload.get("rows", [])
     delete_ids = payload.get("delete_ids", [])
-    result = {"created": 0, "updated": 0, "deleted": 0, "errors": []}
+    if not isinstance(rows, list) or not isinstance(delete_ids, list):
+        return JsonResponse({"error": "rows and delete_ids must be lists"}, status=400)
+    result = {
+        "created": 0,
+        "updated": 0,
+        "deleted": 0,
+        "errors": [],
+        "row_results": [],
+        "deleted_ids": [],
+    }
 
     for index, dish_id in enumerate(delete_ids):
         try:
             dish = Dish.objects.get(id=dish_id)
             delete_dish(dish, request.user)
             result["deleted"] += 1
+            result["deleted_ids"].append(dish_id)
         except Dish.DoesNotExist:
             result["errors"].append({"delete_index": index, "error": "dish not found"})
         except Exception as exc:
             result["errors"].append({"delete_index": index, "error": str(exc)})
 
     for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            result["errors"].append({"index": index, "error": "row must be an object"})
+            continue
         try:
             if row.get("id"):
                 dish = Dish.objects.get(id=row["id"])
                 update_dish(dish, row, request.user)
                 result["updated"] += 1
+                result["row_results"].append({"index": index, "id": dish.id, "action": "updated"})
             else:
                 if find_dish_by_ru_name(row.get("ru") or row.get("name_ru") or ""):
                     raise ValueError("duplicate ru name")
-                _, created = upsert_dish(row, request.user)
+                dish, created = upsert_dish(row, request.user)
                 result["created" if created else "updated"] += 1
+                result["row_results"].append(
+                    {"index": index, "id": dish.id, "action": "created" if created else "updated"}
+                )
         except Exception as exc:
             result["errors"].append({"index": index, "error": str(exc)})
     result["duplicates"] = duplicate_groups(rows)

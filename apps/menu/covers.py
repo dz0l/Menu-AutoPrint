@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import logging
 import uuid
+from io import BytesIO
 from pathlib import Path
 
 from django.conf import settings
 from django.core.files.uploadedfile import UploadedFile
 from django.db import transaction
+from PIL import Image, UnidentifiedImageError
 
 from .models import MenuCover
 
@@ -77,6 +79,27 @@ def _validate_upload(uploaded: UploadedFile) -> str:
             extension = ".jpg"
         else:
             raise ValueError("Поддерживаются только JPG и PNG.")
+    raw = uploaded.read()
+    if hasattr(uploaded, "seek"):
+        uploaded.seek(0)
+    if not raw:
+        raise ValueError("Пустой файл подложки.")
+    if len(raw) > MAX_COVER_BYTES:
+        raise ValueError("Подложка слишком большая. Выберите изображение меньше 3 МБ.")
+    try:
+        with Image.open(BytesIO(raw)) as image:
+            image.verify()
+        with Image.open(BytesIO(raw)) as image:
+            image.load()
+            fmt = (image.format or "").upper()
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+        raise ValueError("Файл не является корректным изображением JPG/PNG.") from exc
+    if fmt not in {"JPEG", "JPG", "PNG"}:
+        raise ValueError("Поддерживаются только JPG и PNG.")
+    if fmt == "PNG":
+        extension = ".png"
+    else:
+        extension = ".jpg"
     return extension
 
 

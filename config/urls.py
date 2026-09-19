@@ -6,6 +6,8 @@ from django.views.generic import RedirectView
 from apps.accounts.views import RateLimitedLoginView, change_password_page
 from apps.core.views import healthcheck
 
+admin.site.login = RateLimitedLoginView.as_view(template_name="admin/login.html")
+
 
 urlpatterns = [
     path("", include("apps.menu.urls")),

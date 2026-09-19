@@ -1,4 +1,7 @@
-﻿from django.conf import settings
+﻿import json
+import re
+
+from django.conf import settings
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
@@ -13,6 +16,7 @@ from django.views.decorators.http import require_http_methods
 
 from apps.core.http_utils import admin_required as _admin_required
 from apps.core.http_utils import json_body as _json_body
+from apps.core.http_utils import validate_username_value
 from .models import UserPreference
 
 
@@ -25,10 +29,19 @@ class RateLimitedLoginView(LoginView):
     def post(self, request, *args, **kwargs):
         username_field = getattr(User, "USERNAME_FIELD", "username")
         username = (request.POST.get(username_field) or "").strip().lower()
-        ident = request.META.get("HTTP_X_FORWARDED_FOR", request.META.get("REMOTE_ADDR", "unknown")).split(",")[0]
+        # Prefer REMOTE_ADDR; do not trust first XFF hop without a trusted proxy policy.
+        ident = request.META.get("REMOTE_ADDR", "unknown")
         key = f"login-rate:{ident}:{username}"
-        count = cache.get(key, 0)
-        if count >= settings.LOGIN_RATE_LIMIT_COUNT:
+        window = settings.LOGIN_RATE_LIMIT_WINDOW
+        if cache.add(key, 1, window):
+            count = 1
+        else:
+            try:
+                count = cache.incr(key)
+            except ValueError:
+                cache.set(key, 1, window)
+                count = 1
+        if count > settings.LOGIN_RATE_LIMIT_COUNT:
             form = self.get_form()
             form.add_error(None, "Слишком много попыток входа. Попробуйте позже.")
             return self.form_invalid(form)
@@ -36,8 +49,6 @@ class RateLimitedLoginView(LoginView):
         response = super().post(request, *args, **kwargs)
         if response.status_code == 302:
             cache.delete(key)
-        else:
-            cache.set(key, count + 1, settings.LOGIN_RATE_LIMIT_WINDOW)
         return response
 
 
@@ -53,14 +64,31 @@ def _serialize_user(user):
 
 def _generate_valid_password(user=None) -> str:
     alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*"
-    for _ in range(10):
+    for _ in range(40):
         password = get_random_string(14, allowed_chars=alphabet)
+        # Ensure mixed character classes for validators that require them.
+        if not re.search(r"[A-Z]", password):
+            continue
+        if not re.search(r"[a-z]", password):
+            continue
+        if not re.search(r"[0-9]", password):
+            continue
+        if not re.search(r"[!@#$%^&*]", password):
+            continue
         try:
             validate_password(password, user)
         except ValidationError:
             continue
         return password
-    return get_random_string(18, allowed_chars=alphabet)
+    # Last resort: still validate; never return an unvalidated string.
+    for _ in range(20):
+        password = get_random_string(18, allowed_chars=alphabet)
+        try:
+            validate_password(password, user)
+            return password
+        except ValidationError:
+            continue
+    raise RuntimeError("Unable to generate a valid password")
 
 
 @require_http_methods(["GET", "POST"])
@@ -75,10 +103,11 @@ def users(request):
         data = _json_body(request)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
-    username = (data.get("username") or "").strip()
+    try:
+        username = validate_username_value(data.get("username") or "")
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
     password = data.get("password") or _generate_valid_password()
-    if not username:
-        return JsonResponse({"error": "username required"}, status=400)
 
     try:
         validate_password(password)
@@ -192,11 +221,9 @@ def profile(request):
         return JsonResponse({"username": request.user.username})
     try:
         data = _json_body(request)
+        username = validate_username_value(data.get("username") or "")
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
-    username = (data.get("username") or "").strip()
-    if not username:
-        return JsonResponse({"error": "username required"}, status=400)
     request.user.username = username
     try:
         request.user.save(update_fields=["username"])

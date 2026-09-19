@@ -206,6 +206,10 @@ git pull
 docker compose up -d --build web
 ```
 
+The `web` container runs `migrate` and `collectstatic` on start (`scripts/start_web.sh`).
+
+The stock backup saves **PostgreSQL only**. The `media_data` volume (archive PDFs and covers) is **not** included; keep media separately (deferred media backup TODO).
+
 If Docker Hub / CDN stalls while pulling layers but a local `web` image already exists, you can update **application code only** without pulling base images:
 
 ```bash

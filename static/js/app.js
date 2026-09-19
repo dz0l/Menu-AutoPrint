@@ -868,18 +868,6 @@ async function refreshActions(reason = "manual") {
   }
 }
 
-function schedulePreview(reason = "scheduled-preview") {
-  clearTimeout(previewTimer);
-  debugLog("preview:scheduled", {reason, delayMs: 260});
-  previewTimer = setTimeout(() => preview(reason).catch((err) => toast(err.message)), 260);
-}
-
-function scheduleActions(reason = "scheduled-actions") {
-  clearTimeout(actionTimer);
-  debugLog("actions:scheduled", {reason, delayMs: 320});
-  actionTimer = setTimeout(() => refreshActions(reason).catch(() => {}), 320);
-}
-
 function scheduleHeavyUpdate(delay = 650, reason = "idle") {
   clearTimeout(heavyUpdateTimer);
   debugLog("heavy-update:scheduled", {reason, delayMs: delay});
@@ -1405,10 +1393,12 @@ function renderReview(decisions, options = {}) {
 
   body.innerHTML = '<div class="review-list"></div>';
   const list = body.querySelector(".review-list");
+  const pending = new Set(actionable.map((_, index) => index));
 
-  actionable.forEach((item) => {
+  actionable.forEach((item, index) => {
     const wrapper = document.createElement("div");
     wrapper.className = "review-item";
+    wrapper.dataset.reviewIndex = String(index);
 
     const compare = document.createElement("div");
     compare.className = "review-compare";
@@ -1441,6 +1431,7 @@ function renderReview(decisions, options = {}) {
     apply.type = "button";
     apply.textContent = "Заменить";
     apply.addEventListener("click", () => {
+      pending.delete(index);
       replaceMenuLine(item.raw, item.best.name);
       wrapper.remove();
       if (!list.children.length) {
@@ -1454,6 +1445,7 @@ function renderReview(decisions, options = {}) {
     cancel.type = "button";
     cancel.textContent = "Отменить";
     cancel.addEventListener("click", () => {
+      pending.delete(index);
       wrapper.remove();
       if (!list.children.length) {
         setReviewOpen(false);
@@ -1468,7 +1460,9 @@ function renderReview(decisions, options = {}) {
   });
 
   $("btnReplaceAll").onclick = () => {
-    const replacements = actionable.map((item) => ({source: item.raw, target: item.best.name}));
+    const replacements = actionable
+      .filter((_, index) => pending.has(index))
+      .map((item) => ({source: item.raw, target: item.best.name}));
     const replaced = replaceMenuLines(replacements);
     setReviewOpen(false);
     toast(`Заменено: ${replaced}${autoCount ? `, автоматически: ${autoCount}` : ""}`);
@@ -1557,10 +1551,29 @@ async function refreshAfterEditorSave() {
 }
 
 function randomPassword() {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%^&*";
-  const bytes = new Uint32Array(14);
+  const upper = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  const lower = "abcdefghijkmnopqrstuvwxyz";
+  const digits = "23456789";
+  const special = "!@#$%^&*";
+  const alphabet = upper + lower + digits + special;
+  const pick = (source) => {
+    const bytes = new Uint32Array(1);
+    window.crypto.getRandomValues(bytes);
+    return source[bytes[0] % source.length];
+  };
+  const chars = [pick(upper), pick(lower), pick(digits), pick(special)];
+  const bytes = new Uint32Array(10);
   window.crypto.getRandomValues(bytes);
-  return Array.from(bytes, (value) => alphabet[value % alphabet.length]).join("");
+  for (const value of bytes) {
+    chars.push(alphabet[value % alphabet.length]);
+  }
+  for (let i = chars.length - 1; i > 0; i -= 1) {
+    const bytes = new Uint32Array(1);
+    window.crypto.getRandomValues(bytes);
+    const j = bytes[0] % (i + 1);
+    [chars[i], chars[j]] = [chars[j], chars[i]];
+  }
+  return chars.join("");
 }
 
 async function collectPdfValidation() {
@@ -2043,11 +2056,17 @@ function renderUsers(users) {
     const meta = document.createElement("div");
     meta.className = "users-meta";
     const roleLabel = user.role === "admin" ? "Admin" : "User";
-    meta.innerHTML = `
-      <strong>${user.username}</strong>
-      <span class="muted">Роль: ${roleLabel}</span>
-      <span class="muted">${user.must_change_password ? "Требуется смена пароля" : "Пароль обновлён"}</span>
-    `;
+    const nameEl = document.createElement("strong");
+    nameEl.textContent = user.username || "";
+    const roleEl = document.createElement("span");
+    roleEl.className = "muted";
+    roleEl.textContent = `Роль: ${roleLabel}`;
+    const passEl = document.createElement("span");
+    passEl.className = "muted";
+    passEl.textContent = user.must_change_password ? "Требуется смена пароля" : "Пароль обновлён";
+    meta.appendChild(nameEl);
+    meta.appendChild(roleEl);
+    meta.appendChild(passEl);
     item.appendChild(meta);
 
     const actions = document.createElement("div");

@@ -197,6 +197,10 @@ git pull
 docker compose up -d --build web
 ```
 
+Контейнер `web` при старте выполняет `migrate` и `collectstatic` (`scripts/start_web.sh`).
+
+Штатный backup сохраняет **только PostgreSQL**. Том `media_data` (PDF архива и подложки) в эту копию **не** входит.
+
 Если Docker Hub / CDN зависает на скачивании слоёв, а локальный образ `web` уже есть, можно обновить **только код** приложения без pull базовых образов:
 
 ```bash

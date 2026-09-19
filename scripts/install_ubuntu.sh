@@ -387,6 +387,7 @@ create_admin_user() {
     return 1
   fi
   # Pass password via inherited env so special characters stay intact (incl. sudo path).
+  set +x
   if docker info >/dev/null 2>&1; then
     env MENU_AUTOPRINT_NEW_USER_PASSWORD="$password" \
       docker compose exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD \
@@ -398,6 +399,7 @@ create_admin_user() {
       web python manage.py create_staff_user "$username" --role admin \
       </dev/null
   fi
+  if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
 }
 
 read_admin_credentials() {
@@ -588,13 +590,17 @@ fi
 prompt_new_install_admin_credentials
 
 DJANGO_SECRET_KEY_VALUE="$(get_env_value "DJANGO_SECRET_KEY")"
-if [[ "$ENV_CREATED" == "1" || -z "$DJANGO_SECRET_KEY_VALUE" ]]; then
+if [[ "$ENV_CREATED" == "1" || -z "$DJANGO_SECRET_KEY_VALUE" || "$DJANGO_SECRET_KEY_VALUE" == "change-me" || "$DJANGO_SECRET_KEY_VALUE" == "changeme" || "$DJANGO_SECRET_KEY_VALUE" == "dev-insecure-change-me" ]]; then
+  set +x
   set_env_value "DJANGO_SECRET_KEY" "$(generate_secret 32)"
+  if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
 fi
 
 POSTGRES_PASSWORD_VALUE="$(get_env_value "POSTGRES_PASSWORD")"
-if [[ "$ENV_CREATED" == "1" || -z "$POSTGRES_PASSWORD_VALUE" ]]; then
+if [[ "$ENV_CREATED" == "1" || -z "$POSTGRES_PASSWORD_VALUE" || "$POSTGRES_PASSWORD_VALUE" == "change-me" ]]; then
+  set +x
   set_env_value "POSTGRES_PASSWORD" "$(generate_secret 24)"
+  if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
 fi
 
 if [[ -z "$(get_env_value "CADDY_SITE_ADDRESS")" ]]; then
