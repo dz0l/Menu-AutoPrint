@@ -178,16 +178,14 @@
     $("mobileSheetBackdrop")?.addEventListener("click", closeSheets);
 
     $("btnMobileTheme")?.addEventListener("click", () => {
+      if (window.MenuTheme) {
+        window.MenuTheme.toggleTheme();
+        return;
+      }
       const themeBtn = $("btnTheme");
       if (themeBtn) {
         themeBtn.click();
-        return;
       }
-      const dark = document.body.classList.toggle("theme-dark");
-      document.documentElement.classList.toggle("theme-dark-root", dark);
-      try {
-        localStorage.setItem("menu_theme_mode", dark ? "dark" : "light");
-      } catch (_) {}
     });
 
     placeControls();

@@ -204,5 +204,13 @@
 {% endblock %}
 {% block scripts %}
 {{ app_config|json_script:"appConfig" }}
-<script src="{% static 'js/app.js' %}" defer></script>
+<script src="{% static 'js/menu_app_core.js' %}" defer></script>
+<script src="{% static 'js/menu_app_preview.js' %}" defer></script>
+<script src="{% static 'js/menu_app_actions.js' %}" defer></script>
+<script src="{% static 'js/menu_app_review.js' %}" defer></script>
+<script src="{% static 'js/menu_app_covers.js' %}" defer></script>
+<script src="{% static 'js/menu_app_users.js' %}" defer></script>
+<script src="{% static 'js/menu_app_print.js' %}" defer></script>
+<script src="{% static 'js/menu_app_suggest.js' %}" defer></script>
+<script src="{% static 'js/menu_app_boot.js' %}" defer></script>
 {% endblock %}

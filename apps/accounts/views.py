@@ -1,4 +1,4 @@
-﻿import json
+import json
 import re
 
 from django.conf import settings
@@ -176,14 +176,9 @@ def change_password_page(request):
         )
 
     try:
-        validate_password(new_password, request.user)
+        _apply_password_change(request, new_password)
     except ValidationError as exc:
         return render(request, "registration/change_password.html", {"errors": exc.messages}, status=400)
-
-    request.user.set_password(new_password)
-    request.user.must_change_password = False
-    request.user.save(update_fields=["password", "must_change_password"])
-    update_session_auth_hash(request, request.user)
     return redirect("menu:index")
 
 
@@ -203,15 +198,18 @@ def change_password(request):
         return JsonResponse({"error": "passwords do not match"}, status=400)
 
     try:
-        validate_password(new_password, request.user)
+        _apply_password_change(request, new_password)
     except ValidationError as exc:
         return JsonResponse({"errors": exc.messages}, status=400)
+    return JsonResponse({"changed": True})
 
+
+def _apply_password_change(request, new_password: str) -> None:
+    validate_password(new_password, request.user)
     request.user.set_password(new_password)
     request.user.must_change_password = False
     request.user.save(update_fields=["password", "must_change_password"])
     update_session_auth_hash(request, request.user)
-    return JsonResponse({"changed": True})
 
 
 @login_required

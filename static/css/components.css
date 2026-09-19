@@ -1,0 +1,369 @@
+﻿.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2600;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: var(--modal-backdrop);
+}
+
+.modal-dialog {
+  position: relative;
+  width: min(900px, calc(100% - 32px));
+  max-height: calc(100vh - 48px);
+  margin: 24px auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.users-dialog {
+  width: min(980px, calc(100% - 32px));
+}
+
+.covers-dialog {
+  width: min(900px, calc(100% - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.covers-dialog > .modal-header,
+.covers-dialog > .covers-body {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.covers-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  max-height: calc(100vh - 120px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 14px;
+}
+
+.covers-create,
+.covers-list-wrap {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.covers-create h3,
+.covers-list-wrap h3 {
+  margin: 0;
+}
+
+.covers-upload-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.covers-upload-field {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.covers-upload-field input[type="file"],
+.covers-upload-field input[type="text"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.covers-upload-btn {
+  height: 36px;
+  white-space: nowrap;
+  padding-inline: 14px;
+}
+
+.cover-select-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.cover-select {
+  min-width: 150px;
+  max-width: 220px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 10px;
+}
+
+.cover-select.active {
+  border-color: var(--accent, #3b82f6);
+}
+
+.covers-table-shell {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-sizing: border-box;
+}
+
+/* Global `table { min-width: 980px }` must not apply inside the modal. */
+.covers-table {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.covers-table th,
+.covers-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+  box-sizing: border-box;
+}
+
+.covers-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.covers-table th:first-child,
+.covers-table td.cover-info-cell {
+  width: auto;
+  max-width: 0;
+}
+
+.covers-actions-col,
+.covers-actions-cell {
+  width: 140px;
+  max-width: 140px;
+}
+
+.cover-info-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 30%) minmax(0, 70%);
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.cover-file-line {
+  min-width: 0;
+  font-size: 13px;
+  color: var(--muted, #6b7280);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cover-name-input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 34px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  padding: 0 8px;
+}
+
+.covers-actions-cell {
+  overflow: hidden;
+}
+
+.covers-actions {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.covers-actions .button,
+.covers-actions .danger-button {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  white-space: nowrap;
+  padding-inline: 8px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h2,
+.users-create h3,
+.users-list-wrap h3 {
+  margin: 0;
+}
+
+.modal-body {
+  max-height: calc(100vh - 150px);
+  overflow: auto;
+  padding: 14px;
+}
+
+.review-list,
+.users-list {
+  display: grid;
+  gap: 10px;
+}
+
+.review-item,
+.users-item,
+.users-result {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  background: var(--input-bg);
+}
+
+.review-item {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.review-compare,
+.users-body,
+.users-create,
+.users-list-wrap,
+.users-meta {
+  display: grid;
+  gap: 12px;
+}
+
+.review-source,
+.review-target {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.review-actions-column {
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 110px;
+}
+
+.review-score {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.users-meta strong {
+  font-size: 16px;
+}
+
+body.theme-dark .archive-alert {
+  color: #f2c28d;
+}
+
+.archive-disk .panel-title h1,
+.archive-table-wrap h1 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.disk-meter {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.disk-meter-track {
+  position: relative;
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--border) 70%, var(--input-bg));
+  overflow: hidden;
+}
+
+.disk-meter-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent) 78%, #6b8f71);
+}
+
+body.theme-dark .disk-meter-fill {
+  background: color-mix(in srgb, var(--accent) 65%, #9ec5a5);
+}
+
+.disk-meter-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  color: var(--ink);
+  opacity: 0.82;
+  font-size: 0.92rem;
+}
+
+.archive-table-wrap {
+  overflow-x: auto;
+}
+
+.archive-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.archive-table th,
+.archive-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.archive-table th {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.archive-empty,
+.muted {
+  color: var(--ink);
+  opacity: 0.65;
+}
+
+
+

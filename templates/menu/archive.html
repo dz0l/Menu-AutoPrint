@@ -71,16 +71,11 @@
 {% endblock %}
 {% block scripts %}
 <script>
-  (function () {
-    var btn = document.getElementById("btnTheme");
-    if (!btn) return;
-    btn.addEventListener("click", function () {
-      var dark = document.body.classList.toggle("theme-dark");
-      document.documentElement.classList.toggle("theme-dark-root", dark);
-      try {
-        localStorage.setItem("menu_theme_mode", dark ? "dark" : "light");
-      } catch (e) {}
-    });
-  })();
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.MenuTheme) {
+      window.MenuTheme.bindThemeButton("btnTheme");
+      window.MenuTheme.initFromStorage();
+    }
+  });
 </script>
 {% endblock %}
