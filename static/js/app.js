@@ -354,7 +354,15 @@ async function postJson(url, payload, options = {}) {
           body: body.slice(0, 500),
         });
       }
-      throw new Error(body);
+      let message = body || "Request failed";
+      try {
+        const parsed = JSON.parse(body);
+        if (parsed && typeof parsed === "object") {
+          message = parsed.error || (parsed.errors || []).join("\n") || message;
+        }
+      } catch {
+      }
+      throw new Error(message);
     }
     const data = await res.json();
     return data;
