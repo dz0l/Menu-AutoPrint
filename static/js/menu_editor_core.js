@@ -38,6 +38,8 @@
     focusedOrder: new Map(),
     focusedActive: false,
     saveInFlight: false,
+    saveSeq: 0,
+    browseSeq: 0,
     translateAllInFlight: false,
     loadInFlight: false,
     pendingBrowseReload: false,
@@ -64,7 +66,24 @@
       button.textContent = busy ? "Сохранение..." : "Сохранить";
     }
     document.querySelector(".editor-workspace")?.classList.toggle("editor-save-busy", busy);
-    document.querySelectorAll("#rows input, #rows textarea, #rows select, #btnAddRow").forEach((el) => {
+    const selectors = [
+      "#rows input",
+      "#rows textarea",
+      "#rows select",
+      "#rows button",
+      "#btnAddRow",
+      "#btnTranslateAll",
+      "#btnPrevPage",
+      "#btnNextPage",
+      "#searchInput",
+      "#pageSize",
+      ".editor-filters input",
+      ".editor-filters button",
+      ".editor-sidebar input",
+      ".editor-sidebar button",
+      ".editor-sidebar select",
+    ].join(", ");
+    document.querySelectorAll(selectors).forEach((el) => {
       el.disabled = busy;
     });
   }
@@ -450,6 +469,9 @@
       del.title = "Удалить";
       del.setAttribute("aria-label", "Удалить");
       del.addEventListener("click", () => {
+        if (state.saveInFlight || state.loadInFlight) {
+          return;
+        }
         if (row.id) {
           state.deletedRowIds.push(row.id);
         }

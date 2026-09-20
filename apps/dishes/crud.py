@@ -103,13 +103,39 @@ def list_dishes_page(params) -> dict:
 def parse_int_or_none(value):
     if value in (None, ""):
         return None
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError) as exc:
-        raise ValueError("invalid integer") from exc
+    if isinstance(value, bool):
+        raise ValueError("invalid integer")
+    if isinstance(value, float):
+        raise ValueError("invalid integer")
+    if isinstance(value, int):
+        parsed = value
+    elif isinstance(value, str):
+        text = value.strip()
+        if not text or any(ch in text for ch in ".eE"):
+            raise ValueError("invalid integer")
+        try:
+            parsed = int(text)
+        except ValueError as exc:
+            raise ValueError("invalid integer") from exc
+    else:
+        raise ValueError("invalid integer")
     if parsed < 0 or parsed > 32767:
         raise ValueError("integer out of range")
     return parsed
+
+
+def _require_str_field(data: dict, *keys) -> str | None:
+    """Return stripped string for the first present key, or None if none of the keys exist."""
+    for key in keys:
+        if key not in data:
+            continue
+        raw = data[key]
+        if raw is None:
+            return ""
+        if not isinstance(raw, str):
+            raise ValueError(f"{key} must be a string")
+        return raw.strip()
+    return None
 
 
 def _dish_update_payload(data: dict, *, partial: bool = False) -> dict:
@@ -122,19 +148,34 @@ def _dish_update_payload(data: dict, *, partial: bool = False) -> dict:
 
     payload = {}
     if not partial or has("en", "name_en"):
-        payload["name_en"] = (data.get("en") or data.get("name_en") or "").strip()
+        name_en = _require_str_field(data, "en", "name_en")
+        payload["name_en"] = "" if name_en is None else name_en
         if len(payload["name_en"]) > 255:
             raise ValueError("name_en too long")
     if not partial or has("kcal", "kcal_per_100"):
-        payload["kcal_per_100"] = parse_int_or_none(data.get("kcal", data.get("kcal_per_100")))
+        if "kcal" in data:
+            raw = data["kcal"]
+        elif "kcal_per_100" in data:
+            raw = data["kcal_per_100"]
+        else:
+            raw = None
+        payload["kcal_per_100"] = parse_int_or_none(raw)
     if not partial or has("gr", "grams_default"):
-        payload["grams_default"] = parse_int_or_none(data.get("gr", data.get("grams_default")))
+        if "gr" in data:
+            raw = data["gr"]
+        elif "grams_default" in data:
+            raw = data["grams_default"]
+        else:
+            raw = None
+        payload["grams_default"] = parse_int_or_none(raw)
     if not partial or has("catRu", "category_ru"):
-        payload["category_ru"] = (data.get("catRu") or data.get("category_ru") or "").strip()
+        cat_ru = _require_str_field(data, "catRu", "category_ru")
+        payload["category_ru"] = "" if cat_ru is None else cat_ru
         if len(payload["category_ru"]) > 120:
             raise ValueError("category_ru too long")
     if not partial or has("catEn", "category_en"):
-        payload["category_en"] = (data.get("catEn") or data.get("category_en") or "").strip()
+        cat_en = _require_str_field(data, "catEn", "category_en")
+        payload["category_en"] = "" if cat_en is None else cat_en
         if len(payload["category_en"]) > 120:
             raise ValueError("category_en too long")
     if payload.get("category_ru") and not payload.get("category_en"):
@@ -168,10 +209,58 @@ def find_dish_by_ru_name(name_ru: str, *, exclude_id: int | None = None) -> Dish
     return None
 
 
+def validate_dish_row_payload(data: dict, *, for_create: bool = False) -> None:
+    """Validate dish row shape/types without writing. Used by bulk_upsert before mutate."""
+    if not isinstance(data, dict):
+        raise ValueError("row must be an object")
+    if "id" in data and data["id"] is not None:
+        dish_id = data["id"]
+        if isinstance(dish_id, bool) or not isinstance(dish_id, int):
+            raise ValueError("id must be an integer")
+        if dish_id < 1:
+            raise ValueError("id must be positive")
+    if "ru" in data and data["ru"] is not None and not isinstance(data["ru"], str):
+        raise ValueError("ru must be a string")
+    if "name_ru" in data and data["name_ru"] is not None and not isinstance(data["name_ru"], str):
+        raise ValueError("name_ru must be a string")
+    if for_create or not data.get("id"):
+        name_ru = (
+            (data.get("ru") if isinstance(data.get("ru"), str) else None)
+            or (data.get("name_ru") if isinstance(data.get("name_ru"), str) else None)
+            or ""
+        ).strip()
+        if not name_ru:
+            raise ValueError("name_ru required")
+        if len(name_ru) > 255:
+            raise ValueError("name_ru too long")
+        _dish_update_payload(data)
+    else:
+        if "ru" in data or "name_ru" in data:
+            name_ru = (data.get("ru") or data.get("name_ru") or "")
+            if not isinstance(name_ru, str):
+                raise ValueError("ru must be a string")
+            name_ru = name_ru.strip()
+            if not name_ru:
+                raise ValueError("name_ru required")
+            if len(name_ru) > 255:
+                raise ValueError("name_ru too long")
+        _dish_update_payload(data, partial=True)
+
+
 def upsert_dish(data: dict, actor=None) -> tuple[Dish, bool]:
-    name_ru = (data.get("ru") or data.get("name_ru") or "").strip()
+    if not isinstance(data, dict):
+        raise ValueError("invalid payload")
+    if "ru" in data and data["ru"] is not None and not isinstance(data["ru"], str):
+        raise ValueError("ru must be a string")
+    if "name_ru" in data and data["name_ru"] is not None and not isinstance(data["name_ru"], str):
+        raise ValueError("name_ru must be a string")
+    name_ru = ((data.get("ru") if isinstance(data.get("ru"), str) else None)
+               or (data.get("name_ru") if isinstance(data.get("name_ru"), str) else None)
+               or "").strip()
     if not name_ru:
         raise ValueError("name_ru required")
+    if len(name_ru) > 255:
+        raise ValueError("name_ru too long")
     payload = _dish_update_payload(data)
 
     with transaction.atomic():
@@ -198,6 +287,10 @@ def upsert_dish(data: dict, actor=None) -> tuple[Dish, bool]:
 def update_dish(dish: Dish, data: dict, actor=None) -> Dish:
     name_ru = dish.name_ru
     if "ru" in data or "name_ru" in data:
+        if "ru" in data and data["ru"] is not None and not isinstance(data["ru"], str):
+            raise ValueError("ru must be a string")
+        if "name_ru" in data and data["name_ru"] is not None and not isinstance(data["name_ru"], str):
+            raise ValueError("name_ru must be a string")
         name_ru = (data.get("ru") or data.get("name_ru") or "").strip()
     if not name_ru:
         raise ValueError("name_ru required")

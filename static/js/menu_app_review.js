@@ -215,6 +215,22 @@
       toast("Новых и неполных блюд нет.");
       return;
     }
+    const fixNames = [
+      ...new Set(
+        editorRows
+          .filter((item) => item && item.mode === "fix" && item.ru)
+          .map((item) => String(item.ru).trim())
+          .filter(Boolean)
+      ),
+    ];
+    if (fixNames.length > 200) {
+      const proceed = window.confirm(
+        `К правке выбрано ${fixNames.length} блюд. За один переход откроются первые 200. Продолжить?`
+      );
+      if (!proceed) {
+        return;
+      }
+    }
     saveStorage(STORAGE_KEYS.editorRows, JSON.stringify(editorRows));
     App.saveMenuDraft();
     location.href = "/editor/";

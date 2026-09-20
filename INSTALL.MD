@@ -199,6 +199,8 @@ docker compose up -d --build web
 
 Контейнер `web` при старте выполняет `migrate` и `collectstatic` (`scripts/start_web.sh`).
 
+Лимит попыток входа хранится в файловом кэше Django (`FileBasedCache`) с блокировкой на файл счётчика. При нескольких worker-процессах за общим nginx/прокси лимит по-прежнему действует на уровне процесса и общего каталога кэша; для жёсткой общей квоты между хостами нужен общий cache backend (например Redis). `REMOTE_ADDR` за reverse proxy обычно указывает на прокси, а не на клиента.
+
 Штатный backup сохраняет **только PostgreSQL**. Том `media_data` (PDF архива и подложки) в эту копию **не** входит.
 
 Если Docker Hub / CDN зависает на скачивании слоёв, а локальный образ `web` уже есть, можно обновить **только код** приложения без pull базовых образов:
@@ -215,7 +217,7 @@ bash scripts/update_web_code.sh
 
 ```bash
 cd /opt/menu-autoprint
-docker compose run --rm backup sh /scripts/backup_postgres.sh once
+docker compose run --rm backup bash /scripts/backup_postgres.sh once
 ```
 
 Автоперевод в редакторе базы включается заполнением `AZURE_TRANSLATOR_KEY` в `.env`; для ресурса Azure Translator в West Europe используйте `AZURE_TRANSLATOR_REGION=westeurope` и оставьте `AZURE_TRANSLATOR_ENDPOINT=https://api.cognitive.microsofttranslator.com`. После изменения `.env` перезапустите `web`.

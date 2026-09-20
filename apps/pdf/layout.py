@@ -109,6 +109,11 @@ def _total_blocks_height(blocks: list[TextBlock]) -> float:
     return sum(_block_height(block) for block in blocks)
 
 
+OVERFLOW_ERROR = (
+    "Меню не помещается на лист. Добавьте разделитель --- или сократите список."
+)
+
+
 def compute_page_layout(
     items: list[dict],
     *,
@@ -116,9 +121,6 @@ def compute_page_layout(
     regular_font: str,
     bold_font: str,
 ) -> PageLayout:
-    if not auto_format:
-        return PageLayout.from_menu_font_size(BASE_MENU_FONT_SIZE)
-
     available_height = _page_content_top() - PAGE_CONTENT_BOTTOM
 
     def fits(layout: PageLayout) -> bool:
@@ -130,6 +132,13 @@ def compute_page_layout(
             layout=layout,
         )
         return _total_blocks_height(blocks) <= available_height
+
+    # Capacity check applies even without auto_format so PDF and HTML print share one gate.
+    if not auto_format:
+        layout = PageLayout.from_menu_font_size(BASE_MENU_FONT_SIZE)
+        if not fits(layout):
+            raise ValueError(OVERFLOW_ERROR)
+        return layout
 
     for spacing_scale in SPACING_SCALE_STEPS:
         layout = PageLayout.create(BASE_MENU_FONT_SIZE, spacing_scale=spacing_scale)
@@ -144,9 +153,7 @@ def compute_page_layout(
 
     layout = PageLayout.create(MIN_MENU_FONT_SIZE, spacing_scale=SPACING_SCALE_STEPS[-1])
     if not fits(layout):
-        raise ValueError(
-            "Меню не помещается на лист. Добавьте разделитель --- или сократите список."
-        )
+        raise ValueError(OVERFLOW_ERROR)
     return layout
 
 

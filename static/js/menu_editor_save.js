@@ -23,6 +23,8 @@
     }
 
     E.setSaveBusy(true);
+    const saveToken = ++state.saveSeq;
+    const deletedAtStart = state.deletedRowIds.length;
     E.status(`Пожалуйста, подождите... идёт сохранение (${payloadRows.length}), удаление (${deleteIds.length}).`);
     C.toast("Пожалуйста, подождите... идёт сохранение.");
     try {
@@ -35,6 +37,9 @@
         body: JSON.stringify({rows: payloadRows, delete_ids: deleteIds}),
       });
       const data = await res.json();
+      if (saveToken !== state.saveSeq) {
+        return;
+      }
       if (!res.ok) {
         const message =
           res.status === 403
@@ -72,16 +77,27 @@
         E.render();
         return;
       }
+      // If user queued more deletes/edits while request was in flight, stay on editor.
+      if (state.deletedRowIds.length > Math.max(0, deletedAtStart - deletedOk.size) || E.changedRows().length) {
+        C.toast("Сохранение применено. Есть новые локальные изменения — сохраните ещё раз.");
+        E.render();
+        return;
+      }
       if ((data.created || 0) > 0 || (data.updated || 0) > 0 || (data.deleted || 0) > 0) {
         C.saveStorage(E.STORAGE_KEYS.editorSavedChanges, "1");
       }
       location.href = "/";
     } catch (error) {
+      if (saveToken !== state.saveSeq) {
+        return;
+      }
       const message = error?.message || "Ошибка сохранения";
       E.status(message);
       C.toast(message);
     } finally {
-      E.setSaveBusy(false);
+      if (saveToken === state.saveSeq) {
+        E.setSaveBusy(false);
+      }
     }
   }
 

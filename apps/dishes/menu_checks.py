@@ -28,11 +28,15 @@ def check_missing_fixables(ru_lines: list[str], *, show_kcal: bool = True) -> di
     return {"missing": missing, "fixables": fixables}
 
 
-def duplicate_groups(rows: list[dict]) -> dict:
+def duplicate_groups(rows: list) -> dict:
     by_norm: dict[str, list[int]] = {}
     by_tokens: dict[str, list[int]] = {}
     for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            continue
         ru = row.get("ru") or row.get("name_ru") or ""
+        if not isinstance(ru, str):
+            continue
         by_norm.setdefault(normalize_ru(ru), []).append(index)
         by_tokens.setdefault(tokens_sorted_ru(ru), []).append(index)
     return {

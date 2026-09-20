@@ -5,6 +5,15 @@
   align-items: start;
 }
 
+.editor-workspace.editor-save-busy {
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.editor-workspace.editor-save-busy #btnSave {
+  pointer-events: auto;
+}
+
 .editor-workspace.editor-focus-mode {
   grid-template-columns: minmax(0, 1fr);
 }

@@ -22,6 +22,7 @@ from .services import (
     suggest,
     update_dish,
     upsert_dish,
+    validate_dish_row_payload,
 )
 from .translation import (
     MAX_TRANSLATE_ITEMS,
@@ -139,6 +140,38 @@ def bulk_upsert(request):
     delete_ids = payload.get("delete_ids", [])
     if not isinstance(rows, list) or not isinstance(delete_ids, list):
         return JsonResponse({"error": "rows and delete_ids must be lists"}, status=400)
+
+    # Validate row shapes before any mutating work.
+    for index, row in enumerate(rows):
+        if not isinstance(row, dict):
+            return JsonResponse(
+                {
+                    "error": f"rows[{index}] must be an object",
+                    "errors": [{"index": index, "error": "row must be an object"}],
+                    "created": 0,
+                    "updated": 0,
+                    "deleted": 0,
+                    "row_results": [],
+                    "deleted_ids": [],
+                },
+                status=400,
+            )
+        try:
+            validate_dish_row_payload(row, for_create=not bool(row.get("id")))
+        except ValueError as exc:
+            return JsonResponse(
+                {
+                    "error": str(exc),
+                    "errors": [{"index": index, "error": str(exc)}],
+                    "created": 0,
+                    "updated": 0,
+                    "deleted": 0,
+                    "row_results": [],
+                    "deleted_ids": [],
+                },
+                status=400,
+            )
+
     result = {
         "created": 0,
         "updated": 0,
@@ -160,9 +193,6 @@ def bulk_upsert(request):
             result["errors"].append({"delete_index": index, "error": str(exc)})
 
     for index, row in enumerate(rows):
-        if not isinstance(row, dict):
-            result["errors"].append({"index": index, "error": "row must be an object"})
-            continue
         try:
             if row.get("id"):
                 dish = Dish.objects.get(id=row["id"])

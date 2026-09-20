@@ -156,20 +156,20 @@ fi
 
 prompt_new_install_admin_credentials
 
+# Secrets: never leave xtrace on while reading or assigning them.
+set +x
 DJANGO_SECRET_KEY_VALUE="$(get_env_value "DJANGO_SECRET_KEY")"
 if [[ "$ENV_CREATED" == "1" || -z "$DJANGO_SECRET_KEY_VALUE" || "$DJANGO_SECRET_KEY_VALUE" == "change-me" || "$DJANGO_SECRET_KEY_VALUE" == "changeme" || "$DJANGO_SECRET_KEY_VALUE" == "dev-insecure-change-me" ]]; then
-  set +x
   set_env_value "DJANGO_SECRET_KEY" "$(generate_secret 32)"
-  if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
 fi
+unset DJANGO_SECRET_KEY_VALUE
 
 POSTGRES_PASSWORD_VALUE="$(get_env_value "POSTGRES_PASSWORD")"
 if [[ "$ENV_CREATED" == "1" || -z "$POSTGRES_PASSWORD_VALUE" || "$POSTGRES_PASSWORD_VALUE" == "change-me" ]]; then
-  set +x
   set_env_value "POSTGRES_PASSWORD" "$(generate_secret 24)"
-  if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
 fi
-
+unset POSTGRES_PASSWORD_VALUE
+if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
 if [[ -z "$(get_env_value "CADDY_SITE_ADDRESS")" ]]; then
   set_env_value "CADDY_SITE_ADDRESS" ":80"
 fi
@@ -223,29 +223,38 @@ fi
 log "Migrations finished."
 
 step "Creating admin user..."
+set +x
 ADMIN_USERNAME="${ADMIN_USERNAME:-${MENU_AUTOPRINT_ADMIN_USERNAME:-mAdmin}}"
 if [[ -n "${ADMIN_PASSWORD:-}" ]]; then
   # Credentials were collected earlier for this username — create it even if
   # another admin already exists in a reused Postgres volume.
   if username_exists "$ADMIN_USERNAME"; then
+    if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
     log "User '$ADMIN_USERNAME' already exists; skipping creation."
   else
+    if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
     log "Creating admin user '$ADMIN_USERNAME'..."
+    set +x
     if ! create_admin_user "$ADMIN_USERNAME" "$ADMIN_PASSWORD"; then
       record_error "Admin user creation failed for '$ADMIN_USERNAME'."
       record_note "Run: cd $APP_DIR && docker compose exec -it web python manage.py create_staff_user $ADMIN_USERNAME --role admin"
       unset ADMIN_PASSWORD MENU_AUTOPRINT_NEW_USER_PASSWORD
       exit 1
     fi
+    unset ADMIN_PASSWORD MENU_AUTOPRINT_NEW_USER_PASSWORD
+    if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
     log "Admin user created: $ADMIN_USERNAME"
   fi
   unset ADMIN_PASSWORD MENU_AUTOPRINT_NEW_USER_PASSWORD
 elif admin_exists; then
+  if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
   log "An admin user already exists; skipping creation."
 else
+  if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
   log "No active admin found; password will be requested."
   read_admin_credentials
   log "Creating admin user '$ADMIN_USERNAME'..."
+  set +x
   if ! create_admin_user "$ADMIN_USERNAME" "$ADMIN_PASSWORD"; then
     record_error "Admin user creation failed for '$ADMIN_USERNAME'."
     record_note "Run: cd $APP_DIR && docker compose exec -it web python manage.py create_staff_user $ADMIN_USERNAME --role admin"
@@ -253,13 +262,14 @@ else
     exit 1
   fi
   unset ADMIN_PASSWORD MENU_AUTOPRINT_NEW_USER_PASSWORD
+  if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
   if ! username_exists "$ADMIN_USERNAME"; then
     record_error "Admin user '$ADMIN_USERNAME' was not created."
     exit 1
   fi
   log "Admin user created: $ADMIN_USERNAME"
 fi
-
+if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
 step "Clearing cache..."
 if ! compose_python manage.py shell -c "from django.core.cache import cache; cache.clear()"; then
   record_warning "Cache clear failed (non-critical)."

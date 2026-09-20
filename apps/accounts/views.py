@@ -1,5 +1,6 @@
 import json
 import re
+from pathlib import Path
 
 from django.conf import settings
 from django.contrib.auth import get_user_model, update_session_auth_hash
@@ -19,8 +20,39 @@ from apps.core.http_utils import json_body as _json_body
 from apps.core.http_utils import validate_username_value
 from .models import UserPreference
 
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Windows / non-POSIX
+    fcntl = None
+
 
 User = get_user_model()
+
+
+def _rate_limit_lock_path(key: str) -> Path:
+    location = Path(settings.CACHES["default"].get("LOCATION") or "/tmp/django-cache")
+    location.mkdir(parents=True, exist_ok=True)
+    safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", key)[:120]
+    return location / f".rate-lock-{safe}"
+
+
+def _atomic_rate_count(key: str, *, window: int) -> int:
+    """Increment login attempts under a file lock; always set an explicit TTL."""
+    lock_path = _rate_limit_lock_path(key)
+    with open(lock_path, "a+b") as lock_fh:
+        if fcntl is not None:
+            fcntl.flock(lock_fh.fileno(), fcntl.LOCK_EX)
+        try:
+            current = cache.get(key)
+            if current is None:
+                cache.set(key, 1, timeout=window)
+                return 1
+            count = int(current) + 1
+            cache.set(key, count, timeout=window)
+            return count
+        finally:
+            if fcntl is not None:
+                fcntl.flock(lock_fh.fileno(), fcntl.LOCK_UN)
 
 
 class RateLimitedLoginView(LoginView):
@@ -33,14 +65,7 @@ class RateLimitedLoginView(LoginView):
         ident = request.META.get("REMOTE_ADDR", "unknown")
         key = f"login-rate:{ident}:{username}"
         window = settings.LOGIN_RATE_LIMIT_WINDOW
-        if cache.add(key, 1, window):
-            count = 1
-        else:
-            try:
-                count = cache.incr(key)
-            except ValueError:
-                cache.set(key, 1, window)
-                count = 1
+        count = _atomic_rate_count(key, window=window)
         if count > settings.LOGIN_RATE_LIMIT_COUNT:
             form = self.get_form()
             form.add_error(None, "Слишком много попыток входа. Попробуйте позже.")

@@ -11,6 +11,7 @@ from .crud import (
     parse_int_or_none,
     update_dish,
     upsert_dish,
+    validate_dish_row_payload,
 )
 from .csv_import import (
     ImportResult,
@@ -51,4 +52,5 @@ __all__ = [
     "suggest",
     "update_dish",
     "upsert_dish",
+    "validate_dish_row_payload",
 ]

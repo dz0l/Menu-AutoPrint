@@ -42,6 +42,9 @@
   }
 
   async function loadBrowsePage({resetPage = false} = {}) {
+    if (state.saveInFlight) {
+      return;
+    }
     if (state.loadInFlight) {
       state.pendingBrowseReload = true;
       return;
@@ -50,6 +53,7 @@
       state.page = 1;
     }
     state.loadInFlight = true;
+    const browseToken = ++state.browseSeq;
     state.browseActive = true;
     E.clearFocusedMode();
     E.updatePagerUi();
@@ -60,25 +64,42 @@
         targetPage: state.page,
         size: state.pageSize,
       });
+      if (browseToken !== state.browseSeq) {
+        return;
+      }
       state.total = Number(data.total || 0);
       state.pageSize = Number(data.limit || state.pageSize);
       const offset = Number(data.offset || 0);
       state.page = state.total ? Math.floor(offset / state.pageSize) + 1 : 1;
-      const preservedNew = E.CAN_EDIT_DATABASE ? state.rows.filter((row) => row._isNew) : [];
+      const preserved = E.CAN_EDIT_DATABASE
+        ? state.rows.filter((row) => row._isNew || E.isRowDirty(row))
+        : [];
       state.rows = (data.dishes || []).map(E.mapDishToRow);
-      if (preservedNew.length) {
-        state.rows = [...preservedNew, ...state.rows];
+      if (preserved.length) {
+        const loadedIds = new Set(state.rows.map((row) => Number(row.id)).filter(Boolean));
+        const extras = preserved.filter((row) => row._isNew || !loadedIds.has(Number(row.id)));
+        // Keep dirty edits for rows that were also reloaded from server.
+        state.rows = state.rows.map((row) => {
+          const dirty = preserved.find((item) => item.id && Number(item.id) === Number(row.id) && E.isRowDirty(item));
+          return dirty || row;
+        });
+        state.rows = [...extras.filter((row) => row._isNew), ...state.rows];
       }
       E.render();
     } catch (error) {
+      if (browseToken !== state.browseSeq) {
+        return;
+      }
       C.toast(error.message || "Ошибка загрузки базы");
       E.status(error.message || "Ошибка загрузки базы");
     } finally {
-      state.loadInFlight = false;
-      E.updatePagerUi();
-      if (state.pendingBrowseReload) {
-        state.pendingBrowseReload = false;
-        loadBrowsePage({resetPage: true}).catch((error) => C.toast(error.message));
+      if (browseToken === state.browseSeq) {
+        state.loadInFlight = false;
+        E.updatePagerUi();
+        if (state.pendingBrowseReload) {
+          state.pendingBrowseReload = false;
+          loadBrowsePage({resetPage: true}).catch((error) => C.toast(error.message));
+        }
       }
     }
   }
@@ -92,18 +113,45 @@
       E.render();
       return;
     }
+    // Server accepts at most 200 names and pages of 100; load in batches.
+    const NAMES_CAP = 200;
+    const PAGE_SIZE = 100;
+    const capped = names.slice(0, NAMES_CAP);
     state.loadInFlight = true;
     state.browseActive = false;
     E.status("Загрузка выбранных блюд...");
     try {
-      const data = await fetchDishPage({
-        names: names.join("|"),
-        targetPage: 1,
-        size: Math.min(100, Math.max(names.length, 20)),
-        applyFilters: false,
+      const loaded = [];
+      for (let start = 0; start < capped.length; start += PAGE_SIZE) {
+        const chunk = capped.slice(start, start + PAGE_SIZE);
+        let offsetPage = 1;
+        let chunkTotal = Infinity;
+        while ((offsetPage - 1) * PAGE_SIZE < chunkTotal) {
+          const data = await fetchDishPage({
+            names: chunk.join("|"),
+            targetPage: offsetPage,
+            size: PAGE_SIZE,
+            applyFilters: false,
+          });
+          chunkTotal = Number(data.total || 0);
+          loaded.push(...(data.dishes || []).map(E.mapDishToRow));
+          if (!data.dishes?.length) {
+            break;
+          }
+          offsetPage += 1;
+        }
+      }
+      // Deduplicate by id while preserving first-seen order.
+      const seen = new Set();
+      state.rows = loaded.filter((row) => {
+        const id = Number(row.id);
+        if (!id || seen.has(id)) {
+          return false;
+        }
+        seen.add(id);
+        return true;
       });
-      state.total = Number(data.total || 0);
-      state.rows = (data.dishes || []).map(E.mapDishToRow);
+      state.total = state.rows.length;
       state.focusedIds = new Set(state.rows.map((row) => Number(row.id)).filter(Boolean));
       state.rows.forEach((row, index) => {
         state.focusedOrder.set(`id:${row.id}`, index);
@@ -112,8 +160,8 @@
           state.focusedNewKeys.delete(key);
         }
       });
-      if (names.length > 100) {
-        C.toast(`Загружено первых ${state.rows.length} из ${names.length}. Остальные откройте из базы отдельно.`);
+      if (names.length > capped.length) {
+        C.toast(`Открыто ${state.rows.length} из ${names.length}. Остальные — из базы отдельно.`);
       }
       E.render();
     } catch (error) {

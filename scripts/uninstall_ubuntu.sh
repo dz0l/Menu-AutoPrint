@@ -83,6 +83,53 @@ confirm() {
   [[ "$answer" == "y" || "$answer" == "Y" ]]
 }
 
+confirm() {
+  local prompt="$1"
+  if [[ "$YES" == "1" ]]; then
+    return 0
+  fi
+  read -r -p "$prompt [y/N]: " answer
+  [[ "$answer" == "y" || "$answer" == "Y" ]]
+}
+
+is_menu_autoprint_dir() {
+  local dir="$1"
+  [[ -f "$dir/docker-compose.yml" ]] || return 1
+  [[ -f "$dir/manage.py" ]] || return 1
+  [[ -d "$dir/apps/menu" ]] || return 1
+  [[ -f "$dir/apps/menu/apps.py" ]] || return 1
+  return 0
+}
+
+resolve_and_validate_app_dir() {
+  local resolved
+  if [[ ! -d "$APP_DIR" ]]; then
+    echo "APP_DIR does not exist: $APP_DIR" >&2
+    exit 1
+  fi
+  resolved="$(readlink -f "$APP_DIR" 2>/dev/null || realpath "$APP_DIR" 2>/dev/null || echo "$APP_DIR")"
+  case "$resolved" in
+    /|/home|/opt|/var|/usr|/etc|/root|/mnt|/media|/tmp)
+      echo "Refusing unsafe APP_DIR=$resolved" >&2
+      exit 1
+      ;;
+  esac
+  if [[ "$resolved" != /opt/* && "$resolved" != /home/* ]]; then
+    # Allow only typical install roots unless explicitly under /opt or /home.
+    if [[ "$YES" != "1" ]]; then
+      echo "Unusual APP_DIR=$resolved (expected under /opt or /home)." >&2
+    fi
+  fi
+  if ! is_menu_autoprint_dir "$resolved"; then
+    echo "Refusing $resolved: not a Menu AutoPrint application directory." >&2
+    echo "Expected docker-compose.yml, manage.py, and apps/menu." >&2
+    exit 1
+  fi
+  APP_DIR="$resolved"
+}
+
+resolve_and_validate_app_dir
+
 echo "Menu AutoPrint uninstall"
 echo "App directory: $APP_DIR"
 echo "Remove app directory: $([[ "$REMOVE_APP_DIR" == "1" ]] && echo yes || echo no)"
@@ -94,19 +141,14 @@ if ! confirm "Continue?"; then
   exit 0
 fi
 
-if [[ -f "$APP_DIR/docker-compose.yml" ]]; then
-  echo "Stopping Menu AutoPrint containers and removing volumes..."
-  (
-    cd "$APP_DIR"
-    docker_cmd compose --profile caddy --profile external-proxy down -v --remove-orphans --rmi local || true
-  )
-  project_name="$(basename "$APP_DIR")"
-  project_name="${project_name//[^a-zA-Z0-9]/_}"
-  project_name="$(echo "$project_name" | tr '[:upper:]' '[:lower:]')"
-else
-  echo "Compose file not found in $APP_DIR; skipping project shutdown."
-  project_name=""
-fi
+echo "Stopping Menu AutoPrint containers and removing volumes..."
+(
+  cd "$APP_DIR"
+  docker_cmd compose --profile caddy --profile external-proxy down -v --remove-orphans --rmi local || true
+)
+project_name="$(basename "$APP_DIR")"
+project_name="${project_name//[^a-zA-Z0-9]/_}"
+project_name="$(echo "$project_name" | tr '[:upper:]' '[:lower:]')"
 
 if [[ -n "$project_name" ]]; then
   echo "Removing leftover Menu AutoPrint containers (if any)..."
@@ -124,19 +166,12 @@ fi
 
 if [[ "$REMOVE_APP_DIR" == "1" ]]; then
   if [[ -d "$APP_DIR" ]]; then
-    APP_DIR_REAL="$(readlink -f "$APP_DIR" 2>/dev/null || realpath "$APP_DIR" 2>/dev/null || echo "$APP_DIR")"
-    case "$APP_DIR_REAL" in
-      /|/home|/opt|/var|/usr|/etc|/root|/mnt|/media)
-        echo "Refusing to delete unsafe APP_DIR=$APP_DIR_REAL" >&2
-        exit 1
-        ;;
-    esac
-    if [[ ! -f "$APP_DIR_REAL/docker-compose.yml" ]]; then
-      echo "Refusing to delete $APP_DIR_REAL: docker-compose.yml not found (not a Menu AutoPrint app dir)." >&2
+    if ! is_menu_autoprint_dir "$APP_DIR"; then
+      echo "Refusing to delete $APP_DIR: not a Menu AutoPrint app dir." >&2
       exit 1
     fi
-    echo "Deleting $APP_DIR_REAL ..."
-    sudo rm -rf --one-file-system "$APP_DIR_REAL"
+    echo "Deleting $APP_DIR ..."
+    sudo rm -rf --one-file-system "$APP_DIR"
   fi
 fi
 

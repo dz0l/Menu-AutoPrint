@@ -349,12 +349,13 @@ username_exists() {
 create_admin_user() {
   local username="$1"
   local password="$2"
+  set +x
   if [[ -z "$username" || -z "$password" ]]; then
     record_error "Admin username/password missing; cannot create admin user."
+    if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
     return 1
   fi
   # Pass password via inherited env so special characters stay intact (incl. sudo path).
-  set +x
   if docker info >/dev/null 2>&1; then
     env MENU_AUTOPRINT_NEW_USER_PASSWORD="$password" \
       docker compose exec -T -e MENU_AUTOPRINT_NEW_USER_PASSWORD \
@@ -366,10 +367,13 @@ create_admin_user() {
       web python manage.py create_staff_user "$username" --role admin \
       </dev/null
   fi
+  local status=$?
   if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
+  return "$status"
 }
 
 read_admin_credentials() {
+  set +x
   ADMIN_USERNAME="${MENU_AUTOPRINT_ADMIN_USERNAME:-}"
   ADMIN_PASSWORD="${MENU_AUTOPRINT_NEW_USER_PASSWORD:-}"
 
@@ -388,6 +392,7 @@ read_admin_credentials() {
   if [[ -z "$ADMIN_PASSWORD" ]]; then
     if [[ ! -r /dev/tty ]]; then
       record_error "Set MENU_AUTOPRINT_NEW_USER_PASSWORD for non-interactive admin creation."
+      if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
       exit 1
     fi
 
@@ -413,23 +418,29 @@ read_admin_credentials() {
     done
   elif ! password_error="$(validate_admin_password "$ADMIN_PASSWORD")"; then
     record_error "$password_error"
+    if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
     exit 1
   fi
+  if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
 }
 
 prompt_new_install_admin_credentials() {
   if [[ "$ENV_CREATED" != "1" ]]; then
     return
   fi
+  set +x
   if [[ -n "${MENU_AUTOPRINT_NEW_USER_PASSWORD:-}" ]]; then
     if ! password_error="$(validate_admin_password "$MENU_AUTOPRINT_NEW_USER_PASSWORD")"; then
       record_error "$password_error"
+      if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
       exit 1
     fi
     ADMIN_USERNAME="${MENU_AUTOPRINT_ADMIN_USERNAME:-mAdmin}"
     ADMIN_PASSWORD="$MENU_AUTOPRINT_NEW_USER_PASSWORD"
+    if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
     return
   fi
+  if [[ "${VERBOSE:-0}" == "1" ]]; then set -x; fi
 
   echo "First admin account will be created after database migrations."
   read_admin_credentials

@@ -35,6 +35,9 @@
       return;
     }
     const values = layout || {};
+    // Keep CSS --preview-pt-scale aligned with PREVIEW_BASE_WIDTH / A4 pt width.
+    const page = target.closest(".preview-page") || target;
+    page.style.setProperty("--preview-pt-scale", String(PREVIEW_BASE_WIDTH / 595.28));
     target.style.setProperty("--menu-font-pt", values.menu_font_size || 20);
     target.style.setProperty("--menu-leading-pt", values.menu_leading || 28);
     target.style.setProperty("--continuation-leading-pt", values.continuation_leading || 24);

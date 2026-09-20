@@ -111,7 +111,14 @@ def _translate_with_azure(texts: list[str]) -> list[str]:
     try:
         timeout = getattr(settings, "AZURE_TRANSLATOR_TIMEOUT_SECONDS", 10)
         with urllib.request.urlopen(request, timeout=timeout) as response:
-            payload = response.read(MAX_TRANSLATE_BODY_BYTES).decode("utf-8")
+            raw = response.read(MAX_TRANSLATE_BODY_BYTES)
+            try:
+                payload = raw.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                logger.warning("azure translation non-utf8 response")
+                raise TranslationBadResponse("Azure Translator response encoding is invalid") from exc
+    except TranslationBadResponse:
+        raise
     except TimeoutError as exc:
         logger.warning("azure translation timeout")
         raise TranslationTimeout("Azure Translator request timed out") from exc
@@ -131,10 +138,15 @@ def _translate_with_azure(texts: list[str]) -> list[str]:
             raise TranslationBadResponse("Azure Translator response format is invalid")
         result = []
         for item in data:
-            translations = (item or {}).get("translations") if isinstance(item, dict) else None
-            if not translations:
+            if not isinstance(item, dict):
                 raise TranslationBadResponse("Azure Translator response format is invalid")
-            result.append(str(translations[0].get("text", "")).strip())
+            translations = item.get("translations")
+            if not isinstance(translations, list) or not translations:
+                raise TranslationBadResponse("Azure Translator response format is invalid")
+            first = translations[0]
+            if not isinstance(first, dict):
+                raise TranslationBadResponse("Azure Translator response format is invalid")
+            result.append(str(first.get("text", "")).strip())
     except TranslationBadResponse:
         raise
     except (KeyError, TypeError, IndexError, ValueError, json.JSONDecodeError) as exc:

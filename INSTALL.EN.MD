@@ -208,6 +208,8 @@ docker compose up -d --build web
 
 The `web` container runs `migrate` and `collectstatic` on start (`scripts/start_web.sh`).
 
+Login rate limiting uses Django `FileBasedCache` with a per-key file lock and an explicit TTL window. With multiple workers behind a shared nginx/proxy the limit still shares the cache directory on one host; a shared cache backend (e.g. Redis) is needed for a hard quota across hosts. Behind a reverse proxy, `REMOTE_ADDR` usually identifies the proxy, not the client.
+
 The stock backup saves **PostgreSQL only**. The `media_data` volume (archive PDFs and covers) is **not** included; keep media separately (deferred media backup TODO).
 
 If Docker Hub / CDN stalls while pulling layers but a local `web` image already exists, you can update **application code only** without pulling base images:
@@ -224,7 +226,7 @@ Create a manual PostgreSQL backup:
 
 ```bash
 cd /opt/menu-autoprint
-docker compose run --rm backup sh /scripts/backup_postgres.sh once
+docker compose run --rm backup bash /scripts/backup_postgres.sh once
 ```
 
 Enable auto-translation in the dish editor by setting `AZURE_TRANSLATOR_KEY` in `.env`; for a West Europe Azure Translator resource use `AZURE_TRANSLATOR_REGION=westeurope` and keep `AZURE_TRANSLATOR_ENDPOINT=https://api.cognitive.microsofttranslator.com`. Restart `web` after changing `.env`.

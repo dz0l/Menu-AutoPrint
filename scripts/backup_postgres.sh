@@ -1,5 +1,5 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
 BACKUP_DIR="${BACKUP_DIR:-/backups}"
 BACKUP_INTERVAL_DAYS="${BACKUP_INTERVAL_DAYS:-10}"
@@ -10,13 +10,15 @@ MODE="${1:-once}"
 mkdir -p "$BACKUP_DIR"
 
 backup_once() {
+  local stamp tmp_sql tmp_gz file
   stamp="$(date +%Y%m%d-%H%M%S)"
-  tmp_file="$BACKUP_DIR/menu_autoprint-$stamp.sql.gz.partial"
+  tmp_sql="$BACKUP_DIR/menu_autoprint-$stamp.sql.partial"
+  tmp_gz="$BACKUP_DIR/menu_autoprint-$stamp.sql.gz.partial"
   file="$BACKUP_DIR/menu_autoprint-$stamp.sql.gz"
   echo "Creating PostgreSQL backup: $file"
-  # Fail if pg_dump fails even when gzip succeeds.
-  set +e
-  PGPASSWORD="$POSTGRES_PASSWORD" pg_dump \
+
+  # Sequential stages so a failed pg_dump never publishes or rotates.
+  if ! PGPASSWORD="$POSTGRES_PASSWORD" pg_dump \
     --host="$POSTGRES_HOST" \
     --port="$POSTGRES_PORT" \
     --username="$POSTGRES_USER" \
@@ -24,20 +26,28 @@ backup_once() {
     --format=plain \
     --no-owner \
     --no-privileges \
-    | gzip > "$tmp_file"
-  status=$?
-  set -e
-  if [ "$status" -ne 0 ]; then
-    rm -f "$tmp_file"
-    echo "PostgreSQL backup failed (pg_dump/gzip status=$status)" >&2
-    return "$status"
+    > "$tmp_sql"; then
+    rm -f "$tmp_sql" "$tmp_gz"
+    echo "PostgreSQL backup failed: pg_dump error" >&2
+    return 1
   fi
-  if [ ! -s "$tmp_file" ]; then
-    rm -f "$tmp_file"
+  if [[ ! -s "$tmp_sql" ]]; then
+    rm -f "$tmp_sql" "$tmp_gz"
     echo "PostgreSQL backup failed: empty dump" >&2
     return 1
   fi
-  mv "$tmp_file" "$file"
+  if ! gzip -c "$tmp_sql" > "$tmp_gz"; then
+    rm -f "$tmp_sql" "$tmp_gz"
+    echo "PostgreSQL backup failed: gzip error" >&2
+    return 1
+  fi
+  rm -f "$tmp_sql"
+  if [[ ! -s "$tmp_gz" ]]; then
+    rm -f "$tmp_gz"
+    echo "PostgreSQL backup failed: empty archive" >&2
+    return 1
+  fi
+  mv "$tmp_gz" "$file"
 
   find "$BACKUP_DIR" -maxdepth 1 -type f -name 'menu_autoprint-*.sql.gz' \
     | sort -r \
@@ -45,17 +55,17 @@ backup_once() {
     | xargs -r rm -f
 }
 
-if [ "$MODE" = "once" ]; then
+if [[ "$MODE" == "once" ]]; then
   backup_once
   exit 0
 fi
 
-if [ "$MODE" != "loop" ]; then
+if [[ "$MODE" != "loop" ]]; then
   echo "Usage: $0 [once|loop]" >&2
   exit 2
 fi
 
-if [ "$BACKUP_START_DELAY_SECONDS" -gt 0 ]; then
+if [[ "$BACKUP_START_DELAY_SECONDS" -gt 0 ]]; then
   echo "Waiting ${BACKUP_START_DELAY_SECONDS}s before first scheduled PostgreSQL backup"
   sleep "$BACKUP_START_DELAY_SECONDS"
 fi
