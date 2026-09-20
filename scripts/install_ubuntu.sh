@@ -3,10 +3,17 @@ printf '%s\n' '[menu-autoprint] Installation script started.' >&2
 
 set -euo pipefail
 
-_MENU_INSTALL_SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-_MENU_INSTALL_LIB="${_MENU_INSTALL_SCRIPT_DIR}/install/lib.sh"
+# curl|bash leaves BASH_SOURCE[0] empty; with set -u that must not abort before lib fetch.
+_MENU_INSTALL_SELF="${BASH_SOURCE[0]-}"
+if [[ -n "${_MENU_INSTALL_SELF}" && "${_MENU_INSTALL_SELF}" != "bash" && -f "${_MENU_INSTALL_SELF}" ]]; then
+  _MENU_INSTALL_SCRIPT_DIR="$(cd "$(dirname "${_MENU_INSTALL_SELF}")" && pwd)"
+  _MENU_INSTALL_LIB="${_MENU_INSTALL_SCRIPT_DIR}/install/lib.sh"
+else
+  _MENU_INSTALL_SCRIPT_DIR=""
+  _MENU_INSTALL_LIB=""
+fi
 
-if [[ ! -f "${_MENU_INSTALL_LIB}" ]]; then
+if [[ -z "${_MENU_INSTALL_LIB}" || ! -f "${_MENU_INSTALL_LIB}" ]]; then
   # curl|bash: companion lib is not beside this script — fetch from the same raw tree.
   _MENU_INSTALL_LIB_URL="${MENU_AUTOPRINT_INSTALL_LIB_URL:-}"
   if [[ -z "${_MENU_INSTALL_LIB_URL}" ]]; then
