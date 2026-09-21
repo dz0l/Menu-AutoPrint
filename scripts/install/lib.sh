@@ -300,18 +300,26 @@ compose_python() {
   compose_exec web python "$@"
 }
 
+web_migrations_ready() {
+  compose_python manage.py migrate --check >/dev/null 2>&1
+}
+
+web_http_ready() {
+  # Gunicorn only binds after migrate + collectstatic in start_web.sh.
+  compose_python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/', timeout=2).read()" >/dev/null 2>&1
+}
+
 wait_for_web() {
   local attempt
-  log "Waiting for the web container (migrations applied)..."
+  log "Waiting for web (migrations applied + HTTP /health/)..."
   for attempt in $(seq 1 90); do
-    # manage.py sets DJANGO_SETTINGS_MODULE; migrate --check fails until start_web migrate finishes.
-    if compose_python manage.py migrate --check >/dev/null 2>&1; then
+    if web_migrations_ready && web_http_ready; then
       log "Web container is ready."
       return 0
     fi
     sleep 2
   done
-  record_error "Web container did not become ready in time (migrations / startup)."
+  record_error "Web container did not become ready in time (migrations / collectstatic / Gunicorn)."
   return 1
 }
 

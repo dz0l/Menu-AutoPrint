@@ -210,8 +210,13 @@ body.theme-dark .preview-surface {
   margin-top: 0;
 }
 
+.preview-doc .group-block {
+  /* Same model as dish-block: line-box ≈ font, margin supplies (leading − font). */
+  line-height: 1;
+}
+
 .preview-doc .group-line.continuation {
-  /* PDF step = group_leading; line-box ≈ group_font → margin fills the rest */
+  /* PDF step = group_leading between baselines */
   margin-top: calc(
     (var(--group-leading-pt, 28) - var(--group-font-pt, 20)) * var(--preview-pt-scale) * 1px * var(--preview-scale)
   );
