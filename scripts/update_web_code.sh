@@ -96,14 +96,17 @@ log "пересоздание контейнера web"
 compose up -d --no-build --force-recreate web
 
 log "ожидание готовности web (migrate выполняется в start_web.sh)"
-for _ in $(seq 1 60); do
-  if compose exec -T web python -c "import django; django.setup()" >/dev/null 2>&1; then
+ready=0
+for _ in $(seq 1 90); do
+  # manage.py configures settings; bare django.setup() without env is not a readiness probe.
+  if compose exec -T web python manage.py migrate --check >/dev/null 2>&1; then
+    ready=1
     break
   fi
   sleep 2
 done
-if ! compose exec -T web python manage.py showmigrations --plan >/dev/null 2>&1; then
-  log "предупреждение: web ещё не готов; миграции применяет start_web.sh при старте"
+if [[ "$ready" != "1" ]]; then
+  die "web не стал готов за отведённое время (миграции/старт). Проверьте: docker compose logs web"
 fi
 
 log "готово. Откат при необходимости: docker tag $BACKUP_TAG $TARGET_IMAGE && docker compose up -d --no-build --force-recreate web"

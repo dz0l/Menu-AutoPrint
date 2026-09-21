@@ -211,7 +211,10 @@ body.theme-dark .preview-surface {
 }
 
 .preview-doc .group-line.continuation {
-  margin-top: calc(var(--continuation-leading-pt, 24) * var(--preview-pt-scale) * 1px * var(--preview-scale));
+  /* PDF step = group_leading; line-box ≈ group_font → margin fills the rest */
+  margin-top: calc(
+    (var(--group-leading-pt, 28) - var(--group-font-pt, 20)) * var(--preview-pt-scale) * 1px * var(--preview-scale)
+  );
   font-weight: 700;
 }
 
@@ -220,7 +223,17 @@ body.theme-dark .preview-surface {
 }
 
 .preview-doc .dish-block > .dish-line.continuation {
-  margin-top: calc(var(--continuation-leading-pt, 24) * var(--preview-pt-scale) * 1px * var(--preview-scale));
+  /* Subsequent wraps: PDF uses menu_leading between baselines */
+  margin-top: calc(
+    (var(--menu-leading-pt, 28) - var(--menu-font-pt, 20)) * var(--preview-pt-scale) * 1px * var(--preview-scale)
+  );
+}
+
+.preview-doc .dish-block > .dish + .dish-line.continuation {
+  /* First wrap after title line: PDF uses continuation_leading */
+  margin-top: calc(
+    (var(--continuation-leading-pt, 24) - var(--menu-font-pt, 20)) * var(--preview-pt-scale) * 1px * var(--preview-scale)
+  );
 }
 
 body.theme-dark .preview-doc .dish {

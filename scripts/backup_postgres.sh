@@ -47,12 +47,22 @@ backup_once() {
     echo "PostgreSQL backup failed: empty archive" >&2
     return 1
   fi
-  mv "$tmp_gz" "$file"
+  # Explicit check: with `backup_once || …` bash disables errexit inside the function.
+  if ! mv "$tmp_gz" "$file"; then
+    rm -f "$tmp_gz"
+    echo "PostgreSQL backup failed: publish (mv) error" >&2
+    return 1
+  fi
+  if [[ ! -f "$file" || ! -s "$file" ]]; then
+    echo "PostgreSQL backup failed: published file missing" >&2
+    return 1
+  fi
 
   find "$BACKUP_DIR" -maxdepth 1 -type f -name 'menu_autoprint-*.sql.gz' \
     | sort -r \
     | awk "NR>${BACKUP_KEEP}" \
     | xargs -r rm -f
+  return 0
 }
 
 if [[ "$MODE" == "once" ]]; then

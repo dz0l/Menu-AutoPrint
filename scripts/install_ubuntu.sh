@@ -220,14 +220,9 @@ if ! compose_cmd "${COMPOSE_UP_ARGS[@]}" up -d --build --remove-orphans "${COMPO
 fi
 log "Containers started."
 
-step "Running database migrations..."
+step "Waiting for database migrations (applied by start_web.sh)..."
 wait_for_web || exit 1
-# Verbosity 1 shows one line per migration — useful progress, not Docker layer spam.
-if ! compose_python manage.py migrate --verbosity 1; then
-  record_error "Database migrations failed."
-  exit 1
-fi
-log "Migrations finished."
+log "Migrations ready."
 
 step "Creating admin user..."
 set +x

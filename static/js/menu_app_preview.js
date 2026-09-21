@@ -40,6 +40,8 @@
     page.style.setProperty("--preview-pt-scale", String(PREVIEW_BASE_WIDTH / 595.28));
     target.style.setProperty("--menu-font-pt", values.menu_font_size || 20);
     target.style.setProperty("--menu-leading-pt", values.menu_leading || 28);
+    target.style.setProperty("--group-font-pt", values.group_font_size || values.menu_font_size || 20);
+    target.style.setProperty("--group-leading-pt", values.group_leading || values.menu_leading || 28);
     target.style.setProperty("--continuation-leading-pt", values.continuation_leading || 24);
     target.style.setProperty("--group-space-pt", values.group_space_before || 20);
     target.style.setProperty("--after-group-space-pt", values.after_group_space_before || 6);

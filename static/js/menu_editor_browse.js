@@ -77,13 +77,13 @@
       state.rows = (data.dishes || []).map(E.mapDishToRow);
       if (preserved.length) {
         const loadedIds = new Set(state.rows.map((row) => Number(row.id)).filter(Boolean));
+        // Keep dirty/new rows that are not on this page (do not drop off-page edits).
         const extras = preserved.filter((row) => row._isNew || !loadedIds.has(Number(row.id)));
-        // Keep dirty edits for rows that were also reloaded from server.
         state.rows = state.rows.map((row) => {
           const dirty = preserved.find((item) => item.id && Number(item.id) === Number(row.id) && E.isRowDirty(item));
           return dirty || row;
         });
-        state.rows = [...extras.filter((row) => row._isNew), ...state.rows];
+        state.rows = [...extras, ...state.rows];
       }
       E.render();
     } catch (error) {
@@ -105,7 +105,17 @@
   }
 
   async function loadFocusedRows(items) {
-    const names = [...new Set(items.map((item) => String(item.ru || item || "").trim()).filter(Boolean))];
+    // Only existing (fix) dishes are fetched by name; missing rows are added locally.
+    const fixItems = (items || []).filter((item) => {
+      if (!item) {
+        return false;
+      }
+      if (typeof item === "string") {
+        return true;
+      }
+      return item.mode !== "missing";
+    });
+    const names = [...new Set(fixItems.map((item) => String(item.ru || item || "").trim()).filter(Boolean))];
     if (!names.length) {
       state.rows = [];
       state.total = 0;

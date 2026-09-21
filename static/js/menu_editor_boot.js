@@ -113,7 +113,7 @@
       E.applyLayoutMode();
 
       if (hasFixRows) {
-        await E.loadFocusedRows(incoming);
+        await E.loadFocusedRows(incoming.filter((item) => item.mode === "fix"));
       } else {
         state.rows = [];
         state.total = 0;

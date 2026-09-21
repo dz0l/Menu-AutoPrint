@@ -302,15 +302,16 @@ compose_python() {
 
 wait_for_web() {
   local attempt
-  log "Waiting for the web container to accept commands..."
-  for attempt in $(seq 1 60); do
-    if compose_python -c "import django" >/dev/null 2>&1; then
+  log "Waiting for the web container (migrations applied)..."
+  for attempt in $(seq 1 90); do
+    # manage.py sets DJANGO_SETTINGS_MODULE; migrate --check fails until start_web migrate finishes.
+    if compose_python manage.py migrate --check >/dev/null 2>&1; then
       log "Web container is ready."
       return 0
     fi
     sleep 2
   done
-  record_error "Web container did not become ready in time."
+  record_error "Web container did not become ready in time (migrations / startup)."
   return 1
 }
 

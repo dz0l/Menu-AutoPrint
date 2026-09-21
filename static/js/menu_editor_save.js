@@ -25,6 +25,8 @@
     E.setSaveBusy(true);
     const saveToken = ++state.saveSeq;
     const deletedAtStart = state.deletedRowIds.length;
+    // Snapshot of rows as sent — late translate must not rewrite _original / clear dirty.
+    const sentSnapshots = payloadRows.map((row) => ({row, sent: E.rowSnapshot(row)}));
     E.status(`Пожалуйста, подождите... идёт сохранение (${payloadRows.length}), удаление (${deleteIds.length}).`);
     C.toast("Пожалуйста, подождите... идёт сохранение.");
     try {
@@ -53,15 +55,13 @@
       const errorsCount = data.errors?.length || 0;
       E.status(`Создано: ${data.created}, обновлено: ${data.updated}, удалено: ${data.deleted || 0}, ошибок: ${errorsCount}`);
       (data.row_results || []).forEach((item) => {
-        const row = payloadRows[item.index];
-        if (!row) {
+        const entry = sentSnapshots[item.index];
+        if (!entry) {
           return;
         }
+        const {row, sent} = entry;
         row.id = item.id;
         row._isNew = false;
-        row._dirty = false;
-        row._autoTranslated = false;
-        row._original = E.rowSnapshot(row);
         if (state.focusedActive) {
           state.focusedIds = state.focusedIds || new Set();
           state.focusedIds.add(Number(item.id));
@@ -69,6 +69,17 @@
             state.focusedNewKeys.delete(row._focusKey);
           }
         }
+        const current = E.rowSnapshot(row);
+        const diverged =
+          current.ru !== sent.ru ||
+          current.en !== sent.en ||
+          current.kcal !== sent.kcal ||
+          current.gr !== sent.gr ||
+          current.catRu !== sent.catRu ||
+          current.catEn !== sent.catEn;
+        row._original = {...sent};
+        row._autoTranslated = false;
+        row._dirty = diverged;
       });
       const deletedOk = new Set(data.deleted_ids || []);
       state.deletedRowIds = state.deletedRowIds.filter((id) => !deletedOk.has(id));

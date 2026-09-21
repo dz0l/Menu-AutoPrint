@@ -12,6 +12,7 @@
   function canTranslateRow(row) {
     return (
       E.TRANSLATION_ENABLED &&
+      !state.saveInFlight &&
       !state.translateAllInFlight &&
       !row._translating &&
       String(row.ru || "").trim() &&
@@ -61,7 +62,7 @@
   }
 
   async function translateRows(targetRows, reason = "row") {
-    if (!E.TRANSLATION_ENABLED) {
+    if (!E.TRANSLATION_ENABLED || state.saveInFlight) {
       return;
     }
     const candidates = targetRows.filter((row) => canTranslateRow(row));
@@ -85,6 +86,10 @@
       for (let start = 0; start < candidates.length; start += 50) {
         const chunk = candidates.slice(start, start + 50);
         const translations = await requestTranslation(chunk.map((row) => row.ru));
+        if (state.saveInFlight) {
+          // Save started while translate was in flight — do not apply late EN.
+          break;
+        }
         translations.forEach((value, index) => {
           const row = chunk[index];
           if (!row || !value) {

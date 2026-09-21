@@ -29,11 +29,11 @@ except ImportError:  # pragma: no cover - Windows / non-POSIX
 User = get_user_model()
 
 
-def _rate_limit_lock_path(key: str) -> Path:
+def _rate_limit_lock_path(_key: str) -> Path:
+    """Single shared lock file — avoids one inode per attempted username."""
     location = Path(settings.CACHES["default"].get("LOCATION") or "/tmp/django-cache")
     location.mkdir(parents=True, exist_ok=True)
-    safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", key)[:120]
-    return location / f".rate-lock-{safe}"
+    return location / ".login-rate.lock"
 
 
 def _atomic_rate_count(key: str, *, window: int) -> int:

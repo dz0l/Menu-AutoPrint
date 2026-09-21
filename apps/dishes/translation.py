@@ -146,7 +146,10 @@ def _translate_with_azure(texts: list[str]) -> list[str]:
             first = translations[0]
             if not isinstance(first, dict):
                 raise TranslationBadResponse("Azure Translator response format is invalid")
-            result.append(str(first.get("text", "")).strip())
+            text = first.get("text")
+            if not isinstance(text, str) or not text.strip():
+                raise TranslationBadResponse("Azure Translator response format is invalid")
+            result.append(text.strip())
     except TranslationBadResponse:
         raise
     except (KeyError, TypeError, IndexError, ValueError, json.JSONDecodeError) as exc:

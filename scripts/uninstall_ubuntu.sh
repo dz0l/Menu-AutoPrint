@@ -102,12 +102,25 @@ is_menu_autoprint_dir() {
 }
 
 resolve_and_validate_app_dir() {
-  local resolved
+  local resolved=""
   if [[ ! -d "$APP_DIR" ]]; then
     echo "APP_DIR does not exist: $APP_DIR" >&2
     exit 1
   fi
-  resolved="$(readlink -f "$APP_DIR" 2>/dev/null || realpath "$APP_DIR" 2>/dev/null || echo "$APP_DIR")"
+  if command -v readlink >/dev/null 2>&1; then
+    resolved="$(readlink -f "$APP_DIR" 2>/dev/null || true)"
+  fi
+  if [[ -z "$resolved" ]] && command -v realpath >/dev/null 2>&1; then
+    resolved="$(realpath "$APP_DIR" 2>/dev/null || true)"
+  fi
+  if [[ -z "$resolved" ]]; then
+    echo "Unable to resolve APP_DIR to a canonical absolute path: $APP_DIR" >&2
+    exit 1
+  fi
+  if [[ "$resolved" != /* ]]; then
+    echo "Refusing non-absolute APP_DIR=$resolved" >&2
+    exit 1
+  fi
   case "$resolved" in
     /|/home|/opt|/var|/usr|/etc|/root|/mnt|/media|/tmp)
       echo "Refusing unsafe APP_DIR=$resolved" >&2
