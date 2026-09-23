@@ -12,5 +12,6 @@ backups/
 .local/
 *.local.md
 .old/
+**/_test_media/
 path/*
 !path/.gitkeep

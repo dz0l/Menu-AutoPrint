@@ -9,6 +9,8 @@ class MustChangePasswordMiddleware:
     def __call__(self, request):
         user = getattr(request, "user", None)
         if user and user.is_authenticated and getattr(user, "must_change_password", False):
+            if request.path.startswith("/api/integration/"):
+                return self.get_response(request)
             allowed = {
                 reverse("change_password_page"),
                 reverse("logout"),

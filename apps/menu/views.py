@@ -1,4 +1,3 @@
-import base64
 import logging
 import re
 import unicodedata
@@ -17,7 +16,6 @@ from apps.core.http_utils import admin_required as _admin_required
 from apps.core.http_utils import editor_required as _editor_required
 from apps.core.http_utils import json_body as _json_body
 from apps.core.http_utils import request_payload as _request_payload
-from apps.core.http_utils import to_bool as _to_bool
 from apps.dishes.services import analyze_pasted
 from apps.dishes.translation import is_translation_configured
 from .archive import (
@@ -27,7 +25,6 @@ from .archive import (
     get_entry_for_download,
     list_archive_rows,
     purge_old_archives,
-    save_menu_pdf_to_archive,
 )
 from .covers import (
     cover_absolute_path,
@@ -40,18 +37,17 @@ from .covers import (
     serialize_cover,
     update_cover_name,
 )
+from .document import (
+    archive_pdf_for_user,
+    build_document_payload,
+    build_pdf_from_payload,
+    bytes_to_data_url,
+)
 from .models import MenuArchiveEntry, MenuCover
 from apps.pdf.services import (
     FOOTER_NOTE_EN,
     FOOTER_NOTE_RU,
-    UNKNOWN_LOCATION_LABEL,
-    build_download_filename,
-    build_menu_pdf,
-    format_print_date,
 )
-
-from .services import build_preview, normalize_lines, translate_lines
-
 
 logger = logging.getLogger(__name__)
 SESSION_DOCUMENTS_KEY = "menu_rendered_documents"
@@ -66,74 +62,8 @@ def _ascii_filename(value: str) -> str:
     return sanitized or "menu.pdf"
 
 
-def _parse_cover_id(value) -> int | None:
-    if value in (None, "", "null", "undefined"):
-        return None
-    try:
-        cover_id = int(value)
-    except (TypeError, ValueError):
-        return None
-    return cover_id if cover_id > 0 else None
-
-
 def _bytes_to_data_url(data: bytes, content_type: str) -> str:
-    encoded = base64.b64encode(data).decode("ascii")
-    return f"data:{content_type};base64,{encoded}"
-
-
-def _build_document_payload(data: dict) -> dict:
-    ru_lines = normalize_lines(data.get("ru") or data.get("ru_lines"))
-    en_lines = translate_lines(ru_lines)
-    show_kcal = _to_bool(data.get("show_kcal", True))
-    auto_format = _to_bool(data.get("auto_format", False))
-    print_date = data.get("print_date") or ""
-    background_name = data.get("background_name") or ""
-    background_data = data.get("background_data") or ""
-    background_bytes = None
-    location_label = UNKNOWN_LOCATION_LABEL
-    location_key = None
-    cover_id = _parse_cover_id(data.get("cover_id"))
-
-    if cover_id is not None:
-        try:
-            cover = get_cover(cover_id)
-        except MenuCover.DoesNotExist as exc:
-            raise ValueError("Подложка не найдена.") from exc
-        try:
-            background_bytes = read_cover_bytes(cover)
-        except FileNotFoundError as exc:
-            raise ValueError("Файл подложки отсутствует на сервере.") from exc
-        background_data = _bytes_to_data_url(background_bytes, cover_content_type(cover))
-        background_name = cover.original_filename
-        location_label = cover.location_name
-        location_key = cover.location_key
-    else:
-        # Custom local file (or no cover): archive as unknown location.
-        location_label = UNKNOWN_LOCATION_LABEL
-        location_key = "unknown_location"
-
-    preview = build_preview(ru_lines, en_lines, show_kcal=show_kcal, auto_format=auto_format)
-    filename = build_download_filename(
-        print_date,
-        background_name,
-        ru_lines=ru_lines,
-        location_label=location_label,
-    )
-    return {
-        "preview": preview,
-        "show_kcal": show_kcal,
-        "auto_format": auto_format,
-        "print_date": print_date,
-        "display_date": format_print_date(print_date),
-        "background_name": background_name,
-        "background_data": background_data,
-        "background_bytes": background_bytes,
-        "location_label": location_label,
-        "location_key": location_key,
-        "cover_id": cover_id,
-        "filename": filename,
-        "ru_lines": ru_lines,
-    }
+    return bytes_to_data_url(data, content_type)
 
 
 def _store_document(request, payload: dict) -> str:
@@ -192,39 +122,6 @@ def _pdf_response(pdf: bytes, filename: str, *, download: bool = False) -> HttpR
         f"{disposition}; filename=\"{_ascii_filename(filename)}\"; filename*=UTF-8''{quote(filename)}"
     )
     return response
-
-
-def _build_pdf_from_payload(payload: dict) -> bytes:
-    return build_menu_pdf(
-        preview=payload["preview"],
-        print_date=payload.get("print_date") or "",
-        show_kcal=bool(payload.get("show_kcal")),
-        background_name=payload.get("background_name") or "",
-        background_data=payload.get("background_data") or "",
-        background_bytes=payload.get("background_bytes"),
-        document_title=payload.get("filename") or "menu.pdf",
-        auto_format=bool(payload.get("auto_format", False)),
-    )
-
-
-def _archive_pdf(request, pdf: bytes, payload: dict) -> None:
-    """Persist PDF for archive. Editors download only; admins also archive."""
-    user = getattr(request, "user", None)
-    if not getattr(user, "is_admin", False):
-        return
-    try:
-        save_menu_pdf_to_archive(
-            pdf,
-            print_date=payload.get("print_date") or "",
-            ru_lines=payload.get("ru_lines"),
-            background_name=payload.get("background_name") or "",
-            location_key=payload.get("location_key"),
-            location_label=payload.get("location_label"),
-            user=user,
-        )
-    except Exception as exc:
-        logger.exception("Failed to save menu PDF to archive")
-        raise ValueError("Не удалось сохранить PDF в архив. Проверьте диск и повторите.") from exc
 
 
 def _document_pages(payload: dict) -> list[dict]:
@@ -367,7 +264,7 @@ def archive_download(request, entry_id: int):
 @require_http_methods(["POST"])
 def preview_api(request):
     try:
-        return JsonResponse(_build_document_payload(_request_payload(request))["preview"])
+        return JsonResponse(build_document_payload(_request_payload(request))["preview"])
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
 
@@ -388,7 +285,7 @@ def analyze_api(request):
 @require_http_methods(["POST"])
 def render_document_api(request):
     try:
-        payload = _build_document_payload(_request_payload(request))
+        payload = build_document_payload(_request_payload(request))
         stored = _session_safe_payload(payload)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
@@ -423,9 +320,9 @@ def document_print_page(request, token: str):
 @require_http_methods(["POST"])
 def pdf_api(request):
     try:
-        payload = _build_document_payload(_request_payload(request))
-        pdf = _build_pdf_from_payload(payload)
-        _archive_pdf(request, pdf, payload)
+        payload = build_document_payload(_request_payload(request))
+        pdf = build_pdf_from_payload(payload)
+        archive_pdf_for_user(request.user, pdf, payload)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
     except Exception as exc:

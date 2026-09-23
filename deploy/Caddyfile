@@ -2,3 +2,16 @@
     encode zstd gzip
     reverse_proxy nginx:80
 }
+
+# Optional second public hostname (e.g. Mini App).
+# Leave CADDY_EXTRA_SITE_ADDRESS unset to use the built-in discard fallback
+# (http://127.0.0.1:9 as the site-address placeholder — not a loopback bind
+# of the published HTTP/HTTPS ports).
+# Never set CADDY_EXTRA_SITE_ADDRESS to an empty value (Caddy fails to start).
+# For a real second site set BOTH, for example:
+#   CADDY_EXTRA_SITE_ADDRESS=app.example.com
+#   CADDY_EXTRA_UPSTREAM=menu-telegram:8090
+{$CADDY_EXTRA_SITE_ADDRESS:http://127.0.0.1:9} {
+    encode zstd gzip
+    reverse_proxy {$CADDY_EXTRA_UPSTREAM:nginx:80}
+}

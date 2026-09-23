@@ -58,11 +58,15 @@ services:
     depends_on:
       - nginx
     env_file: .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: ["/bin/sh", "/scripts/caddy_entrypoint.sh"]
     ports:
       - "${CADDY_BIND_ADDRESS:-0.0.0.0}:${CADDY_HTTP_PORT:-80}:80"
       - "${CADDY_BIND_ADDRESS:-0.0.0.0}:${CADDY_HTTPS_PORT:-443}:443"
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./scripts/caddy_entrypoint.sh:/scripts/caddy_entrypoint.sh:ro
       - caddy_data:/data
       - caddy_config:/config
 

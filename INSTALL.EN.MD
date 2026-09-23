@@ -229,4 +229,26 @@ cd /opt/menu-autoprint
 docker compose run --rm backup bash /scripts/backup_postgres.sh once
 ```
 
-Enable auto-translation in the dish editor by setting `AZURE_TRANSLATOR_KEY` in `.env`; for a West Europe Azure Translator resource use `AZURE_TRANSLATOR_REGION=westeurope` and keep `AZURE_TRANSLATOR_ENDPOINT=https://api.cognitive.microsofttranslator.com`. Restart `web` after changing `.env`.
+Enable auto-translation in the dish editor by setting `AZURE_TRANSLATOR_KEY` in `.env`; for a West Europe Azure Translator resource use `AZURE_TRANSLATOR_REGION=westeurope` and keep `AZURE_TRANSLATOR_ENDPOINT=https://api.cognitive.microsofttranslator.com`. After changing `.env`, recreate the container (`docker compose up -d`); plain `docker compose restart web` does not reload environment.
+
+Host publish of `127.0.0.1:8000` is off by default (use Docker DNS `web:8000`). For a rare host-network peer: `docker compose -f docker-compose.yml -f docker-compose.host-port.example.yml up -d`.
+
+Caddy second site (`CADDY_EXTRA_SITE_ADDRESS` / `CADDY_EXTRA_UPSTREAM`): leave both unset, or set both to real values. An empty `CADDY_EXTRA_SITE_ADDRESS` breaks Caddy startup; the entrypoint unsets empty values.
+
+## Integration API
+
+Narrow server-to-server HTTP API (`/api/integration/v1/`). Disabled by default; does not change normal browser login. Package `apps/integrations/` and shared `apps/menu/document.py` must ship even when `INTEGRATION_API_ENABLED=0`.
+
+1. Create the service account and key:
+
+```bash
+docker compose exec web python manage.py create_integration_credential --username integration-service
+```
+
+2. Put the printed `INTEGRATION_API_ENABLED=1`, `INTEGRATION_SERVICE_USER_ID`, and `INTEGRATION_API_KEY_HASH` into `.env`. Show the raw key once to the integration client; store only the hash in `.env`.
+
+3. Recreate `web` (`docker compose up -d`) so environment is applied. Call with `Authorization: Bearer <key>`.
+
+Expired integration operations are purged in batches on new requests (up to 200 per pass); there is no separate cron. Django’s ~20 MB body limit is not a rate limit for heavy PDF work.
+
+Browser cookie sessions cannot use this namespace. The key does not open `/admin/` or the regular browser APIs.

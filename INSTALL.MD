@@ -220,4 +220,26 @@ cd /opt/menu-autoprint
 docker compose run --rm backup bash /scripts/backup_postgres.sh once
 ```
 
-Автоперевод в редакторе базы включается заполнением `AZURE_TRANSLATOR_KEY` в `.env`; для ресурса Azure Translator в West Europe используйте `AZURE_TRANSLATOR_REGION=westeurope` и оставьте `AZURE_TRANSLATOR_ENDPOINT=https://api.cognitive.microsofttranslator.com`. После изменения `.env` перезапустите `web`.
+Автоперевод в редакторе базы включается заполнением `AZURE_TRANSLATOR_KEY` в `.env`; для ресурса Azure Translator в West Europe используйте `AZURE_TRANSLATOR_REGION=westeurope` и оставьте `AZURE_TRANSLATOR_ENDPOINT=https://api.cognitive.microsofttranslator.com`. После изменения переменных в `.env` пересоздайте контейнер (`docker compose up -d`), обычный `docker compose restart web` environment не перечитывает.
+
+Публикация `127.0.0.1:8000` на хост по умолчанию отключена (достаточно Docker DNS `web:8000`). Если нужен loopback-порт для редкого host-network peer: `docker compose -f docker-compose.yml -f docker-compose.host-port.example.yml up -d`.
+
+Второй сайт Caddy (`CADDY_EXTRA_SITE_ADDRESS` / `CADDY_EXTRA_UPSTREAM`): либо не задавайте обе переменные, либо задайте обе с реальными значениями. Пустая строка в `CADDY_EXTRA_SITE_ADDRESS` ломает старт Caddy; entrypoint снимает пустые значения.
+
+## Integration API
+
+Узкий серверный HTTP API (`/api/integration/v1/`) для внешних систем. По умолчанию выключен и не влияет на обычный вход в веб-интерфейс. Модуль `apps/integrations/` и общий `apps/menu/document.py` обязательны в поставке даже при `INTEGRATION_API_ENABLED=0` (settings/urls импортируют пакет).
+
+1. Создайте служебную учётную запись и ключ:
+
+```bash
+docker compose exec web python manage.py create_integration_credential --username integration-service
+```
+
+2. Запишите в `.env` выведенные `INTEGRATION_API_ENABLED=1`, `INTEGRATION_SERVICE_USER_ID` и `INTEGRATION_API_KEY_HASH`. Сырой ключ покажите один раз клиенту интеграции; в `.env` храните только hash.
+
+3. Пересоздайте `web` (`docker compose up -d`), чтобы подтянуть environment. Запросы с заголовком `Authorization: Bearer <ключ>`.
+
+Истёкшие integration-операции удаляются порциями при новых запросах (до 200 за проход); отдельного cron нет. Лимит тела Django (~20 МБ) не заменяет отдельный лимит частоты тяжёлых PDF.
+
+Cookie-сессия браузера к этому namespace не допускается. Ключ не открывает `/admin/` и обычные browser API.

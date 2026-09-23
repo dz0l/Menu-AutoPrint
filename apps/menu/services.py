@@ -84,8 +84,8 @@ def translate_group_line(line: str) -> str:
     return GROUP_RU2EN.get(label, f"{(line or '').strip().rstrip(':')}:" if line else "")
 
 
-def translate_lines(ru_lines: list[str]) -> list[str]:
-    dishes = dish_maps()
+def translate_lines(ru_lines: list[str], *, dishes: dict[str, Dish] | None = None) -> list[str]:
+    maps = dishes if dishes is not None else dish_maps()
     translated = []
     for ru in ru_lines:
         if is_page_break_line(ru):
@@ -94,7 +94,7 @@ def translate_lines(ru_lines: list[str]) -> list[str]:
         if is_group_line(ru):
             translated.append(translate_group_line(ru))
             continue
-        dish = dishes.get(clean_name(ru))
+        dish = maps.get(clean_name(ru))
         translated.append(dish.name_en if dish and dish.name_en else "???")
     return translated
 
@@ -151,18 +151,25 @@ def _build_segment_items(ru_lines: list[str], en_lines: list[str], show_kcal=Tru
     )
 
 
-def build_preview(ru_lines: list[str], en_lines: list[str], show_kcal=True, auto_format=False) -> dict:
+def build_preview(
+    ru_lines: list[str],
+    en_lines: list[str],
+    show_kcal=True,
+    auto_format=False,
+    *,
+    dishes: dict[str, Dish] | None = None,
+) -> dict:
     paired = split_paired_segments(ru_lines, en_lines)
     segments = []
     missing: list[str] = []
-    dishes = dish_maps()
+    maps = dishes if dishes is not None else dish_maps()
     for ru_seg, en_seg in paired:
         ru_items, en_items, layout, seg_missing = _build_segment_items(
             ru_seg,
             en_seg,
             show_kcal=show_kcal,
             auto_format=auto_format,
-            dishes=dishes,
+            dishes=maps,
         )
         missing.extend(seg_missing)
         segments.append({"ru": ru_items, "en": en_items, "layout": layout})
