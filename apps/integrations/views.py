@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_http_methods
 
 from apps.dishes.crud import CAT_RU2EN, dish_to_dict
+from apps.dishes.matching import analyze_pasted
 from apps.dishes.models import Dish
 from apps.menu.covers import cover_absolute_path, cover_content_type, list_covers, serialize_cover
 from apps.menu.document import archive_pdf_for_user, build_document_payload, build_pdf_from_payload
@@ -63,6 +64,7 @@ def capabilities(request):
             "contract_version": CONTRACT_VERSION,
             "features": {
                 "menu_check": True,
+                "menu_analyze": True,
                 "menu_pdf": True,
                 "dish_create": True,
                 "dish_fill_missing": True,
@@ -110,6 +112,20 @@ def menu_check(request):
     except ValueError as exc:
         return integration_error(400, "invalid_request", str(exc))
     return JsonResponse(check_menu(ru, show_kcal=show_kcal))
+
+
+@integration_endpoint
+@require_http_methods(["POST"])
+def menu_analyze(request):
+    """Same matching as web `/api/menu/analyze` (auto / review / unknown)."""
+    try:
+        data = _json(request)
+        text = data.get("text")
+        if not isinstance(text, str):
+            return integration_error(400, "invalid_request", "text must be a string.")
+    except ValueError as exc:
+        return integration_error(400, "invalid_request", str(exc))
+    return JsonResponse({"decisions": analyze_pasted(text)})
 
 
 @integration_endpoint

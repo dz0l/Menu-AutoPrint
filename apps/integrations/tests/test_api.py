@@ -120,6 +120,49 @@ class IntegrationApiTests(TestCase):
         self.assertFalse(bad.json()["ready"])
         self.assertIn("en", bad.json()["lines"][0]["missing_fields"])
 
+    def test_menu_check_unknown_offers_similar(self):
+        Dish.objects.create(
+            name_ru="Суп Куриный",
+            name_en="Chicken soup",
+            grams_default=300,
+            kcal_per_100=40,
+            category_ru="Супы",
+            category_en="Soups",
+        )
+        response = self.client.post(
+            "/api/integration/v1/menu/check",
+            data={"ru": "Куриный Суп", "show_kcal": True},
+            content_type="application/json",
+            **self.auth,
+        )
+        self.assertEqual(response.status_code, 200)
+        line = response.json()["lines"][0]
+        self.assertEqual(line["status"], "unknown")
+        self.assertTrue(line["options"])
+        self.assertEqual(line["options"][0]["ru"], "Суп Куриный")
+        self.assertGreaterEqual(line["options"][0]["score"], 0.82)
+
+    def test_menu_analyze_auto_reorder(self):
+        Dish.objects.create(
+            name_ru="Суп Куриный",
+            name_en="Chicken soup",
+            grams_default=300,
+            kcal_per_100=40,
+            category_ru="Супы",
+            category_en="Soups",
+        )
+        response = self.client.post(
+            "/api/integration/v1/menu/analyze",
+            data={"text": "Куриный Суп"},
+            content_type="application/json",
+            **self.auth,
+        )
+        self.assertEqual(response.status_code, 200)
+        decisions = response.json()["decisions"]
+        self.assertEqual(len(decisions), 1)
+        self.assertEqual(decisions[0]["status"], "auto")
+        self.assertEqual(decisions[0]["best"]["name"], "Суп Куриный")
+
     def test_create_and_fill_dish(self):
         created = self.client.post(
             "/api/integration/v1/dishes",

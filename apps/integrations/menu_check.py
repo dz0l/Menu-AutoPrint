@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from apps.core.text import clean_name
 from apps.dishes.crud import base_revision, dish_to_dict
+from apps.dishes.matching import find_similar_dishes
 from apps.dishes.models import Dish
-from apps.menu.services import dish_maps, is_group_line, is_page_break_line, normalize_lines
+from apps.menu.services import dish_maps, is_group_line, is_page_break_line
+
+# Same threshold as web CSV / find_similar_dishes default (~80%+).
+SIMILAR_THRESHOLD = 0.82
 
 
 def dish_version(dish: Dish) -> str:
@@ -21,6 +25,24 @@ def missing_fields_for(dish: Dish, *, show_kcal: bool) -> list[str]:
         if dish.kcal_per_100 is None:
             missing.append("kcal")
     return missing
+
+
+def similar_options(query: str, *, limit: int = 3, threshold: float = SIMILAR_THRESHOLD) -> list[dict]:
+    matches = find_similar_dishes(query, limit=limit, threshold=threshold)
+    if not matches:
+        return []
+    names = [item["name"] for item in matches]
+    id_by_name = {
+        dish.name_ru: dish.id
+        for dish in Dish.objects.filter(name_ru__in=names).only("id", "name_ru")
+    }
+    options: list[dict] = []
+    for item in matches:
+        dish_id = id_by_name.get(item["name"])
+        if dish_id is None:
+            continue
+        options.append({"id": dish_id, "ru": item["name"], "score": item["score"]})
+    return options
 
 
 def check_menu(ru: str | list[str], *, show_kcal: bool = True, dishes=None) -> dict:
@@ -75,7 +97,7 @@ def check_menu(ru: str | list[str], *, show_kcal: bool = True, dishes=None) -> d
                     "missing_fields": ["ru"],
                     "version": None,
                     "current": None,
-                    "options": [],
+                    "options": similar_options(text),
                 }
             )
             issues.append({"code": "unknown_dish", "line_index": logical_index, "field": "ru"})
