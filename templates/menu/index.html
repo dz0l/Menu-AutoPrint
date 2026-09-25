@@ -83,7 +83,11 @@
       </div>
     </div>
     <div id="previewPageArea" class="page-area">
-      <article id="previewPage" class="preview-page">
+      <article
+        id="previewPage"
+        class="preview-page"
+        style="--page-margin-x: {{ page_frame.margin_x }}; --page-content-top: {{ page_frame.content_top }}; --page-content-bottom: {{ page_frame.content_bottom }}; --page-footer-y: {{ page_frame.footer_y }}; --page-footer-font: {{ page_frame.footer_font }};"
+      >
         <div class="preview-surface">
           <img id="previewBackground" class="preview-bg" alt="" hidden>
           <div id="previewOverlay" class="preview-overlay" hidden></div>

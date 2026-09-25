@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.template.loader import render_to_string
 from django.test import SimpleTestCase, TestCase
 
 from apps.dishes.models import Dish
@@ -7,6 +8,7 @@ from apps.integrations.menu_check import check_menu
 from apps.menu import document as document_mod
 from apps.menu.document import build_document_payload
 from apps.menu.services import dish_maps
+from apps.pdf.layout import page_frame
 
 
 class AsBoolTests(SimpleTestCase):
@@ -49,3 +51,44 @@ class CatalogSnapshotTests(TestCase):
         en_texts = [item.get("text") for item in payload["preview"]["en"] if item.get("text")]
         self.assertIn("Borscht", en_texts)
         self.assertNotIn("???", en_texts)
+
+
+class PrintFrameTests(SimpleTestCase):
+    def test_print_page_uses_pdf_frame(self):
+        frame = page_frame()
+        html = render_to_string(
+            "menu/print.html",
+            {
+                "filename": "menu.pdf",
+                "display_date": "25.09.2026",
+                "show_kcal": True,
+                "background_data": "",
+                "page_frame": frame,
+                "pages": [
+                    {
+                        "label": "RU",
+                        "layout": {
+                            "menu_font_size": 18,
+                            "menu_leading": 24,
+                            "group_font_size": 18,
+                            "group_leading": 24,
+                            "continuation_leading": 20,
+                            "group_space_before": 16,
+                            "after_group_space_before": 5,
+                            "dish_space_before": 2,
+                        },
+                        "items": [{"type": "dish", "lines": ["• Борщ", "250 г"]}],
+                        "footer_note": "Калорийность и вес указаны на порцию",
+                    }
+                ],
+            },
+        )
+        self.assertIn(
+            f"padding: {frame['content_top']}pt {frame['margin_x']}pt {frame['content_bottom']}pt",
+            html,
+        )
+        self.assertIn(f"bottom: {frame['footer_y']}pt", html)
+        self.assertIn(f"font-size: {frame['footer_font']}pt", html)
+        self.assertIn("--group-leading: 24pt", html)
+        self.assertIn("overflow-wrap: normal", html)
+        self.assertNotIn("overflow-wrap: anywhere", html)

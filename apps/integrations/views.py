@@ -56,6 +56,43 @@ def _pdf_response(pdf: bytes, filename: str, *, request_id: str) -> HttpResponse
     return response
 
 
+def _archive_meta(payload: dict, *, archived: bool) -> dict:
+    return {
+        "filename": payload.get("filename") or "menu.pdf",
+        "archived": archived,
+        "print_date": payload.get("print_date") or "",
+        "ru_lines": list(payload.get("ru_lines") or []),
+        "background_name": payload.get("background_name") or "",
+        "location_key": payload.get("location_key"),
+        "location_label": payload.get("location_label"),
+    }
+
+
+def _finish_archive(request, op, pdf: bytes, payload: dict | None = None):
+    """Retry archive when a succeeded PDF was stored before the archive write (W-05)."""
+    meta = dict(op.result_json or {})
+    if meta.get("archived", True):
+        return None
+    body = payload or meta
+    try:
+        archive_pdf_for_user(request.integration_user, pdf, body)
+    except ValueError as exc:
+        logger.exception(
+            "integration pdf archive failed request_id=%s stage=archive",
+            op.request_id,
+        )
+        return integration_error(
+            503,
+            "archive_failed",
+            f"PDF сохранён для повтора по ключу, архив не записан: {exc}",
+            request_id=op.request_id,
+        )
+    meta["archived"] = True
+    op.result_json = meta
+    op.save(update_fields=["result_json", "updated_at"])
+    return None
+
+
 @integration_endpoint
 @require_http_methods(["GET"])
 def capabilities(request):
@@ -252,6 +289,9 @@ def menu_pdf(request):
             pdf = read_operation_pdf(op)
             if pdf is None:
                 return integration_error(503, "unavailable", "Stored PDF is missing.", request_id=op.request_id)
+            archived = _finish_archive(request, op, pdf)
+            if archived is not None:
+                return archived
             return _pdf_response(pdf, op.result_json.get("filename") or "menu.pdf", request_id=op.request_id)
         if op.status == IntegrationOperation.STATUS_FAILED:
             return integration_error(
@@ -286,20 +326,15 @@ def menu_pdf(request):
         payload["auto_format"] = data["auto_format"]
         pdf = build_pdf_from_payload(payload)
         # Persist PDF result before archive side-effect so replay can return the file.
-        mark_succeeded(op, result_json={"filename": payload["filename"]}, pdf=pdf, filename=payload["filename"])
-        try:
-            archive_pdf_for_user(request.integration_user, pdf, payload)
-        except ValueError as exc:
-            logger.exception(
-                "integration pdf archive failed after mark_succeeded request_id=%s stage=archive",
-                op.request_id,
-            )
-            return integration_error(
-                503,
-                "archive_failed",
-                f"PDF сохранён для повтора по ключу, архив не записан: {exc}",
-                request_id=op.request_id,
-            )
+        mark_succeeded(
+            op,
+            result_json=_archive_meta(payload, archived=not getattr(request.integration_user, "is_admin", False)),
+            pdf=pdf,
+            filename=payload["filename"],
+        )
+        archived = _finish_archive(request, op, pdf, payload)
+        if archived is not None:
+            return archived
         return _pdf_response(pdf, payload["filename"], request_id=op.request_id)
     except ValueError as exc:
         message = str(exc)

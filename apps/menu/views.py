@@ -44,6 +44,7 @@ from .document import (
     bytes_to_data_url,
 )
 from .models import MenuArchiveEntry, MenuCover
+from apps.pdf.layout import page_frame
 from apps.pdf.services import (
     FOOTER_NOTE_EN,
     FOOTER_NOTE_RU,
@@ -166,7 +167,8 @@ def index(request):
         {
             "app_config": {
                 "isAdmin": bool(getattr(request.user, "is_admin", False)),
-            }
+            },
+            "page_frame": page_frame(),
         },
     )
 
@@ -312,6 +314,7 @@ def document_print_page(request, token: str):
             "show_kcal": payload["show_kcal"],
             "background_data": _resolve_print_background(payload),
             "pages": _document_pages(payload),
+            "page_frame": page_frame(),
         },
     )
 

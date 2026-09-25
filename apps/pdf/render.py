@@ -14,6 +14,7 @@ from reportlab.pdfgen import canvas
 from apps.pdf.dates import format_print_date
 from apps.pdf.layout import (
     PAGE_CONTENT_BOTTOM,
+    FOOTER_FONT_SIZE,
     PAGE_FOOTER_Y,
     PAGE_MARGIN_LEFT,
     PAGE_MARGIN_RIGHT,
@@ -31,7 +32,6 @@ logger = logging.getLogger(__name__)
 
 FONT_REGULAR = "MenuAutoPrintRegular"
 FONT_BOLD = "MenuAutoPrintBold"
-FOOTER_FONT_SIZE = 11
 FONT_CANDIDATES = [
     (
         Path("/app/fonts/times.ttf"),

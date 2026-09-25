@@ -22,6 +22,18 @@ PAGE_MARGIN_RIGHT = 42
 PAGE_CONTENT_TOP_OFFSET = 48
 PAGE_CONTENT_BOTTOM = 78
 PAGE_FOOTER_Y = 28
+FOOTER_FONT_SIZE = 11
+
+
+def page_frame() -> dict:
+    """Point geometry shared by PDF, HTML print and the on-screen preview."""
+    return {
+        "margin_x": PAGE_MARGIN_LEFT,
+        "content_top": PAGE_CONTENT_TOP_OFFSET,
+        "content_bottom": PAGE_CONTENT_BOTTOM,
+        "footer_y": PAGE_FOOTER_Y,
+        "footer_font": FOOTER_FONT_SIZE,
+    }
 
 
 @dataclass

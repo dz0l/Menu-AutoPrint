@@ -13,3 +13,4 @@ docs
 CONTINUITY.md
 *.local.md
 .local
+**/tests
