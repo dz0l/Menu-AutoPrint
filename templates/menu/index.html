@@ -1,6 +1,24 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Формирование меню{% endblock %}
+{% block extra_head %}
+{% if menu_font_regular_url %}
+<style>
+  @font-face {
+    font-family: "MenuAutoPrint";
+    src: url("{{ menu_font_regular_url }}") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "MenuAutoPrint";
+    src: url("{{ menu_font_bold_url }}") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+  }
+</style>
+{% endif %}
+{% endblock %}
 {% block body_class %}page-index{% endblock %}
 {% block topbar_actions %}
 <div id="mainToolbar" class="page-actions main-toolbar">
@@ -86,7 +104,7 @@
       <article
         id="previewPage"
         class="preview-page"
-        style="--page-margin-x: {{ page_frame.margin_x }}; --page-content-top: {{ page_frame.content_top }}; --page-content-bottom: {{ page_frame.content_bottom }}; --page-footer-y: {{ page_frame.footer_y }}; --page-footer-font: {{ page_frame.footer_font }};"
+        style="--page-margin-x: {{ page_frame.margin_x }}; --page-content-top: {{ page_frame.content_top }}; --page-content-bottom: {{ page_frame.content_bottom }}; --page-footer-y: {{ page_frame.footer_y }}; --page-footer-font: {{ page_frame.footer_font }}; --baseline-ratio: {{ baseline_ratio|default:'0.825' }};"
       >
         <div class="preview-surface">
           <img id="previewBackground" class="preview-bg" alt="" hidden>

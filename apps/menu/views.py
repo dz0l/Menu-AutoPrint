@@ -42,9 +42,11 @@ from .document import (
     build_document_payload,
     build_pdf_from_payload,
     bytes_to_data_url,
+    validate_editor_menu_input,
 )
 from .models import MenuArchiveEntry, MenuCover
 from apps.pdf.layout import page_frame
+from apps.pdf.render import font_baseline_ratio, resolve_menu_font_files
 from apps.pdf.services import (
     FOOTER_NOTE_EN,
     FOOTER_NOTE_RU,
@@ -158,6 +160,16 @@ def _document_pages(payload: dict) -> list[dict]:
     return pages
 
 
+def _menu_font_context() -> dict:
+    files = resolve_menu_font_files()
+    regular = files[0] if files else None
+    return {
+        "menu_font_regular_url": reverse("menu:menu_font", args=["regular"]) if files else "",
+        "menu_font_bold_url": reverse("menu:menu_font", args=["bold"]) if files else "",
+        "baseline_ratio": f"{font_baseline_ratio(regular):.5f}",
+    }
+
+
 @ensure_csrf_cookie
 @login_required
 def index(request):
@@ -169,6 +181,7 @@ def index(request):
                 "isAdmin": bool(getattr(request.user, "is_admin", False)),
             },
             "page_frame": page_frame(),
+            **_menu_font_context(),
         },
     )
 
@@ -266,7 +279,9 @@ def archive_download(request, entry_id: int):
 @require_http_methods(["POST"])
 def preview_api(request):
     try:
-        return JsonResponse(build_document_payload(_request_payload(request))["preview"])
+        data = _request_payload(request)
+        validate_editor_menu_input(data)
+        return JsonResponse(build_document_payload(data)["preview"])
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
 
@@ -278,16 +293,23 @@ def analyze_api(request):
         return JsonResponse({"error": "forbidden"}, status=403)
     try:
         data = _request_payload(request)
+        text = data.get("text", "")
+        if text is None:
+            text = ""
+        if not isinstance(text, str):
+            raise ValueError("text must be a string")
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
-    return JsonResponse({"decisions": analyze_pasted(data.get("text") or "")})
+    return JsonResponse({"decisions": analyze_pasted(text)})
 
 
 @login_required
 @require_http_methods(["POST"])
 def render_document_api(request):
     try:
-        payload = build_document_payload(_request_payload(request))
+        data = _request_payload(request)
+        validate_editor_menu_input(data)
+        payload = build_document_payload(data)
         stored = _session_safe_payload(payload)
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
@@ -299,6 +321,16 @@ def render_document_api(request):
             "print_url": reverse("menu:document_print", args=[token]),
         }
     )
+
+
+@login_required
+@require_http_methods(["GET"])
+def menu_font(request, weight: str):
+    files = resolve_menu_font_files()
+    if files is None or weight not in {"regular", "bold"}:
+        raise Http404("font not found")
+    path = files[0] if weight == "regular" else files[1]
+    return FileResponse(path.open("rb"), content_type="font/ttf")
 
 
 @login_required
@@ -315,6 +347,7 @@ def document_print_page(request, token: str):
             "background_data": _resolve_print_background(payload),
             "pages": _document_pages(payload),
             "page_frame": page_frame(),
+            **_menu_font_context(),
         },
     )
 
@@ -323,7 +356,9 @@ def document_print_page(request, token: str):
 @require_http_methods(["POST"])
 def pdf_api(request):
     try:
-        payload = build_document_payload(_request_payload(request))
+        data = _request_payload(request)
+        validate_editor_menu_input(data)
+        payload = build_document_payload(data)
         pdf = build_pdf_from_payload(payload)
         archive_pdf_for_user(request.user, pdf, payload)
     except ValueError as exc:

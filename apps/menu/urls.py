@@ -11,4 +11,5 @@ urlpatterns = [
     path("archive/", views.archive_page, name="archive"),
     path("archive/<int:entry_id>/download/", views.archive_download, name="archive_download"),
     path("document/<str:token>/print/", views.document_print_page, name="document_print"),
+    path("fonts/<str:weight>.ttf", views.menu_font, name="menu_font"),
 ]

@@ -117,6 +117,26 @@ def _block_height(block: TextBlock) -> float:
     return height
 
 
+def html_block_height(block: TextBlock) -> float:
+    """Same stack as `_block_height`, expressed as HTML line boxes.
+
+    Each line box is the font size. The gap before a continuation is
+    ``step - font``. The block keeps ``leading - font`` after its last line,
+    which is the trailing step PDF always applies.
+    """
+    if not block.lines:
+        return float(block.space_before)
+    font = block.font_size
+    height = float(block.space_before)
+    for line_index in range(len(block.lines)):
+        height += font
+        if line_index < len(block.lines) - 1:
+            step = block.continuation_leading if block.is_dish and line_index == 0 else block.leading
+            height += step - font
+    height += block.leading - font
+    return height
+
+
 def _total_blocks_height(blocks: list[TextBlock]) -> float:
     return sum(_block_height(block) for block in blocks)
 

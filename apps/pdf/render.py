@@ -32,6 +32,11 @@ logger = logging.getLogger(__name__)
 
 FONT_REGULAR = "MenuAutoPrintRegular"
 FONT_BOLD = "MenuAutoPrintBold"
+# Helvetica AFM ascent / 1000. Used only when no TTF is registered.
+HELVETICA_BASELINE_RATIO = 0.718
+# Chromium, line-height 1, bundled Times: baseline is 0.825 of the font size
+# below the line-box top. hhea ascent/em (0.891) paints the line too high.
+TIMES_CSS_BASELINE_RATIO = 0.825
 FONT_CANDIDATES = [
     (
         Path("/app/fonts/times.ttf"),
@@ -148,6 +153,60 @@ def get_menu_fonts() -> tuple[str, str]:
     return _ensure_fonts_registered()
 
 
+def resolve_menu_font_files() -> tuple[Path, Path] | None:
+    """TTF pair shared by PDF and HTML. Bundled Times is preferred over system fonts."""
+    root = Path(__file__).resolve().parents[2]
+    candidates = [
+        (
+            root / "fonts" / "Times New Roman.ttf",
+            root / "fonts" / "Times New Roman Bold.ttf",
+        ),
+        *FONT_CANDIDATES,
+    ]
+    seen: set[tuple[Path, Path]] = set()
+    for regular_path, bold_path in candidates:
+        key = (regular_path, bold_path)
+        if key in seen:
+            continue
+        seen.add(key)
+        if regular_path.is_file() and bold_path.is_file():
+            return regular_path, bold_path
+    return None
+
+
+def font_baseline_ratio(path: Path | None = None) -> float:
+    """CSS shift that puts the browser baseline on the PDF layout-box top."""
+    if path is None:
+        files = resolve_menu_font_files()
+        path = files[0] if files else None
+    if path is None:
+        return HELVETICA_BASELINE_RATIO
+    hhea = _ttf_baseline_ratio(path)
+    if abs(hhea - (1825 / 2048)) < 0.002:
+        return TIMES_CSS_BASELINE_RATIO
+    return hhea
+
+
+def _ttf_baseline_ratio(path: Path) -> float:
+    import struct
+
+    data = path.read_bytes()
+    table_count = struct.unpack(">H", data[4:6])[0]
+    offset = 12
+    tables: dict[bytes, int] = {}
+    for _ in range(table_count):
+        tag, _checksum, table_offset, _length = struct.unpack(">4sIII", data[offset : offset + 16])
+        tables[tag] = table_offset
+        offset += 16
+    head = tables[b"head"]
+    units = struct.unpack(">H", data[head + 18 : head + 20])[0]
+    hhea = tables[b"hhea"]
+    ascent = struct.unpack(">h", data[hhea + 4 : hhea + 6])[0]
+    if units <= 0:
+        return HELVETICA_BASELINE_RATIO
+    return ascent / units
+
+
 def _ensure_fonts_registered() -> tuple[str, str]:
     try:
         pdfmetrics.getFont(FONT_REGULAR)
@@ -156,11 +215,12 @@ def _ensure_fonts_registered() -> tuple[str, str]:
     except KeyError:
         pass
 
-    for regular_path, bold_path in FONT_CANDIDATES:
-        if regular_path.exists() and bold_path.exists():
-            pdfmetrics.registerFont(TTFont(FONT_REGULAR, str(regular_path)))
-            pdfmetrics.registerFont(TTFont(FONT_BOLD, str(bold_path)))
-            return FONT_REGULAR, FONT_BOLD
+    files = resolve_menu_font_files()
+    if files is not None:
+        regular_path, bold_path = files
+        pdfmetrics.registerFont(TTFont(FONT_REGULAR, str(regular_path)))
+        pdfmetrics.registerFont(TTFont(FONT_BOLD, str(bold_path)))
+        return FONT_REGULAR, FONT_BOLD
 
     logger.warning("No Cyrillic-capable serif font found, falling back to Helvetica")
     return "Helvetica", "Helvetica-Bold"

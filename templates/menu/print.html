@@ -13,12 +13,27 @@
       box-sizing: border-box;
     }
 
+    {% if menu_font_regular_url %}
+    @font-face {
+      font-family: "MenuAutoPrint";
+      src: url("{{ menu_font_regular_url }}") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: "MenuAutoPrint";
+      src: url("{{ menu_font_bold_url }}") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+    }
+    {% endif %}
+
     html,
     body {
       margin: 0;
       background: #f3f5f7;
       color: #101418;
-      font-family: "Times New Roman", "Liberation Serif", serif;
+      font-family: "MenuAutoPrint", "Times New Roman", "Liberation Serif", serif;
     }
 
     .print-stack {
@@ -73,6 +88,7 @@
       text-align: center;
       font-size: var(--menu-font-size, 20pt);
       line-height: 1;
+      --baseline-ratio: {{ baseline_ratio|default:"0.825" }};
     }
 
     .group-block,
@@ -85,6 +101,45 @@
       width: 100%;
       overflow-wrap: normal;
       word-break: normal;
+    }
+
+    .group,
+    .group-line,
+    .dish,
+    .dish-line {
+      box-sizing: content-box;
+      line-height: 1;
+      overflow: visible;
+    }
+
+    .group,
+    .group-line {
+      height: var(--group-font-size, 20pt);
+    }
+
+    .dish,
+    .dish-line {
+      height: var(--menu-font-size, 20pt);
+    }
+
+    .group-block,
+    .content > .group {
+      padding-bottom: calc(var(--group-leading, 28pt) - var(--group-font-size, 20pt));
+    }
+
+    .dish-block,
+    .content > .dish {
+      padding-bottom: calc(var(--menu-leading, 28pt) - var(--menu-font-size, 20pt));
+    }
+
+    .content > .group-block,
+    .content > .group {
+      transform: translateY(calc(var(--group-font-size, 20pt) * var(--baseline-ratio) * -1));
+    }
+
+    .content > .dish-block,
+    .content > .dish {
+      transform: translateY(calc(var(--menu-font-size, 20pt) * var(--baseline-ratio) * -1));
     }
 
     .content > .group-block,

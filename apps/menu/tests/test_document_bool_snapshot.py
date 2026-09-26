@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase, TestCase
 
@@ -8,7 +10,10 @@ from apps.integrations.menu_check import check_menu
 from apps.menu import document as document_mod
 from apps.menu.document import build_document_payload
 from apps.menu.services import dish_maps
-from apps.pdf.layout import page_frame
+from apps.menu.document import validate_editor_menu_input
+from apps.menu.models import MenuArchiveEntry
+from apps.pdf.layout import TextBlock, _block_height, html_block_height, page_frame
+from apps.pdf.render import font_baseline_ratio, resolve_menu_font_files
 
 
 class AsBoolTests(SimpleTestCase):
@@ -92,3 +97,54 @@ class PrintFrameTests(SimpleTestCase):
         self.assertIn("--group-leading: 24pt", html)
         self.assertIn("overflow-wrap: normal", html)
         self.assertNotIn("overflow-wrap: anywhere", html)
+        self.assertIn("padding-bottom: calc(var(--menu-leading, 28pt) - var(--menu-font-size, 20pt))", html)
+        self.assertIn("height: var(--menu-font-size, 20pt)", html)
+
+
+class BlockSpacingTests(SimpleTestCase):
+    def test_html_block_height_matches_pdf(self):
+        cases = [
+            TextBlock(["• Борщ"], "Times", 20, 28, 24, 0, is_dish=True),
+            TextBlock(["• Борщ"], "Times", 20, 28, 24, 2, is_dish=True),
+            TextBlock(["• Борщ", "250 г"], "Times", 20, 28, 24, 0, is_dish=True),
+            TextBlock(["• Борщ", "250 г", "ещё"], "Times", 18, 24, 20, 2, is_dish=True),
+            TextBlock(["Супы:"], "Times", 20, 28, 28, 20, is_dish=False),
+            TextBlock(["Супы:", "продолжение"], "Times", 16, 22, 22, 6, is_dish=False),
+        ]
+        for block in cases:
+            self.assertEqual(html_block_height(block), _block_height(block))
+
+    def test_bundled_font_baseline_matches_hhea(self):
+        files = resolve_menu_font_files()
+        self.assertIsNotNone(files)
+        self.assertAlmostEqual(font_baseline_ratio(files[0]), 0.825, places=3)
+
+
+class EditorContractTests(SimpleTestCase):
+    def test_non_string_ru_and_date_rejected(self):
+        with self.assertRaisesMessage(ValueError, "ru must be a string"):
+            validate_editor_menu_input({"ru": 12})
+        with self.assertRaisesMessage(ValueError, "print_date must be a string"):
+            validate_editor_menu_input({"ru": "Супы:", "print_date": 20260926})
+        validate_editor_menu_input({"ru": "Супы:", "print_date": "", "show_kcal": None})
+
+
+class EditorWriteGuardTests(TestCase):
+    def test_bad_ru_does_not_archive(self):
+        from django.contrib.auth import get_user_model
+
+        user = get_user_model().objects.create_user(
+            username="editor-contract",
+            password="pass",
+            role="admin",
+            must_change_password=False,
+        )
+        self.client.force_login(user)
+        response = self.client.post(
+            "/api/menu/pdf",
+            data=json.dumps({"ru": 12, "print_date": "2026-09-26", "show_kcal": True}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()["error"], "ru must be a string")
+        self.assertEqual(MenuArchiveEntry.objects.count(), 0)

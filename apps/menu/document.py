@@ -35,6 +35,38 @@ def bytes_to_data_url(data: bytes, content_type: str) -> str:
     return f"data:{content_type};base64,{encoded}"
 
 
+def validate_editor_menu_input(data: dict) -> None:
+    """Reject editor document types before preview, session storage, or archive.
+
+    Web keeps its ``{"error": string}`` responses. Booleans stay loose: an empty
+    or null ``show_kcal`` still means off. Integration validates on its own path.
+    """
+    if not isinstance(data, dict):
+        raise ValueError("invalid payload")
+    if "ru" in data:
+        ru = data.get("ru")
+    elif "ru_lines" in data:
+        ru = data.get("ru_lines")
+    else:
+        ru = ""
+    if ru is None:
+        ru = ""
+    ru_ok = isinstance(ru, str) or (
+        isinstance(ru, list) and all(item is None or isinstance(item, str) for item in ru)
+    )
+    if not ru_ok:
+        raise ValueError("ru must be a string")
+    if "print_date" in data and data["print_date"] not in (None, "") and not isinstance(data["print_date"], str):
+        raise ValueError("print_date must be a string")
+    for key in ("background_name", "background_data"):
+        if key in data and data[key] not in (None, "") and not isinstance(data[key], str):
+            raise ValueError(f"{key} must be a string")
+    if "cover_id" in data and data["cover_id"] not in (None, "", "null", "undefined"):
+        cover_id = data["cover_id"]
+        if isinstance(cover_id, bool) or isinstance(cover_id, float) or not isinstance(cover_id, (int, str)):
+            raise ValueError("cover_id must be a positive integer")
+
+
 def build_document_payload(
     data: dict,
     *,

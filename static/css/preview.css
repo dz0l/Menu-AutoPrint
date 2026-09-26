@@ -99,7 +99,7 @@ body.theme-dark .editor-wrap textarea {
   background: var(--preview-bg);
   color: #101418;
   box-shadow: 0 16px 32px rgba(30, 44, 34, 0.12);
-  font-family: "Times New Roman", "Liberation Serif", "DejaVu Serif", serif;
+  font-family: "MenuAutoPrint", "Times New Roman", "Liberation Serif", "DejaVu Serif", serif;
 }
 
 .preview-bg,
@@ -140,7 +140,7 @@ body.theme-dark .preview-surface {
     calc(var(--page-content-bottom, 78) * var(--preview-pt-scale) * 1px * var(--preview-scale));
   text-align: center;
   font-size: calc(var(--menu-font-pt, 20) * var(--preview-pt-scale) * 1px * var(--preview-scale));
-  line-height: calc(var(--menu-leading-pt, 28) / var(--menu-font-pt, 20));
+  line-height: 1;
 }
 
 .preview-doc-inner {
@@ -189,6 +189,45 @@ body.theme-dark .preview-surface {
   overflow-wrap: normal;
   word-break: normal;
   text-align: center;
+}
+
+.preview-doc .group,
+.preview-doc .group-line,
+.preview-doc .dish,
+.preview-doc .dish-line {
+  box-sizing: content-box;
+  line-height: 1;
+  overflow: visible;
+}
+
+.preview-doc .group,
+.preview-doc .group-line {
+  height: calc(var(--group-font-pt, 20) * var(--preview-pt-scale) * 1px * var(--preview-scale));
+}
+
+.preview-doc .dish,
+.preview-doc .dish-line {
+  height: calc(var(--menu-font-pt, 20) * var(--preview-pt-scale) * 1px * var(--preview-scale));
+}
+
+.preview-doc .group-block,
+.preview-doc-inner > .group {
+  padding-bottom: calc((var(--group-leading-pt, 28) - var(--group-font-pt, 20)) * var(--preview-pt-scale) * 1px * var(--preview-scale));
+}
+
+.preview-doc .dish-block,
+.preview-doc-inner > .dish {
+  padding-bottom: calc((var(--menu-leading-pt, 28) - var(--menu-font-pt, 20)) * var(--preview-pt-scale) * 1px * var(--preview-scale));
+}
+
+.preview-doc-inner > .group-block,
+.preview-doc-inner > .group {
+  transform: translateY(calc(var(--group-font-pt, 20) * var(--preview-pt-scale) * 1px * var(--preview-scale) * var(--baseline-ratio, 0.825) * -1));
+}
+
+.preview-doc-inner > .dish-block,
+.preview-doc-inner > .dish {
+  transform: translateY(calc(var(--menu-font-pt, 20) * var(--preview-pt-scale) * 1px * var(--preview-scale) * var(--baseline-ratio, 0.825) * -1));
 }
 
 .preview-doc .group-block > .group {

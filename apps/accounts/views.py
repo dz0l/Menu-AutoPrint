@@ -132,7 +132,11 @@ def users(request):
         username = validate_username_value(data.get("username") or "")
     except ValueError as exc:
         return JsonResponse({"error": str(exc)}, status=400)
-    password = data.get("password") or _generate_valid_password()
+    password = data.get("password")
+    if password in (None, ""):
+        password = _generate_valid_password()
+    elif not isinstance(password, str):
+        return JsonResponse({"error": "password must be a string"}, status=400)
 
     try:
         validate_password(password)
