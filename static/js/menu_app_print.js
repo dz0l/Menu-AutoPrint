@@ -71,8 +71,31 @@
     return payload;
   }
 
+  function archiveOverwriteMessage(displayName) {
+    const name = (displayName || "").trim();
+    const titled = name ? ` «${name}»` : "";
+    return `В архиве уже есть меню${titled} с этой датой и подложкой. Перезаписать его?`;
+  }
+
+  async function confirmArchiveOverwrite(payload) {
+    if (!App.IS_ADMIN) {
+      return true;
+    }
+    const status = await postJson("/api/menu/archive-conflict", payload);
+    if (!status?.exists) {
+      return true;
+    }
+    return window.confirm(archiveOverwriteMessage(status.display_name));
+  }
+
   async function downloadPdfFlow() {
     const payload = buildDocumentPayload();
+    const overwrite = await confirmArchiveOverwrite(payload);
+    if (!overwrite) {
+      const cancelled = new Error("archive-overwrite-cancelled");
+      cancelled.code = "archive-overwrite-cancelled";
+      throw cancelled;
+    }
     const res = await fetch("/api/menu/pdf", {
       method: "POST",
       headers: {

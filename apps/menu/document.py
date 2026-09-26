@@ -12,7 +12,7 @@ from apps.pdf.services import (
     format_print_date,
 )
 
-from .archive import save_menu_pdf_to_archive
+from .archive import find_archive_entry, save_menu_pdf_to_archive
 from .covers import cover_content_type, get_cover, read_cover_bytes
 from .models import MenuCover
 from .services import build_preview, normalize_lines, translate_lines
@@ -148,6 +148,38 @@ def build_pdf_from_payload(payload: dict) -> bytes:
         document_title=payload.get("filename") or "menu.pdf",
         auto_format=bool(payload.get("auto_format", False)),
     )
+
+
+def archive_conflict_status(data: dict) -> dict:
+    """Whether this document would replace an existing archive file. Read-only."""
+    ru_lines = normalize_lines(data.get("ru") or data.get("ru_lines"))
+    print_date = data.get("print_date") or ""
+    if isinstance(print_date, str):
+        print_date = print_date.strip()
+    else:
+        print_date = str(print_date or "").strip()
+    background_name = data.get("background_name") or ""
+    if not isinstance(background_name, str):
+        background_name = ""
+    location_key = None
+    cover_id = parse_cover_id(data.get("cover_id"))
+    if cover_id is not None:
+        try:
+            cover = get_cover(cover_id)
+        except MenuCover.DoesNotExist as exc:
+            raise ValueError("Подложка не найдена.") from exc
+        background_name = cover.original_filename
+        location_key = cover.location_key
+    entry = find_archive_entry(
+        print_date=print_date,
+        ru_lines=ru_lines,
+        background_name=background_name,
+        location_key=location_key,
+    )
+    return {
+        "exists": entry is not None,
+        "display_name": (entry.display_name or "").strip() if entry else "",
+    }
 
 
 def archive_pdf_for_user(user, pdf: bytes, payload: dict) -> None:

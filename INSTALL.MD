@@ -174,7 +174,7 @@ docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --r
 
 Сформированные PDF (обычная печать, не альтернативная HTML; только учётные записи администратора) хранятся в `media/menu_archive/`. 
 
-В один календарный день могут быть отдельные строки по локациям; повторная печать с той же датой + локацией + типом меню перезаписывает файл. 
+В один календарный день могут быть отдельные строки по локациям. Повторная печать с той же датой, локацией и типом меню у администратора сначала спрашивает подтверждение в браузере (и на телефоне); после согласия файл перезаписывается, после отказа архив не меняется. Альтернативная HTML-печать архив не трогает. 
 
 Серверные подложки лежат в `media/menu_covers/` 
 
@@ -240,6 +240,31 @@ docker compose exec web python manage.py create_integration_credential --usernam
 
 3. Пересоздайте `web` (`docker compose up -d`), чтобы подтянуть environment. Запросы с заголовком `Authorization: Bearer <ключ>`.
 
+`POST /api/integration/v1/menu/archive-status` только сообщает, есть ли уже файл с той же датой, подложкой и типом (`exists`, `display_name`), и ничего не записывает. `POST /api/integration/v1/menu/pdf` по-прежнему перезаписывает такой файл без отдельного вопроса: клиент сам решает, вызывать ли проверку заранее.
+
 Истёкшие integration-операции удаляются порциями при новых запросах (до 200 за проход); отдельного cron нет. Лимит тела Django (~20 МБ) не заменяет отдельный лимит частоты тяжёлых PDF.
 
 Cookie-сессия браузера к этому namespace не допускается. Ключ не открывает `/admin/` и обычные browser API.
+
+## Необязательный бот Telegram
+
+Бот с мини-приложением не входит в стандартный `docker compose` этого репозитория. Его ставят отдельным сервисом в сеть `menu-autoprint_default` (имя сервиса `menu-telegram`, порт `8090` только внутри Docker). Как пользоваться — раздел 12 в [GUIDE.MD](GUIDE.MD).
+
+Кратко для запуска рядом с уже работающим сайтом:
+
+1. Включите Integration API командой выше. Сырой ключ запишите боту в `MENU_API_CREDENTIAL`; в `.env` сайта остаётся только hash.
+2. У бота задайте `MENU_API_BASE_URL=http://web:8000/api/integration/v1`, публичный `PUBLIC_MINI_APP_URL` с `https://`, токен бота и `SESSION_SECRET`, затем `docker compose up -d --build` в каталоге бота.
+3. Если мини-приложение отдаёт Caddy этого сервера, в `.env` сайта укажите оба значения и пересоздайте контейнеры (`docker compose up -d`):
+
+```bash
+CADDY_EXTRA_SITE_ADDRESS=app.example.com
+CADDY_EXTRA_UPSTREAM=menu-telegram:8090
+```
+
+4. Пользователь отправляет боту `/start`. Первый администратор:
+
+```bash
+docker compose exec menu-telegram python -m backend.cli approve TELEGRAM_ID --role admin
+```
+
+5. Проверка: `curl -sS https://app.example.com/api/health` — в ответе `"integration":"connected"`.

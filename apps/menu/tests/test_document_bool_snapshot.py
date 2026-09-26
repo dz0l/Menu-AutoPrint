@@ -10,7 +10,9 @@ from apps.integrations.menu_check import check_menu
 from apps.menu import document as document_mod
 from apps.menu.document import build_document_payload
 from apps.menu.services import dish_maps
-from apps.menu.document import validate_editor_menu_input
+from datetime import date
+
+from apps.menu.document import archive_conflict_status, validate_editor_menu_input
 from apps.menu.models import MenuArchiveEntry
 from apps.pdf.layout import TextBlock, _block_height, html_block_height, page_frame
 from apps.pdf.render import font_baseline_ratio, resolve_menu_font_files
@@ -127,6 +129,34 @@ class EditorContractTests(SimpleTestCase):
         with self.assertRaisesMessage(ValueError, "print_date must be a string"):
             validate_editor_menu_input({"ru": "Супы:", "print_date": 20260926})
         validate_editor_menu_input({"ru": "Супы:", "print_date": "", "show_kcal": None})
+
+
+class ArchiveConflictTests(TestCase):
+    def test_existing_row_is_reported_without_a_second_write(self):
+        MenuArchiveEntry.objects.create(
+            menu_date=date(2026, 9, 26),
+            menu_type="main",
+            location_key="unknown_location",
+            display_name="26092026",
+            relative_path="menu_archive/2026-09-26_main_unknown_location.pdf",
+            file_size=4,
+        )
+        status = archive_conflict_status({"ru": "Супы:\nБорщ", "print_date": "2026-09-26"})
+        self.assertTrue(status["exists"])
+        self.assertEqual(status["display_name"], "26092026")
+        self.assertEqual(MenuArchiveEntry.objects.count(), 1)
+
+    def test_other_menu_type_is_not_a_conflict(self):
+        MenuArchiveEntry.objects.create(
+            menu_date=date(2026, 9, 26),
+            menu_type="main",
+            location_key="unknown_location",
+            display_name="основное",
+            relative_path="menu_archive/main.pdf",
+            file_size=4,
+        )
+        status = archive_conflict_status({"ru": "Завтрак:\nКаша", "print_date": "2026-09-26"})
+        self.assertFalse(status["exists"])
 
 
 class EditorWriteGuardTests(TestCase):

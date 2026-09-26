@@ -183,7 +183,7 @@ docker compose exec web python manage.py import_dishes_csv /tmp/calories.csv --r
 
 Generated PDFs (normal print mode, not alternate HTML print; admin accounts only) are stored under `media/menu_archive/`.
 
-The same calendar day can keep separate rows per location; reprinting the same date + location + menu type overwrites that file.
+The same calendar day can keep separate rows per location. Reprinting the same date, location, and menu type as an administrator asks for confirmation in the browser (including on a phone); agreeing overwrites the file, declining leaves the archive unchanged. Alternate HTML print does not write the archive.
 
 Server-managed cover images live under `media/menu_covers/`.
 
@@ -249,6 +249,31 @@ docker compose exec web python manage.py create_integration_credential --usernam
 
 3. Recreate `web` (`docker compose up -d`) so environment is applied. Call with `Authorization: Bearer <key>`.
 
+`POST /api/integration/v1/menu/archive-status` only reports whether a file with the same date, cover, and menu type already exists (`exists`, `display_name`). It does not write. `POST /api/integration/v1/menu/pdf` still overwrites that file without asking; the client decides whether to check first.
+
 Expired integration operations are purged in batches on new requests (up to 200 per pass); there is no separate cron. Django’s ~20 MB body limit is not a rate limit for heavy PDF work.
 
 Browser cookie sessions cannot use this namespace. The key does not open `/admin/` or the regular browser APIs.
+
+## Optional Telegram bot
+
+A bot with a mini app is not part of this repository’s default `docker compose`. It runs as a separate service on the `menu-autoprint_default` network (service name `menu-telegram`, port `8090` inside Docker only). Day-to-day use is described in [GUIDE.MD](GUIDE.MD), section 12 (Russian).
+
+To run it beside an existing site:
+
+1. Enable the Integration API with the command above. Give the raw key to the bot as `MENU_API_CREDENTIAL`; the site `.env` keeps only the hash.
+2. On the bot, set `MENU_API_BASE_URL=http://web:8000/api/integration/v1`, a public `https://` `PUBLIC_MINI_APP_URL`, the bot token, and `SESSION_SECRET`, then `docker compose up -d --build` in the bot directory.
+3. If this server’s Caddy should publish the mini app, set both values in the site `.env` and recreate containers (`docker compose up -d`, not `restart`):
+
+```bash
+CADDY_EXTRA_SITE_ADDRESS=app.example.com
+CADDY_EXTRA_UPSTREAM=menu-telegram:8090
+```
+
+4. The user sends `/start` to the bot. Create the first bot administrator:
+
+```bash
+docker compose exec menu-telegram python -m backend.cli approve TELEGRAM_ID --role admin
+```
+
+5. Check with `curl -sS https://app.example.com/api/health`. The body should include `"integration":"connected"`.

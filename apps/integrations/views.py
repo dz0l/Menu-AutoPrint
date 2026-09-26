@@ -12,7 +12,12 @@ from apps.dishes.crud import CAT_RU2EN, dish_to_dict
 from apps.dishes.matching import analyze_pasted
 from apps.dishes.models import Dish
 from apps.menu.covers import cover_absolute_path, cover_content_type, list_covers, serialize_cover
-from apps.menu.document import archive_pdf_for_user, build_document_payload, build_pdf_from_payload
+from apps.menu.document import (
+    archive_conflict_status,
+    archive_pdf_for_user,
+    build_document_payload,
+    build_pdf_from_payload,
+)
 from apps.menu.models import MenuCover
 from apps.menu.services import dish_maps
 
@@ -253,6 +258,24 @@ def cover_image(request, cover_id: int):
     if not path.is_file():
         return integration_error(404, "not_found", "Cover file not found.")
     return FileResponse(path.open("rb"), content_type=cover_content_type(cover))
+
+
+@integration_endpoint
+@require_http_methods(["POST"])
+def menu_archive_status(request):
+    """Read-only. PDF generation still overwrites unless the client asks first and stops."""
+    try:
+        data = _json(request)
+        if not isinstance(data.get("ru"), str):
+            return integration_error(400, "invalid_request", "ru must be a string.")
+        if "print_date" in data and data.get("print_date") not in (None, "") and not isinstance(data.get("print_date"), str):
+            return integration_error(400, "invalid_request", "print_date must be a string.")
+        cover_id = data.get("cover_id")
+        if cover_id is not None and (isinstance(cover_id, bool) or not isinstance(cover_id, int) or cover_id < 1):
+            return integration_error(400, "invalid_request", "cover_id must be a positive integer.")
+        return JsonResponse(archive_conflict_status(data))
+    except ValueError as exc:
+        return integration_error(400, "invalid_request", str(exc))
 
 
 @integration_endpoint

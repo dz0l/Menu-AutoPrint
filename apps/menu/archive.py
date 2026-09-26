@@ -107,6 +107,27 @@ def archive_row_title(types: dict, menu_date: date, *, location_key: str = "", l
     return menu_date.strftime("%d%m%Y")
 
 
+def find_archive_entry(
+    *,
+    print_date: str,
+    ru_lines: list[str] | None = None,
+    menu_type: str | None = None,
+    background_name: str = "",
+    location_key: str | None = None,
+) -> MenuArchiveEntry | None:
+    """Return the archive row that a save with these keys would replace. Does not write."""
+    menu_date = parse_date(print_date)
+    resolved_type = menu_type or detect_menu_type(ru_lines)
+    if resolved_type not in MenuArchiveEntry.MenuType.values:
+        resolved_type = MenuArchiveEntry.MenuType.MAIN
+    resolved_key = archive_location_key(background_name, explicit_key=location_key)
+    return MenuArchiveEntry.objects.filter(
+        menu_date=menu_date,
+        menu_type=resolved_type,
+        location_key=resolved_key,
+    ).first()
+
+
 def save_menu_pdf_to_archive(
     pdf_bytes: bytes,
     *,

@@ -280,6 +280,9 @@
           printWindow.close();
         }
         App.setPdfBusy(false);
+        if (err?.code === "archive-overwrite-cancelled") {
+          return;
+        }
         toast(err.message || "Ошибка формирования документа");
       }
     });

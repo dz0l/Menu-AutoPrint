@@ -13,6 +13,7 @@ urlpatterns = [
     path("dishes/<int:dish_id>/missing-fields", views.dishes_fill_missing, name="integration_dishes_fill"),
     path("covers", views.covers_list, name="integration_covers"),
     path("covers/<int:cover_id>/image", views.cover_image, name="integration_cover_image"),
+    path("menu/archive-status", views.menu_archive_status, name="integration_menu_archive_status"),
     path("menu/pdf", views.menu_pdf, name="integration_menu_pdf"),
     path("operations/<str:request_id>", views.operation_status, name="integration_operation"),
 ]

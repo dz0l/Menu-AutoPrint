@@ -39,6 +39,7 @@ from .covers import (
 )
 from .document import (
     archive_pdf_for_user,
+    archive_conflict_status,
     build_document_payload,
     build_pdf_from_payload,
     bytes_to_data_url,
@@ -350,6 +351,20 @@ def document_print_page(request, token: str):
             **_menu_font_context(),
         },
     )
+
+
+@login_required
+@require_http_methods(["POST"])
+def archive_conflict_api(request):
+    """Read-only check before print. Non-admins do not write the archive, so there is no conflict."""
+    if not _admin_required(request):
+        return JsonResponse({"exists": False, "display_name": ""})
+    try:
+        data = _request_payload(request)
+        validate_editor_menu_input(data)
+        return JsonResponse(archive_conflict_status(data))
+    except ValueError as exc:
+        return JsonResponse({"error": str(exc)}, status=400)
 
 
 @login_required
